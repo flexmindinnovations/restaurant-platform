@@ -1,0 +1,12 @@
+-- Create schemas for each bounded context (schema-per-module strategy)
+CREATE SCHEMA IF NOT EXISTS identity;
+CREATE SCHEMA IF NOT EXISTS users;
+CREATE SCHEMA IF NOT EXISTS restaurants;
+CREATE SCHEMA IF NOT EXISTS menus;
+CREATE SCHEMA IF NOT EXISTS orders;
+CREATE SCHEMA IF NOT EXISTS payments;
+CREATE SCHEMA IF NOT EXISTS deliveries;
+CREATE SCHEMA IF NOT EXISTS notifications;
+CREATE SCHEMA IF NOT EXISTS reviews;
+CREATE SCHEMA IF NOT EXISTS promotions;
+CREATE SCHEMA IF NOT EXISTS analytics;

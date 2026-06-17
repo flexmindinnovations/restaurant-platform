@@ -1,1 +1,4 @@
-# Outputs for monitoring module
+output "dashboard_arn" {
+  description = "ARN of the CloudWatch dashboard"
+  value       = aws_cloudwatch_dashboard.main.dashboard_arn
+}

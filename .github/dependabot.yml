@@ -49,7 +49,23 @@ updates:
   - package-ecosystem: "terraform"
     directory: "/infrastructure/terraform/environments/dev"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:infra"
+
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure/terraform/environments/staging"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:infra"
+
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure/terraform/environments/production"
+    schedule:
+      interval: "weekly"
     labels:
       - "type:chore"
       - "platform:infra"

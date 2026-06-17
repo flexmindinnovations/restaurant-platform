@@ -27,3 +27,15 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b"]
 }
+
+variable "db_password" {
+  description = "Password for database admin — must be provided via tfvars or TF_VAR_db_password"
+  type        = string
+  sensitive   = true
+}
+
+variable "domain_name" {
+  description = "Domain name for the platform"
+  type        = string
+  default     = "dev.flexmindinnovations.com"
+}

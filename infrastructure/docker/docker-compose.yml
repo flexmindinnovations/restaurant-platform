@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgis/postgis:17-3.6
+    image: postgis/postgis:17-3.5
     container_name: rp-postgres
     ports:
       - "5432:5432"
@@ -11,19 +11,24 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - platform-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U platform -d restaurant_platform"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  redis:
-    image: valkey/valkey:9-alpine
-    container_name: rp-redis
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: rp-valkey
     ports:
       - "6379:6379"
+    command: ["valkey-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
     volumes:
-      - redis_data:/data
+      - valkey_data:/data
+    networks:
+      - platform-network
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
@@ -31,7 +36,7 @@ services:
       retries: 5
 
   localstack:
-    image: localstack/localstack:4.5
+    image: localstack/localstack:4.4
     container_name: rp-localstack
     ports:
       - "4566:4566"
@@ -41,9 +46,16 @@ services:
     volumes:
       - localstack_data:/var/lib/localstack
       - ./localstack/init-scripts:/etc/localstack/init/ready.d
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:4566/_localstack/health | grep '\\\"s3\\\": \\\"available\\\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
   mailpit:
-    image: axllent/mailpit:v1.29
+    image: axllent/mailpit:v1.21
     container_name: rp-mailpit
     ports:
       - "1025:1025"
@@ -51,8 +63,15 @@ services:
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: "true"
       MP_UI_AUTH_FILE: ""
+    networks:
+      - platform-network
 
 volumes:
   postgres_data:
-  redis_data:
+  valkey_data:
   localstack_data:
+
+networks:
+  platform-network:
+    name: platform-network
+    driver: bridge

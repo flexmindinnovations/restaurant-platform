@@ -27,7 +27,7 @@ def get_redis() -> Redis:
     return redis_client_factory()
 
 
-def get_current_user(settings: Settings = Depends(get_cached_settings)) -> dict[str, Any]:  # noqa: B008, ARG001
+def get_current_user(settings: Settings = Depends(get_cached_settings)) -> dict[str, Any]:  # noqa: ARG001
     """Authorization dependency placeholder. Returns a mock user representation."""
     return {
         "id": "00000000-0000-0000-0000-000000000000",

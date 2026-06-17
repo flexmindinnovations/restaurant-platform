@@ -2,12 +2,12 @@ name: Infrastructure CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop, main, dev]
     paths:
       - "infrastructure/terraform/**"
       - ".github/workflows/infrastructure-ci.yml"
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, dev]
     paths:
       - "infrastructure/terraform/**"
       - ".github/workflows/infrastructure-ci.yml"
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.15"
+          terraform_version: "1.9.0"
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
@@ -63,7 +63,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.15"
+          terraform_version: "1.9.0"
 
       - name: Terraform Init
         run: terraform init

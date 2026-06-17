@@ -30,6 +30,14 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     settings = get_settings()
     init_engine(settings.database_url)
     init_redis(settings.redis_url)
+
+    # Register module hooks
+    from modules.restaurants.startup import register_restaurants_hooks
+    register_restaurants_hooks()
+
+    # Wire event handlers
+    _wire_event_handlers()
+
     yield  # noqa: RUF075
     # Shutdown
     await close_engine()
@@ -111,9 +119,12 @@ def _register_routes(app: FastAPI) -> None:
         return {"status": "not_ready"}
 
     # Mount module routers under /api/v1/<module> prefix
+    from modules.restaurants.api.routes import admin_router as restaurants_admin_router
+
     app.include_router(identity_router, prefix="/api/v1/auth", tags=["identity"])
     app.include_router(users_router, prefix="/api/v1/me", tags=["users"])
     app.include_router(restaurants_router, prefix="/api/v1/restaurants", tags=["restaurants"])
+    app.include_router(restaurants_admin_router, prefix="/api/v1/admin/restaurants", tags=["restaurants-admin"])
     app.include_router(menus_router, prefix="/api/v1/menus", tags=["menus"])
     app.include_router(orders_router, prefix="/api/v1/orders", tags=["orders"])
     app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])
@@ -122,3 +133,11 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
     app.include_router(analytics_router, prefix="/api/v1/admin/analytics", tags=["analytics"])
+
+
+def _wire_event_handlers() -> None:
+    from modules.users.event_handlers import register_event_handlers as register_users_events
+    from shared.infrastructure.event_bus import get_event_bus
+
+    event_bus = get_event_bus()
+    register_users_events(event_bus)

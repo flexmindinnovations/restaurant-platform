@@ -1,18 +1,28 @@
--- Create schemas for each bounded context (schema-per-module strategy)
+-- Application database roles for Row-Level Security
 
-CREATE SCHEMA IF NOT EXISTS identity;
-CREATE SCHEMA IF NOT EXISTS users;
-CREATE SCHEMA IF NOT EXISTS restaurants;
-CREATE SCHEMA IF NOT EXISTS menus;
-CREATE SCHEMA IF NOT EXISTS orders;
-CREATE SCHEMA IF NOT EXISTS payments;
-CREATE SCHEMA IF NOT EXISTS deliveries;
-CREATE SCHEMA IF NOT EXISTS notifications;
-CREATE SCHEMA IF NOT EXISTS reviews;
-CREATE SCHEMA IF NOT EXISTS promotions;
-CREATE SCHEMA IF NOT EXISTS analytics;
+-- Role for tenant-scoped queries (used by application)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'app_tenant_scoped') THEN
+        CREATE ROLE app_tenant_scoped NOLOGIN;
+    END IF;
+END
+$$;
 
--- Grant usage to application roles
+-- Role for admin/migration queries (bypasses RLS)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'app_admin') THEN
+        CREATE ROLE app_admin NOLOGIN;
+    END IF;
+END
+$$;
+
+-- Grant roles to application user
+GRANT app_tenant_scoped TO platform;
+GRANT app_admin TO platform;
+
+-- Grant usage on schemas to application roles
 GRANT USAGE ON SCHEMA identity TO app_tenant_scoped, app_admin;
 GRANT USAGE ON SCHEMA users TO app_tenant_scoped, app_admin;
 GRANT USAGE ON SCHEMA restaurants TO app_tenant_scoped, app_admin;

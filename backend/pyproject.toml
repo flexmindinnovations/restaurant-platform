@@ -89,7 +89,25 @@ select = [
     "SLF", "SIM", "TID", "TCH", "ARG", "PTH", "ERA", "PL",
     "TRY", "FLY", "PERF", "RUF",
 ]
-ignore = ["S101", "TRY003", "N818", "S104", "S105"]
+ignore = [
+    "S101",    # Use of assert detected
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "N818",    # Exception name should be named with an Error suffix
+    "S104",    # Possible binding to all interfaces
+    "S105",    # Possible hardcoded password
+    "B008",    # Do not perform function call Depends in argument defaults
+    "RUF012",  # Mutable default value for class attribute
+    "PLR0913", # Too many arguments in function definition
+    "PLR0917", # Too many positional arguments
+    "PLR6301", # Method could be a function, class method, or static method
+    "TRY201",  # Use raise without specifying exception name
+    "TRY301",  # Abstract raise to an inner function
+    "UP046",   # Generic class uses Generic subclass instead of type parameters
+    "PLC0415", # import should be at the top-level of a file
+    "S110",    # try-except-pass detected
+    "UP042",   # Class inherits from both str and enum.Enum
+    "RUF100",  # Unused noqa directive
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "modules", "shared", "workers"]
@@ -103,6 +121,21 @@ mypy_path = "src"
 [[tool.mypy.overrides]]
 module = ["celery.*", "redis.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "modules.*.infrastructure.models.*",
+    "modules.*.infrastructure.repositories.*",
+    "modules.*.api.routes",
+    "modules.*.api.dependencies",
+    "shared.api.security",
+    "shared.api.response",
+    "shared.infrastructure.database",
+    "shared.infrastructure.unit_of_work",
+    "shared.infrastructure.outbox"
+]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

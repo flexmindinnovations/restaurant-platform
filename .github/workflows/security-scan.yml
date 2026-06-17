@@ -2,7 +2,7 @@ name: Security Scan
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, dev]
   schedule:
     - cron: "0 6 * * 1" # Weekly on Monday at 6 AM UTC
 
@@ -31,7 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   sast-python:
-    name: Python SAST
+    name: Python SAST & Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -49,6 +49,59 @@ jobs:
 
       - name: Run Bandit
         run: uv tool run bandit -r backend/src/ -c pyproject.toml --severity-level medium
+        continue-on-error: true
+        working-directory: backend
+
+      - name: Run pip-audit
+        run: |
+          uv pip compile pyproject.toml -o requirements.txt
+          uvx pip-audit -r requirements.txt
+        continue-on-error: true
+        working-directory: backend
+
+  sast-frontend:
+    name: Frontend Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run npm audit
+        run: npm audit
+        working-directory: frontend
+        continue-on-error: true
+
+  sast-mobile:
+    name: Mobile Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Run Flutter Pub Outdated
+        run: |
+          cd mobile/apps/customer_app && flutter pub outdated
+          cd ../restaurant_app && flutter pub outdated
+          cd ../delivery_app && flutter pub outdated
+        continue-on-error: true
+
+  sast-semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Semgrep
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config auto --fail-on-error
         continue-on-error: true
 
   container-scan:

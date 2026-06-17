@@ -10,7 +10,7 @@ request_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar(REQUEST
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:  # noqa: PLR6301
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Retrieve incoming request ID or generate a new one
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
 

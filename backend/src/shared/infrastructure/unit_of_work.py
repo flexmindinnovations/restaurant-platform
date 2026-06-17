@@ -1,33 +1,8 @@
-from abc import ABC, abstractmethod
-from typing import Self
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.domain.entity import AggregateRoot
+from shared.application.ports.unit_of_work import AbstractUnitOfWork
 from shared.domain.events import EventBus
-
-
-class AbstractUnitOfWork(ABC):
-    def __init__(self) -> None:
-        self._aggregates: list[AggregateRoot] = []
-
-    def register_aggregate(self, aggregate: AggregateRoot) -> None:
-        self._aggregates.append(aggregate)
-
-    @abstractmethod
-    async def commit(self) -> None:
-        pass
-
-    @abstractmethod
-    async def rollback(self) -> None:
-        pass
-
-    async def __aenter__(self) -> Self:
-        return self
-
-    async def __aexit__(self, exc_type: type | None, exc_val: Exception | None, exc_tb: object) -> None:
-        if exc_type is not None:
-            await self.rollback()
+from shared.infrastructure.outbox import store_outbox_events
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
@@ -37,10 +12,14 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self._event_bus = event_bus
 
     async def commit(self) -> None:
-        await self._session.commit()
+        collected_events = []
         for aggregate in self._aggregates:
-            events = aggregate.collect_events()
-            await self._event_bus.publish_many(events)
+            collected_events.extend(aggregate.collect_events())
+        # Persist events to outbox within the same transaction
+        await store_outbox_events(self._session, collected_events)
+        await self._session.commit()
+        # Publish after commit for immediate in-process handling
+        await self._event_bus.publish_many(collected_events)
         self._aggregates.clear()
 
     async def rollback(self) -> None:
@@ -48,5 +27,4 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self._aggregates.clear()
 
 
-# Alias for backward compatibility / simplicity
 UnitOfWork = SqlAlchemyUnitOfWork
