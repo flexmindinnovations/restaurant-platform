@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Approved |
-| Version | v1.0 |
+| Version | v1.1 |
 | Date | June 2026 |
 | Inputs | PRD v1.0, ADR v1.1, DDD v1.0, PostgreSQL Database Design v1.0, API Contract Specification v1.0, Backend Architecture v1.0, Frontend Architecture v1.0, AWS Infrastructure Architecture v1.0, AI Architecture Specification v1.0 |
 | Repository Strategy | Git Monorepo |
@@ -413,18 +413,16 @@ restaurant-platform/
 │   └── .importlinter
 │
 ├── frontend/
-│   ├── apps/
-│   │   └── admin-dashboard/
-│   │       ├── src/
-│   │       │   ├── app/
-│   │       │   │   ├── app.component.ts
-│   │       │   │   ├── app.config.ts
-│   │       │   │   └── app.routes.ts
-│   │       │   ├── environments/
-│   │       │   ├── assets/
-│   │       │   └── main.ts
-│   │       ├── angular.json (or project.json if Nx)
-│   │       └── tsconfig.json
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── app.ts
+│   │   │   ├── app.html
+│   │   │   ├── app.config.ts
+│   │   │   └── app.routes.ts
+│   │   ├── styles.scss          — Angular Material M3 theme + global a11y styles
+│   │   ├── tailwind.css         — TailwindCSS v4 config
+│   │   ├── index.html
+│   │   └── main.ts
 │   │
 │   ├── libs/
 │   │   ├── core/
@@ -461,12 +459,13 @@ restaurant-platform/
 │   │       └── src/
 │   │
 │   ├── package.json
-│   ├── nx.json (if Nx adopted)
-│   ├── tsconfig.base.json
-│   ├── tailwind.config.js
-│   ├── .eslintrc.json
+│   ├── angular.json
+│   ├── tsconfig.json
+│   ├── eslint.config.mjs
 │   ├── .prettierrc
-│   ├── jest.config.ts
+│   ├── playwright.config.ts
+│   ├── proxy.conf.json
+│   ├── nginx.conf
 │   └── Dockerfile
 │
 ├── mobile/
@@ -594,7 +593,7 @@ restaurant-platform/
 │   │       ├── lib/
 │   │       └── pubspec.yaml
 │   │
-│   └── melos.yaml
+│   └── pubspec.yaml            — Dart native workspace root + Melos config
 │
 ├── ai/
 │   ├── src/
@@ -1164,87 +1163,60 @@ uv run celery -A workers.celery_app beat --loglevel=info
 
 ## 4.1 Workspace Creation
 
-### Option A — Angular CLI with Nx (Recommended)
-
-```bash
-cd frontend
-npx create-nx-workspace@latest admin-dashboard \
-  --preset=angular-monorepo \
-  --style=scss \
-  --ssr=false \
-  --e2eTestRunner=playwright
-```
-
-### Option B — Standalone Angular CLI
+### Angular CLI Workspace
 
 ```bash
 cd frontend
 ng new admin-dashboard \
   --style=scss \
   --routing \
-  --ssr=false \
   --standalone
 ```
 
-### Recommendation
+### Architecture
 
-Nx is recommended because:
-
-```text
-1. Enforces library boundaries (aligns with bounded-context isolation)
-2. Provides affected-based CI (only test/build changed libs)
-3. Computation caching (faster CI/CD)
-4. Code generators for consistent library scaffolding
-5. Module boundary rules via @nx/enforce-module-boundaries
-```
+Plain Angular CLI workspace with path-mapped libraries (`@app/*` via tsconfig paths). Module boundary rules are enforced by `eslint-plugin-boundaries`. This avoids the overhead of Nx for a single-application workspace while preserving architectural isolation.
 
 ---
 
 ## 4.2 Architecture Alignment
 
-### Nx Library Generation (one per bounded context)
+### Library Structure
 
-```bash
-# Core libraries
-nx g @nx/angular:library core --directory=libs/core --standalone --buildable
-nx g @nx/angular:library shared --directory=libs/shared --standalone --buildable
-nx g @nx/angular:library design-system --directory=libs/design-system --standalone --buildable
-nx g @nx/angular:library api-client --directory=libs/api-client --standalone --buildable
+Libraries are created as plain directories under `libs/` and imported via tsconfig path mappings (`@app/*`). No ng-packagr or buildable libraries — path aliases resolve at build time.
 
-# Feature libraries (one per bounded context)
-nx g @nx/angular:library auth --directory=libs/auth --standalone --buildable --lazy
-nx g @nx/angular:library dashboard --directory=libs/dashboard --standalone --buildable --lazy
-nx g @nx/angular:library users --directory=libs/users --standalone --buildable --lazy
-nx g @nx/angular:library restaurants --directory=libs/restaurants --standalone --buildable --lazy
-nx g @nx/angular:library orders --directory=libs/orders --standalone --buildable --lazy
-nx g @nx/angular:library deliveries --directory=libs/deliveries --standalone --buildable --lazy
-nx g @nx/angular:library payments --directory=libs/payments --standalone --buildable --lazy
-nx g @nx/angular:library promotions --directory=libs/promotions --standalone --buildable --lazy
-nx g @nx/angular:library reviews --directory=libs/reviews --standalone --buildable --lazy
-nx g @nx/angular:library analytics --directory=libs/analytics --standalone --buildable --lazy
-nx g @nx/angular:library settings --directory=libs/settings --standalone --buildable --lazy
-nx g @nx/angular:library support --directory=libs/support --standalone --buildable --lazy
+```text
+libs/
+├── core/           — Configuration, DI, environment, guards, interceptors
+├── shared/         — Reusable components, pipes, directives, utilities
+├── design-system/  — Design tokens, themes, typography, component wrappers
+├── api-client/     — Typed HTTP client for backend REST API
+├── auth/           — Authentication feature (lazy-loaded)
+├── dashboard/      — Dashboard feature (lazy-loaded)
+├── users/          — Users management feature (lazy-loaded)
+├── restaurants/    — Restaurants management feature (lazy-loaded)
+├── orders/         — Orders management feature (lazy-loaded)
+├── deliveries/     — Deliveries management feature (lazy-loaded)
+├── payments/       — Payments management feature (lazy-loaded)
+├── promotions/     — Promotions management feature (lazy-loaded)
+├── reviews/        — Reviews management feature (lazy-loaded)
+├── analytics/      — Analytics feature (lazy-loaded)
+├── settings/       — Settings feature (lazy-loaded)
+└── support/        — Support feature (lazy-loaded)
 ```
 
-### Nx Module Boundary Rules
+### Module Boundary Rules (eslint-plugin-boundaries)
 
-File: `frontend/.eslintrc.json` (excerpt)
+File: `frontend/eslint.config.mjs`
 
-```json
-{
-  "@nx/enforce-module-boundaries": [
-    "error",
-    {
-      "depConstraints": [
-        { "sourceTag": "type:feature", "onlyDependOnLibsWithTags": ["type:core", "type:shared", "type:design-system", "type:api-client"] },
-        { "sourceTag": "type:shared", "onlyDependOnLibsWithTags": ["type:core", "type:design-system"] },
-        { "sourceTag": "type:core", "onlyDependOnLibsWithTags": [] },
-        { "sourceTag": "type:design-system", "onlyDependOnLibsWithTags": ["type:core"] },
-        { "sourceTag": "type:api-client", "onlyDependOnLibsWithTags": ["type:core"] }
-      ]
-    }
-  ]
-}
+```javascript
+// Element types: app, core, shared, design-system, api-client, feature
+// Dependency rules:
+//   feature → can depend on: core, shared, design-system, api-client
+//   shared → can depend on: core, design-system
+//   core → nothing
+//   design-system → can depend on: core
+//   api-client → can depend on: core
 ```
 
 ---
@@ -1255,44 +1227,45 @@ File: `frontend/.eslintrc.json` (excerpt)
 {
   "dependencies": {
     "@angular/core": "^22.0.0",
+    "@angular/cdk": "^22.0.0",
     "@angular/material": "^22.0.0",
-    "@ngrx/signals": "^19.0.0",
-    "tailwindcss": "^4.0.0"
+    "@ngrx/signals": "^21.1.1",
+    "@angular/ssr": "^22.0.1",
+    "express": "^5.1.0",
+    "rxjs": "~7.8.0"
   },
   "devDependencies": {
-    "@angular/cli": "^22.0.0",
-    "@nx/angular": "latest",
-    "@nx/workspace": "latest",
-    "jest": "^29.7.0",
-    "jest-preset-angular": "^14.0.0",
-    "playwright": "^1.48.0",
-    "eslint": "^9.0.0",
-    "prettier": "^3.4.0"
+    "@angular/build": "^22.0.1",
+    "@angular/cli": "^22.0.1",
+    "@playwright/test": "^1.52.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "angular-eslint": "^22.0.0",
+    "eslint-plugin-boundaries": "^5.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
   }
 }
 ```
 
 ---
 
-## 4.4 TailwindCSS Setup
+## 4.4 TailwindCSS v4 Setup
 
-File: `frontend/tailwind.config.js`
+TailwindCSS v4 uses CSS-first configuration (no `tailwind.config.js`). The config lives in a plain CSS file.
 
-```javascript
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./apps/**/*.{html,ts}",
-    "./libs/**/*.{html,ts}",
-  ],
-  theme: {
-    extend: {
-      // Design tokens will be defined here per Frontend Architecture Spec Section 7
-    },
-  },
-  plugins: [],
-};
+File: `frontend/src/tailwind.css`
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
 ```
+
+The `@tailwindcss/postcss` plugin processes this at build time. The file is kept separate from `styles.scss` to avoid Sass `@import` conflicts.
 
 ---
 
@@ -1300,26 +1273,26 @@ module.exports = {
 
 | Layer | Tool | Config File |
 |---|---|---|
-| Unit Tests | Jest + jest-preset-angular | `jest.config.ts` |
-| Component Tests | Angular Testing Library | (included in Jest) |
+| Unit Tests | Vitest (native Angular 22 via `@angular/build:unit-test`) | `angular.json` |
+| Component Tests | Angular Testing Library | (included in Vitest) |
 | E2E Tests | Playwright | `playwright.config.ts` |
-| Linting | ESLint + Nx boundary rules | `.eslintrc.json` |
+| Linting | ESLint + eslint-plugin-boundaries | `eslint.config.mjs` |
 | Formatting | Prettier | `.prettierrc` |
 
 ### Test Commands
 
 ```bash
-# Run all tests
-nx run-many --target=test --all
+# Run all unit tests
+npx ng test --watch=false
 
-# Run tests for affected libs only
-nx affected --target=test
+# Run tests with coverage
+npm run test:ci
 
 # Run e2e tests
-nx e2e admin-dashboard-e2e
+npm run e2e
 
-# Lint all
-nx run-many --target=lint --all
+# Lint all (src + libs)
+npx ng lint
 ```
 
 ---
@@ -1328,39 +1301,51 @@ nx run-many --target=lint --all
 
 ## 5.1 Workspace Strategy
 
-Use **Melos** for multi-package Flutter monorepo management.
+Use **Melos 7.x** with **Dart native workspaces** for multi-package Flutter monorepo management. Configuration lives in `mobile/pubspec.yaml` (not a separate `melos.yaml`).
 
-File: `mobile/melos.yaml`
+File: `mobile/pubspec.yaml`
 
 ```yaml
 name: restaurant_platform_mobile
-repository: https://github.com/<org>/restaurant-platform
+publish_to: 'none'
 
-packages:
-  - apps/*
-  - packages/*
+environment:
+  sdk: ^3.9.0
 
-command:
-  bootstrap:
-    usePubspecOverrides: true
+workspace:
+  - apps/customer_app
+  - apps/delivery_app
+  - apps/restaurant_app
+  - packages/analytics_pkg
+  - packages/authentication
+  - packages/core
+  - packages/design_system
+  - packages/localization
+  - packages/maps
+  - packages/networking
+  - packages/realtime
+  - packages/storage
 
-scripts:
-  analyze:
-    run: melos exec -- "dart analyze --fatal-infos"
-    description: Run dart analyze in all packages
+dev_dependencies:
+  melos: ^7.8.0
 
-  test:
-    run: melos exec -- "flutter test"
-    description: Run tests in all packages
+melos:
+  name: restaurant_platform_mobile
 
-  format:
-    run: melos exec -- "dart format --set-exit-if-changed ."
-    description: Check formatting in all packages
-
-  generate:
-    run: melos exec -- "dart run build_runner build --delete-conflicting-outputs"
-    description: Run code generation in all packages
+  scripts:
+    analyze:
+      exec: dart analyze --fatal-infos
+    test:
+      exec: flutter test
+    format:
+      exec: dart format --set-exit-if-changed .
+    generate:
+      exec: dart run build_runner build --delete-conflicting-outputs
+      packageFilters:
+        dependsOn: build_runner
 ```
+
+All child packages declare `resolution: workspace` in their pubspec.yaml.
 
 ---
 
@@ -1391,18 +1376,20 @@ customer_app/lib/features/
 ### Core Dependencies (`pubspec.yaml`)
 
 ```yaml
+environment:
+  sdk: ^3.9.0
+
+resolution: workspace
+
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.6.0
-  riverpod_annotation: ^2.6.0
-  go_router: ^14.6.0
-  flutter_hooks: ^0.20.0
-  dio: ^5.7.0
-  flutter_secure_storage: ^9.2.0
-  hive_flutter: ^1.1.0
-  google_maps_flutter: ^2.10.0
-  firebase_messaging: ^15.1.0
+  flutter_riverpod: ^3.1.0
+  go_router: ^17.0.0
+  dio: ^5.9.0
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+  intl: ^0.20.2
   # Shared packages (path dependencies)
   design_system:
     path: ../../packages/design_system
@@ -1418,10 +1405,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  riverpod_generator: ^2.6.0
   build_runner: ^2.4.0
-  flutter_lints: ^5.0.0
-  mocktail: ^1.0.0
+  freezed: ^3.2.0
+  json_serializable: ^6.14.0
+  mocktail: ^1.0.4
+  very_good_analysis: ^10.0.0
 ```
 
 ---
@@ -1803,14 +1791,14 @@ Job: lint
     1. Checkout
     2. Setup Node.js 22
     3. npm ci
-    4. nx run-many --target=lint --all
+    4. npx ng lint
 
 Job: test
   Steps:
     1. Checkout
     2. Setup Node.js 22
     3. npm ci
-    4. nx affected --target=test --base=origin/develop
+    4. npm run test:ci
 
 Job: build
   Needs: [lint, test]
@@ -1818,7 +1806,7 @@ Job: build
     1. Checkout
     2. Setup Node.js 22
     3. npm ci
-    4. nx build admin-dashboard --configuration=production
+    4. npm run build:prod
     5. Upload build artifacts
 
 Job: e2e
@@ -1828,7 +1816,7 @@ Job: e2e
     2. Setup Node.js 22
     3. npm ci
     4. npx playwright install --with-deps
-    5. nx e2e admin-dashboard-e2e
+    5. npm run e2e
 ```
 
 ---
@@ -2027,13 +2015,13 @@ Step 3: Setup Backend
 
 Step 4: Setup Frontend
   cd frontend
-  npm install
-  nx serve admin-dashboard
+  npm ci
+  npm start
 
 Step 5: Setup Mobile (any app)
   cd mobile
-  dart pub global activate melos
-  melos bootstrap
+  dart pub get
+  dart run melos bootstrap
   cd apps/customer_app
   flutter run
 
@@ -2053,7 +2041,7 @@ File: `infrastructure/docker/docker-compose.yml`
 | Service | Image | Port | Purpose |
 |---|---|---|---|
 | `postgres` | `postgis/postgis:17-3.5` | `5432` | PostgreSQL with PostGIS |
-| `redis` | `valkey/valkey:8-alpine` | `6379` | Valkey cache/pubsub (Redis-compatible, open-source) |
+| `valkey` | `valkey/valkey:8-alpine` | `6379` | Valkey cache/pubsub (Redis-compatible, open-source) |
 | `localstack` | `localstack/localstack:latest` | `4566` | AWS service emulation (SNS/SQS/SES) |
 | `mailpit` | `axllent/mailpit:latest` | `1025`, `8025` | Email testing (SMTP + Web UI) |
 
@@ -2123,28 +2111,28 @@ frontend-install:
 	cd frontend && npm ci
 
 frontend-dev:
-	cd frontend && npx nx serve admin-dashboard
+	cd frontend && npm start
 
 frontend-test:
-	cd frontend && npx nx run-many --target=test --all
+	cd frontend && npm test -- --watch=false
 
 frontend-lint:
-	cd frontend && npx nx run-many --target=lint --all
+	cd frontend && npx ng lint
 
 frontend-build:
-	cd frontend && npx nx build admin-dashboard --configuration=production
+	cd frontend && npm run build:prod
 
 # ---- Mobile ----
 .PHONY: mobile-install mobile-test mobile-analyze
 
 mobile-install:
-	cd mobile && melos bootstrap
+	cd mobile && dart pub get && dart run melos bootstrap
 
 mobile-test:
-	cd mobile && melos run test
+	cd mobile && dart run melos run test
 
 mobile-analyze:
-	cd mobile && melos run analyze
+	cd mobile && dart run melos run analyze
 
 # ---- All ----
 .PHONY: install test lint
@@ -2209,13 +2197,13 @@ All tasks below MUST be completed before business feature development begins.
 
 | # | Task | Owner | Depends On |
 |---|---|---|---|
-| S0-040 | Create Angular workspace with Nx (Section 4.1) | Frontend Lead | S0-008 |
-| S0-041 | Generate core, shared, design-system, api-client libs | Frontend Lead | S0-040 |
-| S0-042 | Generate feature libraries (one per bounded context) | Frontend Lead | S0-041 |
-| S0-043 | Configure TailwindCSS (Section 4.4) | Frontend Lead | S0-040 |
-| S0-044 | Configure Angular Material theming | Frontend Lead | S0-041 |
-| S0-045 | Configure Nx module boundary rules (Section 4.2) | Frontend Lead | S0-042 |
-| S0-046 | Configure Jest testing (Section 4.5) | Frontend Lead | S0-040 |
+| S0-040 | Create Angular CLI workspace (Section 4.1) | Frontend Lead | S0-008 |
+| S0-041 | Create core, shared, design-system, api-client libs | Frontend Lead | S0-040 |
+| S0-042 | Create feature libraries (one per bounded context) | Frontend Lead | S0-041 |
+| S0-043 | Configure TailwindCSS v4 (Section 4.4) | Frontend Lead | S0-040 |
+| S0-044 | Configure Angular Material M3 theming (WCAG AA) | Frontend Lead | S0-041 |
+| S0-045 | Configure eslint-plugin-boundaries rules (Section 4.2) | Frontend Lead | S0-042 |
+| S0-046 | Configure Vitest testing (Section 4.5) | Frontend Lead | S0-040 |
 | S0-047 | Configure Playwright E2E | Frontend Lead | S0-040 |
 | S0-048 | Configure ESLint + Prettier | Frontend Lead | S0-040 |
 | S0-049 | Create Dockerfile for admin dashboard | Frontend Lead | S0-040 |
@@ -2427,11 +2415,11 @@ Sprint 1 SHALL NOT begin until ALL of the following conditions are met:
 
 ## 11.3 Frontend
 
-- [ ] Angular workspace builds successfully
-- [ ] All feature libraries generated and boundary rules enforced
-- [ ] TailwindCSS configured and working
-- [ ] Angular Material theming applied
-- [ ] Jest tests run (at least one passing placeholder test)
+- [ ] Angular CLI workspace builds successfully
+- [ ] All feature libraries created and boundary rules enforced (eslint-plugin-boundaries)
+- [ ] TailwindCSS v4 configured and working
+- [ ] Angular Material M3 theming applied (WCAG AA compliant)
+- [ ] Vitest tests run (at least one passing placeholder test)
 - [ ] Playwright E2E infrastructure configured
 
 ## 11.4 Mobile
@@ -2566,20 +2554,23 @@ MVP implementation SHALL NOT be considered complete until ALL of the following c
 | SQLAlchemy | >= 2.0 | ORM |
 | Alembic | >= 1.14 | Database migrations |
 | PostgreSQL | 17 | Primary database |
-| Redis | 7 | Cache, pubsub, sessions |
+| Valkey | 8 | Cache, pubsub, sessions (Redis-compatible, open-source) |
 | Celery | >= 5.4 | Background processing |
 | uv | >= 0.5 | Python package manager |
 | Node.js | 22 LTS | Angular build tooling |
-| Angular | v22 | Admin dashboard |
-| Angular Material | v22 | UI component library |
-| TailwindCSS | v4 | Utility-first CSS |
-| Nx | Latest | Angular monorepo tooling |
-| NgRx Signal Store | >= 19 | Angular state management |
-| Flutter | Stable (latest) | Mobile framework |
-| Dart | (bundled) | Mobile language |
-| Riverpod | >= 2.6 | Flutter state management |
-| GoRouter | >= 14.6 | Flutter navigation |
-| Melos | Latest | Flutter monorepo tooling |
+| Angular | v22 | Admin dashboard (CLI workspace) |
+| Angular Material | v22 | UI component library (M3 theme) |
+| TailwindCSS | v4 | Utility-first CSS (CSS-first config) |
+| TypeScript | ~6.0 | Type checking (with `ignoreDeprecations: "6.0"`) |
+| NgRx Signal Store | >= 21.1 | Angular state management |
+| Vitest | >= 4.0 | Angular unit testing (native via `@angular/build:unit-test`) |
+| eslint-plugin-boundaries | >= 5.0 | Angular module boundary enforcement |
+| Flutter | Stable (Dart SDK ^3.9.0) | Mobile framework |
+| Dart | >= 3.9.0 | Mobile language |
+| flutter_riverpod | >= 3.1.0 | Flutter state management |
+| go_router | >= 17.0.0 | Flutter navigation |
+| Melos | >= 7.8 | Flutter workspace tooling (via Dart native workspace) |
+| very_good_analysis | >= 10.0.0 | Flutter lint rules |
 | Terraform | >= 1.9 | Infrastructure as code |
 | AWS Provider (TF) | >= 5.70 | AWS Terraform provider |
 | Docker | >= 27 | Containerization |
@@ -2606,7 +2597,7 @@ AI-Powered Multi-Vendor Restaurant Ordering Platform. Modular monolith architect
 
 ## Repository Structure
 - `backend/` — FastAPI modular monolith (Python 3.13+, uv)
-- `frontend/` — Angular v22 admin dashboard (Nx workspace)
+- `frontend/` — Angular v22 admin dashboard (Angular CLI workspace)
 - `mobile/` — Flutter apps (customer, restaurant, delivery) with Melos
 - `ai/` — AI platform module
 - `infrastructure/` — Terraform + Docker Compose
@@ -2629,11 +2620,12 @@ AI-Powered Multi-Vendor Restaurant Ordering Platform. Modular monolith architect
 - Database uses schema-per-module (identity.*, orders.*, etc.)
 - Cross-schema references are by UUID only, no foreign keys
 - All state changes go through explicit Unit of Work
+- Multi-tenancy via Row-Level Security with restaurant_id as tenant key
 
 ## Coding Conventions
-- Python: ruff for linting/formatting, mypy strict mode
-- Angular: ESLint + Prettier, Nx boundary rules
-- Flutter: dart analyze with strict mode
+- Python: ruff for linting/formatting, mypy strict mode, 120 char line length
+- Angular: ESLint + Prettier, eslint-plugin-boundaries for module rules, Angular Signals + NgRx Signal Store
+- Flutter: dart analyze with strict mode, Riverpod for state, GoRouter for navigation
 - Commits: conventional commits (feat:, fix:, chore:, docs:)
 - PRs: squash merge to develop, merge commit to main
 ```

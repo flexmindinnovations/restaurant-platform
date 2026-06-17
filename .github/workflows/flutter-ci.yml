@@ -28,14 +28,14 @@ jobs:
         with:
           channel: stable
 
-      - name: Install Melos
-        run: dart pub global activate melos
+      - name: Resolve workspace dependencies
+        run: dart pub get
 
       - name: Bootstrap workspace
-        run: melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Analyze
-        run: melos run analyze
+        run: dart run melos run analyze
 
   format:
     name: Format Check
@@ -48,14 +48,14 @@ jobs:
         with:
           channel: stable
 
-      - name: Install Melos
-        run: dart pub global activate melos
+      - name: Resolve workspace dependencies
+        run: dart pub get
 
       - name: Bootstrap workspace
-        run: melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Format check
-        run: melos run format
+        run: dart run melos run format
 
   test:
     name: Tests
@@ -69,14 +69,14 @@ jobs:
         with:
           channel: stable
 
-      - name: Install Melos
-        run: dart pub global activate melos
+      - name: Resolve workspace dependencies
+        run: dart pub get
 
       - name: Bootstrap workspace
-        run: melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Run tests
-        run: melos run test
+        run: dart run melos run test
 
   build-android:
     name: Build Android
@@ -96,11 +96,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Install Melos
-        run: dart pub global activate melos
+      - name: Resolve workspace dependencies
+        run: dart pub get
 
       - name: Bootstrap workspace
-        run: melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Build Customer App APK
         run: cd apps/customer_app && flutter build apk --release
@@ -123,11 +123,11 @@ jobs:
         with:
           channel: stable
 
-      - name: Install Melos
-        run: dart pub global activate melos
+      - name: Resolve workspace dependencies
+        run: dart pub get
 
       - name: Bootstrap workspace
-        run: melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Build Customer App iOS
         run: cd apps/customer_app && flutter build ios --release --no-codesign
