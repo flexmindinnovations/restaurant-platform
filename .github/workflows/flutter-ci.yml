@@ -1,0 +1,139 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/flutter-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/flutter-ci.yml"
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Analyze
+        run: melos run analyze
+
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Format check
+        run: melos run format
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: [analyze, format]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Run tests
+        run: melos run test
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Build Customer App APK
+        run: cd apps/customer_app && flutter build apk --release
+
+      - name: Build Restaurant App APK
+        run: cd apps/restaurant_app && flutter build apk --release
+
+      - name: Build Delivery App APK
+        run: cd apps/delivery_app && flutter build apk --release
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Build Customer App iOS
+        run: cd apps/customer_app && flutter build ios --release --no-codesign
+
+      - name: Build Restaurant App iOS
+        run: cd apps/restaurant_app && flutter build ios --release --no-codesign
+
+      - name: Build Delivery App iOS
+        run: cd apps/delivery_app && flutter build ios --release --no-codesign

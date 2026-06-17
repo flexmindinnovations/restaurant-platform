@@ -1,0 +1,1 @@
+# Outputs for cdn module

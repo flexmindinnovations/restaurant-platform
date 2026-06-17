@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Enforce conventional commit message format
+# Format: type(scope): description
+# Types: feat, fix, chore, docs, refactor, test, perf, ci
+
+commit_regex='^(feat|fix|chore|docs|refactor|test|perf|ci)(\([a-z-]+\))?: .{1,72}'
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "ERROR: Commit message does not follow conventional format."
+    echo ""
+    echo "Format: type(scope): description"
+    echo "Types:  feat, fix, chore, docs, refactor, test, perf, ci"
+    echo ""
+    echo "Examples:"
+    echo "  feat(orders): add place order endpoint"
+    echo "  fix(payments): handle timeout on capture"
+    echo "  chore(infra): update Terraform modules"
+    exit 1
+fi

@@ -1,0 +1,29 @@
+[project]
+name = "restaurant-platform-ai"
+version = "0.1.0"
+description = "AI Platform Module — Restaurant Platform"
+requires-python = ">=3.13"
+
+dependencies = [
+    "openai>=2.42",
+    "langgraph>=1.2",
+    "langchain-openai>=1.2",
+    "pgvector>=0.4",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "asyncpg>=0.31",
+    "pydantic>=2.13",
+    "structlog>=26.1",
+    "httpx2>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=1.0",
+    "ruff>=0.15",
+    "mypy>=2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

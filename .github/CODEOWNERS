@@ -1,0 +1,23 @@
+# Default
+*                                       @backend-lead
+
+# Backend
+/backend/                               @backend-lead
+/backend/src/modules/identity/          @backend-lead
+/backend/src/modules/payments/          @backend-lead
+
+# Frontend
+/frontend/                              @frontend-lead
+
+# Mobile
+/mobile/                                @mobile-lead
+
+# Infrastructure
+/infrastructure/                        @devops-lead
+/.github/                               @devops-lead
+
+# AI
+/ai/                                    @backend-lead
+
+# Documentation
+/docs/                                  @backend-lead @frontend-lead @mobile-lead

@@ -1,0 +1,23 @@
+name: design_system
+description: Design tokens, themes, typography, and reusable UI components
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.0
+
+resolution: workspace
+
+dependencies:
+  core:
+    path: ../core
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^10.0.0
+
+flutter:
+  uses-material-design: true

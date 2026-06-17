@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.6
+    container_name: rp-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform_dev
+      POSTGRES_DB: restaurant_platform
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d restaurant_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: valkey/valkey:9-alpine
+    container_name: rp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:4.5
+    container_name: rp-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3,sqs,sns,ses,secretsmanager
+      DEFAULT_REGION: us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./localstack/init-scripts:/etc/localstack/init/ready.d
+
+  mailpit:
+    image: axllent/mailpit:v1.29
+    container_name: rp-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_UI_AUTH_FILE: ""
+
+volumes:
+  postgres_data:
+  redis_data:
+  localstack_data:

@@ -1,0 +1,65 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Force LF for source files
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.py text eol=lf
+*.pyi text eol=lf
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.tf text eol=lf
+*.hcl text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
+
+Makefile text eol=lf
+Dockerfile text eol=lf
+.editorconfig text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Force CRLF for Windows-only files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files — do not diff or merge
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.zip binary
+*.tar.gz binary
+*.pdf binary
+
+# Git LFS tracked files (design assets)
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.sketch filter=lfs diff=lfs merge=lfs -text
+*.fig filter=lfs diff=lfs merge=lfs -text
+*.ai filter=lfs diff=lfs merge=lfs -text
+
+# Lock files — treat as generated (no diff in PRs)
+package-lock.json -diff linguist-generated=true
+pubspec.lock -diff linguist-generated=true
+uv.lock -diff linguist-generated=true

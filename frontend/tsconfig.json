@@ -1,0 +1,48 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@app/core": ["libs/core/src/index.ts"],
+      "@app/shared": ["libs/shared/src/index.ts"],
+      "@app/design-system": ["libs/design-system/src/index.ts"],
+      "@app/api-client": ["libs/api-client/src/index.ts"],
+      "@app/auth": ["libs/auth/src/index.ts"],
+      "@app/dashboard": ["libs/dashboard/src/index.ts"],
+      "@app/users": ["libs/users/src/index.ts"],
+      "@app/restaurants": ["libs/restaurants/src/index.ts"],
+      "@app/orders": ["libs/orders/src/index.ts"],
+      "@app/deliveries": ["libs/deliveries/src/index.ts"],
+      "@app/payments": ["libs/payments/src/index.ts"],
+      "@app/promotions": ["libs/promotions/src/index.ts"],
+      "@app/reviews": ["libs/reviews/src/index.ts"],
+      "@app/analytics": ["libs/analytics/src/index.ts"],
+      "@app/settings": ["libs/settings/src/index.ts"],
+      "@app/support": ["libs/support/src/index.ts"]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "typeCheckHostBindings": true
+  },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.spec.json" }
+  ]
+}

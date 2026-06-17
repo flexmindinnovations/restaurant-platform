@@ -1,0 +1,82 @@
+[importlinter]
+root_packages =
+    app
+    modules
+    shared
+    workers
+
+[importlinter:contract:module-isolation]
+name = Modules must not import from each other directly
+type = independence
+modules =
+    modules.identity
+    modules.users
+    modules.restaurants
+    modules.menus
+    modules.orders
+    modules.payments
+    modules.deliveries
+    modules.notifications
+    modules.reviews
+    modules.promotions
+    modules.analytics
+
+[importlinter:contract:domain-purity-identity]
+name = Identity domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.identity.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-users]
+name = Users domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.users.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-restaurants]
+name = Restaurants domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.restaurants.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-menus]
+name = Menus domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.menus.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-orders]
+name = Orders domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.orders.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-payments]
+name = Payments domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.payments.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-deliveries]
+name = Deliveries domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.deliveries.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-notifications]
+name = Notifications domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.notifications.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-reviews]
+name = Reviews domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.reviews.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-promotions]
+name = Promotions domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.promotions.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2

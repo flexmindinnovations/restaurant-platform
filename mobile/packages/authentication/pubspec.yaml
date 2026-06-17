@@ -1,0 +1,27 @@
+name: authentication
+description: Authentication logic, token management, and auth state
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.0
+
+resolution: workspace
+
+dependencies:
+  core:
+    path: ../core
+  dio: ^5.9.0
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.1.0
+  networking:
+    path: ../networking
+  storage:
+    path: ../storage
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.4
+  very_good_analysis: ^10.0.0

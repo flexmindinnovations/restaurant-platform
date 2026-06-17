@@ -1,0 +1,63 @@
+version: 2
+
+updates:
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:backend"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:frontend"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "pub"
+    directory: "/mobile/apps/customer_app"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:mobile"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pub"
+    directory: "/mobile/apps/restaurant_app"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:mobile"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pub"
+    directory: "/mobile/apps/delivery_app"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:mobile"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure/terraform/environments/dev"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "type:chore"
+      - "platform:infra"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "platform:ci-cd"
