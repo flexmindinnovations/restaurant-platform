@@ -16,4 +16,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 # Copy application
 COPY src/ ./src/
 
+# Sync the project package itself to register editable modules
+RUN uv sync --frozen --no-dev
+
 CMD ["uv", "run", "celery", "-A", "workers.celery_app", "worker", "--loglevel=info"]
