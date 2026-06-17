@@ -1,7 +1,7 @@
+from typing import Any
 import structlog
 
-from shared.domain.entity import DomainEvent
-from shared.domain.events import EventBus
+from shared.domain.events import DomainEvent, EventBus
 
 logger = structlog.get_logger()
 
@@ -10,9 +10,9 @@ class InMemoryEventBus(EventBus):
     """In-memory event bus for local development. Replace with SNS/SQS in production."""
 
     def __init__(self) -> None:
-        self._handlers: dict[type[DomainEvent], list] = {}
+        self._handlers: dict[type[DomainEvent], list[Any]] = {}
 
-    def subscribe(self, event_type: type[DomainEvent], handler: object) -> None:
+    def subscribe(self, event_type: type[DomainEvent], handler: Any) -> None:
         if event_type not in self._handlers:
             self._handlers[event_type] = []
         self._handlers[event_type].append(handler)

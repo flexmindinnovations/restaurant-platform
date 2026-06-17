@@ -4,7 +4,12 @@ from decimal import Decimal
 
 
 @dataclass(frozen=True)
-class Money:
+class ValueObject:
+    """Base class for all value objects."""
+
+
+@dataclass(frozen=True)
+class Money(ValueObject):
     amount: Decimal
     currency: str = "USD"
 
@@ -24,7 +29,7 @@ class Money:
 
 
 @dataclass(frozen=True)
-class Address:
+class Address(ValueObject):
     street: str
     city: str
     state: str
@@ -35,7 +40,7 @@ class Address:
 
 
 @dataclass(frozen=True)
-class PhoneNumber:
+class PhoneNumber(ValueObject):
     country_code: str
     number: str
 
@@ -45,7 +50,8 @@ class PhoneNumber:
 
 
 @dataclass(frozen=True)
-class EntityReference:
+class EntityReference(ValueObject):
     """Soft reference to an entity in another bounded context."""
+
     id: uuid.UUID
     entity_type: str

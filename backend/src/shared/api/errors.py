@@ -1,45 +1,63 @@
-from fastapi import Request
+from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
 from shared.domain.exceptions import (
-    AuthorizationError,
+    AuthorizationException,
     BusinessRuleViolationError,
     ConcurrencyError,
     DomainException,
-    EntityNotFoundError,
+    NotFoundException,
+    ValidationException,
 )
 
 
-async def domain_exception_handler(request: Request, exc: DomainException) -> ORJSONResponse:
+def domain_exception_handler(_request: Request, exc: DomainException) -> ORJSONResponse:
     return ORJSONResponse(
         status_code=400,
         content={"error": {"code": exc.code, "message": exc.message}},
     )
 
 
-async def not_found_handler(request: Request, exc: EntityNotFoundError) -> ORJSONResponse:
+def not_found_handler(_request: Request, exc: NotFoundException) -> ORJSONResponse:
     return ORJSONResponse(
         status_code=404,
         content={"error": {"code": exc.code, "message": exc.message}},
     )
 
 
-async def authorization_handler(request: Request, exc: AuthorizationError) -> ORJSONResponse:
+def authorization_handler(_request: Request, exc: AuthorizationException) -> ORJSONResponse:
     return ORJSONResponse(
         status_code=403,
         content={"error": {"code": exc.code, "message": exc.message}},
     )
 
 
-async def business_rule_handler(request: Request, exc: BusinessRuleViolationError) -> ORJSONResponse:
+def validation_handler(_request: Request, exc: ValidationException) -> ORJSONResponse:
     return ORJSONResponse(
         status_code=422,
         content={"error": {"code": exc.code, "message": exc.message}},
     )
 
 
-async def concurrency_handler(request: Request, exc: ConcurrencyError) -> ORJSONResponse:
+def business_rule_handler(_request: Request, exc: BusinessRuleViolationError) -> ORJSONResponse:
+    return ORJSONResponse(
+        status_code=422,
+        content={"error": {"code": exc.code, "message": exc.message}},
+    )
+
+
+def concurrency_handler(_request: Request, exc: ConcurrencyError) -> ORJSONResponse:
     return ORJSONResponse(
         status_code=409,
         content={"error": {"code": exc.code, "message": exc.message}},
     )
+
+
+def register_error_handlers(app: FastAPI) -> None:
+    """Register all custom domain exception handlers on the FastAPI application."""
+    app.add_exception_handler(DomainException, domain_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(NotFoundException, not_found_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(AuthorizationException, authorization_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ValidationException, validation_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(BusinessRuleViolationError, business_rule_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ConcurrencyError, concurrency_handler)  # type: ignore[arg-type]

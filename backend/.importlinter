@@ -4,6 +4,7 @@ root_packages =
     modules
     shared
     workers
+include_external_packages = True
 
 [importlinter:contract:module-isolation]
 name = Modules must not import from each other directly
@@ -79,4 +80,10 @@ forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
 name = Promotions domain must not import infrastructure frameworks
 type = forbidden
 source_modules = modules.promotions.domain
+forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2
+
+[importlinter:contract:domain-purity-analytics]
+name = Analytics domain must not import infrastructure frameworks
+type = forbidden
+source_modules = modules.analytics.domain
 forbidden_modules = sqlalchemy, fastapi, redis, celery, boto3, httpx2

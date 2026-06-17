@@ -6,6 +6,10 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.config import get_settings
+from shared.infrastructure.database import Base
+
+# Also import OutboxMessage to ensure it's registered on the Base metadata
+from shared.infrastructure.outbox import OutboxMessage
 
 config = context.config
 settings = get_settings()
@@ -15,7 +19,8 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-target_metadata = None
+# Bind the target metadata for autogenerate support
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
@@ -25,14 +30,19 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
     )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
-def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)
+def do_run_migrations(connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+    )
     with context.begin_transaction():
         context.run_migrations()
 
