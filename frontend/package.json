@@ -40,7 +40,7 @@
     "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/express": "^5.0.1",
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.9.3",
     "angular-eslint": "^22.0.0",
     "eslint": "^9.8.0",
     "eslint-plugin-boundaries": "^5.0.0",
