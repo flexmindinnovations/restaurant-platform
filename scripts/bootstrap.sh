@@ -43,9 +43,9 @@ cd ..
 # 4. Mobile setup
 echo "[4/5] Setting up mobile..."
 cd mobile
-if [ -f melos.yaml ]; then
-    melos bootstrap
-    echo "  Workspace bootstrapped"
+if [ -f pubspec.yaml ]; then
+    dart pub get
+    echo "  Workspace dependencies resolved"
 else
     echo "  Skipped (not yet initialized)"
 fi
@@ -63,6 +63,6 @@ fi
 echo ""
 echo "=== Bootstrap complete ==="
 echo ""
-echo "Start backend:  make backend-dev"
-echo "Start frontend: make frontend-dev"
+echo "Start backend:  cd backend && uv run uvicorn app.main:create_app --factory --reload --port 8000"
+echo "Start frontend: cd frontend && npm start"
 echo "Start mobile:   cd mobile/apps/customer_app && flutter run"

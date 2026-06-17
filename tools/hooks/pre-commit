@@ -1,3 +1,17 @@
 #!/usr/bin/env bash
-# Custom pre-commit hook (in addition to .pre-commit-config.yaml)
-# This file is a reference; actual hooks are managed by the pre-commit framework.
+# Fast pre-commit hook: lint staged Python files with ruff.
+# This runs in addition to the pre-commit framework hooks.
+# Kept lightweight so typical commits finish in < 2 seconds.
+
+staged_py=$(git diff --cached --name-only --diff-filter=ACM -- '*.py')
+
+if [ -n "$staged_py" ]; then
+    if command -v ruff &> /dev/null; then
+        echo "$staged_py" | xargs ruff check --quiet 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo "ruff found issues in staged Python files. Run 'ruff check --fix' to auto-fix."
+            exit 1
+        fi
+    fi
+fi

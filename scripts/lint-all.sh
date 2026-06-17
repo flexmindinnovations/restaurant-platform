@@ -3,6 +3,7 @@ set -euo pipefail
 
 echo "=== Linting All ==="
 
+echo ""
 echo "[Backend] ruff..."
 cd backend
 uv run ruff check src/ tests/
@@ -16,17 +17,20 @@ uv run lint-imports
 cd ..
 
 if [ -f frontend/package.json ]; then
+    echo ""
     echo "[Frontend] eslint..."
     cd frontend
-    npx nx run-many --target=lint --all
+    npx ng lint
     cd ..
 fi
 
-if [ -f mobile/melos.yaml ]; then
+if [ -f mobile/pubspec.yaml ]; then
+    echo ""
     echo "[Mobile] dart analyze..."
     cd mobile
-    melos run analyze
+    dart run melos run analyze
     cd ..
 fi
 
+echo ""
 echo "=== All lints passed ==="

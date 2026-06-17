@@ -3,23 +3,27 @@ set -euo pipefail
 
 echo "=== Running All Tests ==="
 
+echo ""
 echo "[Backend] tests..."
 cd backend
 uv run pytest
 cd ..
 
 if [ -f frontend/package.json ]; then
+    echo ""
     echo "[Frontend] tests..."
     cd frontend
-    npx nx run-many --target=test --all
+    npx ng test --watch=false
     cd ..
 fi
 
-if [ -f mobile/melos.yaml ]; then
+if [ -f mobile/pubspec.yaml ]; then
+    echo ""
     echo "[Mobile] tests..."
     cd mobile
-    melos run test
+    dart run melos run test
     cd ..
 fi
 
+echo ""
 echo "=== All tests passed ==="
