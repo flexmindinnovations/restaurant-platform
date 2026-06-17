@@ -1,4 +1,5 @@
 from typing import Any
+
 import structlog
 
 from shared.domain.events import DomainEvent, EventBus

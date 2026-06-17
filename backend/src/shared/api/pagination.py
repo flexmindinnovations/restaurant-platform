@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, Field
 
+
 @dataclass
 class PageParams:
     page: int = 1

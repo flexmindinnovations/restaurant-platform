@@ -1,10 +1,10 @@
-from collections.abc import MutableMapping
 import logging
 import sys
+from collections.abc import MutableMapping
 from typing import Any
-from fastapi import FastAPI
-import structlog
 
+import structlog
+from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.celery import CeleryInstrumentor
