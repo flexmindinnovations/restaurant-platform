@@ -1,3 +1,10 @@
 import { Route } from '@angular/router';
+import { Placeholder } from '@app/shared';
 
-export const supportRoutes: Route[] = [{ path: '', children: [] }];
+export const supportRoutes: Route[] = [
+  {
+    path: '',
+    component: Placeholder,
+    data: { title: 'Support', icon: 'help' },
+  },
+];

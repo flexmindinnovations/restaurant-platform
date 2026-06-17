@@ -1,1 +1,1 @@
-export {};
+export { Placeholder } from './lib/placeholder';
