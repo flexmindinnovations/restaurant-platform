@@ -1,5 +1,5 @@
 import uuid
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -12,6 +12,13 @@ from modules.notifications.domain.entities.notification import (
     NotificationChannel,
     NotificationStatus,
 )
+from modules.notifications.event_handlers import (
+    handle_delivery_completed,
+    handle_order_confirmed,
+    handle_order_placed,
+    handle_partner_assigned,
+)
+from workers.tasks.notification_tasks import send_notification_async
 
 # --- Domain tests ---
 
@@ -116,9 +123,15 @@ def mock_dispatcher():
     return dispatcher
 
 
+@pytest.fixture(autouse=True)
+def mock_celery_task():
+    with patch("workers.tasks.notification_tasks.send_notification_task.delay") as mock:
+        yield mock
+
+
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_send_notification_success(mock_notification_repo, mock_dispatcher):
+async def test_send_notification_success(mock_notification_repo, mock_dispatcher, mock_celery_task):
     uow = MockUow()
     handler = SendNotificationHandler(mock_notification_repo, mock_dispatcher, uow)
 
@@ -133,74 +146,178 @@ async def test_send_notification_success(mock_notification_repo, mock_dispatcher
 
     assert notification_id is not None
     mock_notification_repo.add.assert_called_once()
-    mock_dispatcher.dispatch.assert_called_once()
-    # update called once for the _save after dispatch
-    mock_notification_repo.update.assert_called_once()
+    mock_celery_task.assert_called_once_with(str(notification_id))
 
-    saved_notification = mock_notification_repo.update.call_args[0][0]
-    assert saved_notification.status == NotificationStatus.SENT
-    assert saved_notification.sent_at is not None
+    added_notification = mock_notification_repo.add.call_args[0][0]
+    assert added_notification.status == NotificationStatus.PENDING
+
+
+# --- Celery Task Tests ---
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_send_notification_dispatch_failure(mock_notification_repo, mock_dispatcher):
-    mock_dispatcher.dispatch = AsyncMock(side_effect=Exception("SMTP timeout"))
-    uow = MockUow()
-    handler = SendNotificationHandler(mock_notification_repo, mock_dispatcher, uow)
+@patch("workers.tasks.notification_tasks.get_session_factory")
+@patch("workers.tasks.notification_tasks.SqlAlchemyNotificationRepository")
+@patch("workers.tasks.notification_tasks.CompositeNotificationDispatcher")
+async def test_send_notification_task_success(
+    mock_dispatcher_class, mock_repo_class, mock_session_factory
+):
+    # Setup database & session mocks
+    mock_session = AsyncMock()
+    mock_session.__aenter__.return_value = mock_session
+    mock_session_factory.return_value = MagicMock(return_value=mock_session)
 
-    command = SendNotificationCommand(
+    # Setup repository mock
+    mock_repo = MagicMock()
+    mock_notification = Notification.create(
         recipient_id=uuid.uuid4(),
         channel=NotificationChannel.EMAIL,
-        title="Order Placed",
-        body="Your order has been placed.",
+        title="Task Test",
+        body="Body",
     )
+    mock_repo.get_by_id = AsyncMock(return_value=mock_notification)
+    mock_repo.update = AsyncMock()
+    mock_repo_class.return_value = mock_repo
 
-    notification_id = await handler.handle(command)
+    # Setup dispatcher mock
+    mock_dispatcher_instance = MagicMock()
+    mock_dispatcher_instance.dispatch = AsyncMock()
+    mock_dispatcher_class.return_value = mock_dispatcher_instance
 
-    assert notification_id is not None
-    mock_notification_repo.update.assert_called_once()
+    # Run celery task directly using its async implementation
+    notification_id = mock_notification.id
+    await send_notification_async(str(notification_id))
 
-    saved_notification = mock_notification_repo.update.call_args[0][0]
-    assert saved_notification.status == NotificationStatus.FAILED
-    assert saved_notification.error_message == "SMTP timeout"
+    # Assertions
+    mock_repo.get_by_id.assert_called_once_with(notification_id)
+    mock_dispatcher_instance.dispatch.assert_called_once_with(mock_notification)
+    mock_repo.update.assert_called_once_with(mock_notification)
+    assert mock_notification.status == NotificationStatus.SENT
+    mock_session.commit.assert_called_once()
+
+
+# --- Event Handlers Tests ---
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_send_notification_sms_channel(mock_notification_repo, mock_dispatcher):
-    uow = MockUow()
-    handler = SendNotificationHandler(mock_notification_repo, mock_dispatcher, uow)
+@patch("modules.notifications.event_handlers.SendNotificationHandler")
+@patch("modules.notifications.event_handlers.get_session_factory")
+async def test_handle_order_placed(mock_session_factory, mock_handler_class):
+    mock_session = AsyncMock()
+    mock_session.__aenter__.return_value = mock_session
+    mock_session_factory.return_value = MagicMock(return_value=mock_session)
 
-    command = SendNotificationCommand(
-        recipient_id=uuid.uuid4(),
-        channel=NotificationChannel.SMS,
-        title="Delivery Update",
-        body="Your delivery is on the way!",
-    )
+    mock_handler_instance = MagicMock()
+    mock_handler_instance.handle = AsyncMock()
+    mock_handler_class.return_value = mock_handler_instance
 
-    notification_id = await handler.handle(command)
-    assert notification_id is not None
+    event = MagicMock()
+    event.aggregate_id = uuid.uuid4()
+    event.customer_id = uuid.uuid4()
 
-    added_notification = mock_notification_repo.add.call_args[0][0]
-    assert added_notification.channel == NotificationChannel.SMS
+    await handle_order_placed(event)
+
+    mock_handler_instance.handle.assert_called_once()
+    cmd = mock_handler_instance.handle.call_args[0][0]
+    assert cmd.recipient_id == event.customer_id
+    assert cmd.channel == NotificationChannel.EMAIL
+    assert "placed" in cmd.body
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_send_notification_push_channel(mock_notification_repo, mock_dispatcher):
-    uow = MockUow()
-    handler = SendNotificationHandler(mock_notification_repo, mock_dispatcher, uow)
+@patch("modules.notifications.event_handlers.SendNotificationHandler")
+@patch("modules.notifications.event_handlers.get_session_factory")
+async def test_handle_order_confirmed(mock_session_factory, mock_handler_class):
+    mock_session = AsyncMock()
+    mock_session.__aenter__.return_value = mock_session
+    mock_result = MagicMock()
+    customer_id = uuid.uuid4()
+    mock_result.first.return_value = (customer_id,)
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    mock_session_factory.return_value = MagicMock(return_value=mock_session)
 
-    command = SendNotificationCommand(
-        recipient_id=uuid.uuid4(),
-        channel=NotificationChannel.PUSH,
-        title="New Order",
-        body="You have a new order!",
-    )
+    mock_handler_instance = MagicMock()
+    mock_handler_instance.handle = AsyncMock()
+    mock_handler_class.return_value = mock_handler_instance
 
-    notification_id = await handler.handle(command)
-    assert notification_id is not None
+    event = MagicMock()
+    event.aggregate_id = uuid.uuid4()
 
-    added_notification = mock_notification_repo.add.call_args[0][0]
-    assert added_notification.channel == NotificationChannel.PUSH
+    await handle_order_confirmed(event)
+
+    mock_handler_instance.handle.assert_called_once()
+    cmd = mock_handler_instance.handle.call_args[0][0]
+    assert cmd.recipient_id == customer_id
+    assert cmd.channel == NotificationChannel.EMAIL
+    assert "confirmed" in cmd.body
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@patch("modules.notifications.event_handlers.SendNotificationHandler")
+@patch("modules.notifications.event_handlers.get_session_factory")
+async def test_handle_delivery_completed(mock_session_factory, mock_handler_class):
+    mock_session = AsyncMock()
+    mock_session.__aenter__.return_value = mock_session
+    mock_result = MagicMock()
+    customer_id = uuid.uuid4()
+    mock_result.first.return_value = (customer_id,)
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    mock_session_factory.return_value = MagicMock(return_value=mock_session)
+
+    mock_handler_instance = MagicMock()
+    mock_handler_instance.handle = AsyncMock()
+    mock_handler_class.return_value = mock_handler_instance
+
+    event = MagicMock()
+    event.order_id = uuid.uuid4()
+
+    await handle_delivery_completed(event)
+
+    mock_handler_instance.handle.assert_called_once()
+    cmd = mock_handler_instance.handle.call_args[0][0]
+    assert cmd.recipient_id == customer_id
+    assert cmd.channel == NotificationChannel.EMAIL
+    assert "delivered" in cmd.body
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@patch("modules.notifications.event_handlers.SendNotificationHandler")
+@patch("modules.notifications.event_handlers.get_session_factory")
+async def test_handle_partner_assigned(mock_session_factory, mock_handler_class):
+    mock_session = AsyncMock()
+    mock_session.__aenter__.return_value = mock_session
+    mock_result = MagicMock()
+    order_id = uuid.uuid4()
+    customer_id = uuid.uuid4()
+    partner_name = "Speedy Rider"
+    mock_result.first.return_value = (order_id, customer_id, partner_name)
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    mock_session_factory.return_value = MagicMock(return_value=mock_session)
+
+    mock_handler_instance = MagicMock()
+    mock_handler_instance.handle = AsyncMock()
+    mock_handler_class.return_value = mock_handler_instance
+
+    event = MagicMock()
+    event.delivery_id = uuid.uuid4()
+    event.partner_id = uuid.uuid4()
+
+    await handle_partner_assigned(event)
+
+    # Note: handle_partner_assigned dispatches two notifications (one to customer, one to partner)
+    assert mock_handler_instance.handle.call_count == 2
+    
+    first_cmd = mock_handler_instance.handle.call_args_list[0][0][0]
+    assert first_cmd.recipient_id == customer_id
+    assert first_cmd.channel == NotificationChannel.EMAIL
+    assert partner_name in first_cmd.body
+
+    second_cmd = mock_handler_instance.handle.call_args_list[1][0][0]
+    assert second_cmd.recipient_id == event.partner_id
+    assert second_cmd.channel == NotificationChannel.SMS
+    assert partner_name in second_cmd.body

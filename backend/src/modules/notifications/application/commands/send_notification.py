@@ -45,12 +45,8 @@ class SendNotificationHandler:
             self._uow.register_aggregate(notification)
             await self._uow.commit()
 
-        try:
-            await self._dispatcher.dispatch(notification)
-            notification.mark_sent()
-        except Exception as e:
-            notification.mark_failed(str(e))
-
-        await self._save(notification)
+        # Delegate sending asynchronously to Celery
+        from workers.tasks.notification_tasks import send_notification_task
+        send_notification_task.delay(str(notification.id))
 
         return notification.id

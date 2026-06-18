@@ -31,6 +31,10 @@ _PARTNER_ASSIGNED_QUERY = text("""
     WHERE d.id = :delivery_id
 """)
 
+_CUSTOMER_ID_QUERY = text("""
+    SELECT customer_id FROM orders.orders WHERE id = :order_id
+""")
+
 
 async def handle_partner_assigned(event: Any) -> None:
     session_factory = get_session_factory()
@@ -72,5 +76,93 @@ async def handle_partner_assigned(event: Any) -> None:
         await handler.handle(partner_cmd)
 
 
+async def handle_order_placed(event: Any) -> None:
+    session_factory = get_session_factory()
+    order_id = event.aggregate_id
+    customer_id = event.customer_id
+
+    async with session_factory() as session:
+        repo = SqlAlchemyNotificationRepository(session)
+        dispatcher = CompositeNotificationDispatcher(
+            email=SmtpNotificationDispatcher(),
+            sms=SmsNotificationDispatcher(),
+            push=PushNotificationDispatcher(),
+        )
+        event_bus = get_event_bus()
+        uow = SqlAlchemyUnitOfWork(session, event_bus)
+        handler = SendNotificationHandler(repo, dispatcher, uow)
+
+        cmd = SendNotificationCommand(
+            recipient_id=customer_id,
+            channel=NotificationChannel.EMAIL,
+            title="Order Placed Successfully",
+            body=f"Your order {order_id} has been placed successfully and is pending confirmation.",
+        )
+        await handler.handle(cmd)
+
+
+async def handle_order_confirmed(event: Any) -> None:
+    session_factory = get_session_factory()
+    order_id = event.aggregate_id
+
+    async with session_factory() as session:
+        result = await session.execute(_CUSTOMER_ID_QUERY, {"order_id": order_id})
+        row = result.first()
+        if not row:
+            return
+        customer_id = row[0]
+
+        repo = SqlAlchemyNotificationRepository(session)
+        dispatcher = CompositeNotificationDispatcher(
+            email=SmtpNotificationDispatcher(),
+            sms=SmsNotificationDispatcher(),
+            push=PushNotificationDispatcher(),
+        )
+        event_bus = get_event_bus()
+        uow = SqlAlchemyUnitOfWork(session, event_bus)
+        handler = SendNotificationHandler(repo, dispatcher, uow)
+
+        cmd = SendNotificationCommand(
+            recipient_id=customer_id,
+            channel=NotificationChannel.EMAIL,
+            title="Order Confirmed",
+            body=f"Great news! Your order {order_id} has been confirmed by the restaurant.",
+        )
+        await handler.handle(cmd)
+
+
+async def handle_delivery_completed(event: Any) -> None:
+    session_factory = get_session_factory()
+    order_id = event.order_id
+
+    async with session_factory() as session:
+        result = await session.execute(_CUSTOMER_ID_QUERY, {"order_id": order_id})
+        row = result.first()
+        if not row:
+            return
+        customer_id = row[0]
+
+        repo = SqlAlchemyNotificationRepository(session)
+        dispatcher = CompositeNotificationDispatcher(
+            email=SmtpNotificationDispatcher(),
+            sms=SmsNotificationDispatcher(),
+            push=PushNotificationDispatcher(),
+        )
+        event_bus = get_event_bus()
+        uow = SqlAlchemyUnitOfWork(session, event_bus)
+        handler = SendNotificationHandler(repo, dispatcher, uow)
+
+        cmd = SendNotificationCommand(
+            recipient_id=customer_id,
+            channel=NotificationChannel.EMAIL,
+            title="Order Delivered",
+            body=f"Your order {order_id} has been successfully delivered. Enjoy your meal!",
+        )
+        await handler.handle(cmd)
+
+
 def register_event_handlers(event_bus: InMemoryEventBus) -> None:
     event_bus.subscribe_by_name("PartnerAssigned", handle_partner_assigned)
+    event_bus.subscribe_by_name("OrderPlaced", handle_order_placed)
+    event_bus.subscribe_by_name("OrderConfirmed", handle_order_confirmed)
+    event_bus.subscribe_by_name("DeliveryCompleted", handle_delivery_completed)
