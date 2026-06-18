@@ -678,14 +678,29 @@ Your task: **Implement the Payments and Deliveries modules** — handling paymen
 #### 4. Notifications Module — Basic Setup (`backend/src/modules/notifications/`)
 
 **Domain**:
-- `entities/notification.py` — Notification: id, recipient_id, type, channel (EMAIL, SMS, PUSH), title, body, data (JSON), status (PENDING, SENT, FAILED), sent_at
-- Events consumed: OrderPlaced → notify customer (confirmation), OrderConfirmed → notify customer, PartnerAssigned → notify partner + customer
+- `entities/notification.py` — Notification: id, recipient_id, type, channel (EMAIL, SMS, PUSH, IN_APP), title, body, data (JSON), status (PENDING, SENT, FAILED), sent_at
+- Events consumed: OrderPlaced → notify customer (confirmation), OrderConfirmed → notify customer, PartnerAssigned → notify partner + customer, DeliveryCompleted → notify customer
+
+**Application**:
+- `commands/send_notification.py` — SendNotificationCommand + handler
+- `ports/notification_dispatcher.py` — Abstract dispatcher interface
+- `ports/notification_repository.py` — Abstract repository interface
 
 **Infrastructure**:
 - Email via Mailpit (local) / SES (prod)
 - SMS placeholder (log only in dev)
 - Push notification placeholder (FCM integration ready)
 - Celery tasks for async notification sending
+- SQLAlchemy models for `notifications.notifications` table
+- Repository implementation
+
+**API**:
+- `GET /api/v1/notifications` — List user notifications
+- `PATCH /api/v1/notifications/{id}/read` — Mark as read
+
+**Migration**: `notifications.notifications` table with indexes on recipient_id, status
+
+**Unit tests**: Domain entity + SendNotification handler
 
 #### 5. Cross-Module Event Wiring
 - OrderPlaced → Payments.InitiatePayment, Notifications.SendOrderConfirmation
@@ -765,6 +780,27 @@ Your task: **Build the Flutter mobile apps and enhance the Angular admin dashboa
 - Event parsing: OrderStatusUpdate, LocationUpdate
 - Riverpod provider for tracking state
 
+**maps/**:
+- Google Maps widget wrapper with marker management
+- Route polyline rendering for delivery tracking
+- Location permission handling
+- Platform-specific API key configuration
+
+**localization/**:
+- ARB-based i18n setup with flutter_localizations
+- English (default) + extensible locale registry
+- Localized string accessors for all user-facing text
+
+**storage/**:
+- Local storage abstraction (SharedPreferences for non-sensitive, flutter_secure_storage for tokens)
+- Cache manager for offline-first read operations
+- Image cache configuration
+
+**analytics_pkg/**:
+- Event tracking abstraction (Firebase Analytics ready)
+- Screen view tracking, custom event logging
+- User property management
+
 #### 2. Customer App (`mobile/apps/customer_app/`)
 
 **Features to implement:**
@@ -837,6 +873,7 @@ Replace placeholder components with real functionality:
 - **Deliveries**: Active deliveries map view, delivery partner list with status, assignment override
 - **Payments**: Transaction log table with filters, refund action
 - **Analytics**: Revenue charts, order volume charts, popular restaurants, average delivery time (use Angular Material chart components or ngx-charts)
+- **Notifications**: Notification log table, template management (future)
 - **Settings**: Platform configuration (commission rates, delivery radius, etc.)
 
 Each feature page should use:
@@ -1006,6 +1043,11 @@ Your task: **Implement AI features, the Reviews/Promotions modules, comprehensiv
 - Add AI search to customer app home screen
 - Add analytics charts to restaurant app dashboard
 - Add review management (reply) to restaurant app
+
+#### 8. Angular Dashboard Updates
+- **Reviews Management**: Review moderation queue, flagged reviews, view/respond to reviews, sentiment overview
+- **Promotions Management**: CRUD promotions, usage statistics, activate/deactivate, coupon code generation
+- **Notifications Management**: Notification log viewer, delivery/read status tracking
 
 ### Constraints
 - AI features must gracefully degrade (if OpenAI is down, use fallback)

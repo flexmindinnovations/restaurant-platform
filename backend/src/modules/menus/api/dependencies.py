@@ -14,14 +14,23 @@ from modules.menus.application.commands.manage_items import (
     DeleteMenuItemHandler,
     UpdateMenuItemHandler,
 )
+from modules.menus.application.commands.manage_modifiers import (
+    AddModifierHandler,
+    CreateModifierGroupHandler,
+    DeleteModifierGroupHandler,
+    RemoveModifierHandler,
+)
 from modules.menus.application.commands.update_menu import UpdateMenuHandler
 from modules.menus.application.queries.get_menu import GetMenuHandler
 from modules.menus.application.queries.get_menu_item import GetMenuItemHandler
 from modules.menus.application.queries.list_menu_items import ListMenuItemsHandler
 from modules.menus.application.queries.list_menus import ListMenusHandler
+from modules.menus.application.queries.list_modifier_groups import ListModifierGroupsHandler
+from modules.menus.application.queries.search_menu_items import SearchMenuItemsHandler
 from modules.menus.infrastructure.repositories.category_repository import SqlAlchemyCategoryRepository
 from modules.menus.infrastructure.repositories.menu_item_repository import SqlAlchemyMenuItemRepository
 from modules.menus.infrastructure.repositories.menu_repository import SqlAlchemyMenuRepository
+from modules.menus.infrastructure.repositories.modifier_group_repository import SqlAlchemyModifierGroupRepository
 from shared.infrastructure.event_bus import get_event_bus
 from shared.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -130,3 +139,48 @@ def get_list_items_handler(
     item_repo: SqlAlchemyMenuItemRepository = Depends(_item_repo),
 ) -> ListMenuItemsHandler:
     return ListMenuItemsHandler(item_repo)
+
+
+def get_search_items_handler(
+    item_repo: SqlAlchemyMenuItemRepository = Depends(_item_repo),
+) -> SearchMenuItemsHandler:
+    return SearchMenuItemsHandler(item_repo)
+
+
+def _modifier_group_repo(session: AsyncSession = Depends(get_db_session)) -> SqlAlchemyModifierGroupRepository:
+    return SqlAlchemyModifierGroupRepository(session)
+
+
+def get_create_modifier_group_handler(
+    item_repo: SqlAlchemyMenuItemRepository = Depends(_item_repo),
+    group_repo: SqlAlchemyModifierGroupRepository = Depends(_modifier_group_repo),
+    uow: SqlAlchemyUnitOfWork = Depends(_uow),
+) -> CreateModifierGroupHandler:
+    return CreateModifierGroupHandler(item_repo, group_repo, uow)
+
+
+def get_add_modifier_handler(
+    group_repo: SqlAlchemyModifierGroupRepository = Depends(_modifier_group_repo),
+    uow: SqlAlchemyUnitOfWork = Depends(_uow),
+) -> AddModifierHandler:
+    return AddModifierHandler(group_repo, uow)
+
+
+def get_delete_modifier_group_handler(
+    group_repo: SqlAlchemyModifierGroupRepository = Depends(_modifier_group_repo),
+    uow: SqlAlchemyUnitOfWork = Depends(_uow),
+) -> DeleteModifierGroupHandler:
+    return DeleteModifierGroupHandler(group_repo, uow)
+
+
+def get_remove_modifier_handler(
+    group_repo: SqlAlchemyModifierGroupRepository = Depends(_modifier_group_repo),
+    uow: SqlAlchemyUnitOfWork = Depends(_uow),
+) -> RemoveModifierHandler:
+    return RemoveModifierHandler(group_repo, uow)
+
+
+def get_list_modifier_groups_handler(
+    group_repo: SqlAlchemyModifierGroupRepository = Depends(_modifier_group_repo),
+) -> ListModifierGroupsHandler:
+    return ListModifierGroupsHandler(group_repo)

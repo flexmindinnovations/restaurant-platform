@@ -206,3 +206,135 @@ class TestMenuItem:
         assert item.is_available is False
         events = item.collect_events()
         assert any(e.__class__.__name__ == "MenuItemRemoved" for e in events)
+
+
+class TestModifierGroup:
+    def test_create_modifier_group(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup, SelectionType
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+            selection_type=SelectionType.SINGLE,
+            min_selections=1,
+            max_selections=1,
+            is_required=True,
+        )
+
+        assert group.name == "Size"
+        assert group.selection_type == SelectionType.SINGLE
+        assert group.is_required is True
+        assert group.modifiers == []
+
+    def test_create_group_empty_name_raises(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        with pytest.raises(ValidationException, match="name cannot be empty"):
+            ModifierGroup.create(
+                menu_item_id=uuid.uuid4(),
+                restaurant_id=uuid.uuid4(),
+                name="",
+            )
+
+    def test_create_group_invalid_selections_raises(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        with pytest.raises(ValidationException, match="min_selections cannot exceed"):
+            ModifierGroup.create(
+                menu_item_id=uuid.uuid4(),
+                restaurant_id=uuid.uuid4(),
+                name="Toppings",
+                min_selections=3,
+                max_selections=2,
+            )
+
+    def test_add_modifier(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+        )
+        modifier = group.add_modifier(
+            name="Large",
+            price_adjustment=Money(amount=Decimal("2.50")),
+        )
+
+        assert modifier.name == "Large"
+        assert modifier.price_adjustment.amount == Decimal("2.50")
+        assert len(group.modifiers) == 1
+
+    def test_add_modifier_empty_name_raises(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+        )
+        with pytest.raises(ValidationException, match="Modifier name cannot be empty"):
+            group.add_modifier(name="", price_adjustment=Money(amount=Decimal("0.00")))
+
+    def test_remove_modifier(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Extras",
+            max_selections=3,
+        )
+        m1 = group.add_modifier(name="Cheese", price_adjustment=Money(amount=Decimal("1.00")))
+        group.add_modifier(name="Bacon", price_adjustment=Money(amount=Decimal("1.50")))
+
+        group.remove_modifier(m1.id)
+        assert len(group.modifiers) == 1
+        assert group.modifiers[0].name == "Bacon"
+
+    def test_validate_selection_success(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+            min_selections=1,
+            max_selections=1,
+            is_required=True,
+        )
+        m = group.add_modifier(name="Medium", price_adjustment=Money(amount=Decimal("0.00")))
+
+        group.validate_selection([m.id])
+
+    def test_validate_selection_too_many_raises(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+            max_selections=1,
+        )
+        m1 = group.add_modifier(name="Small", price_adjustment=Money(amount=Decimal("0.00")))
+        m2 = group.add_modifier(name="Large", price_adjustment=Money(amount=Decimal("2.00")))
+
+        with pytest.raises(ValidationException, match="at most 1"):
+            group.validate_selection([m1.id, m2.id])
+
+    def test_validate_selection_required_raises(self):
+        from modules.menus.domain.entities.modifier import ModifierGroup
+
+        group = ModifierGroup.create(
+            menu_item_id=uuid.uuid4(),
+            restaurant_id=uuid.uuid4(),
+            name="Size",
+            min_selections=1,
+            max_selections=1,
+            is_required=True,
+        )
+        group.add_modifier(name="Medium", price_adjustment=Money(amount=Decimal("0.00")))
+
+        with pytest.raises(ValidationException, match="requires at least 1"):
+            group.validate_selection([])

@@ -1,4 +1,5 @@
 import uuid
+
 import jwt
 import pytest
 from httpx import AsyncClient

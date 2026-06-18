@@ -28,6 +28,7 @@ from modules.menus.application.queries.get_menu import GetMenuHandler, GetMenuQu
 from modules.menus.application.queries.get_menu_item import GetMenuItemHandler, GetMenuItemQuery
 from modules.menus.application.queries.list_menu_items import ListMenuItemsHandler, ListMenuItemsQuery
 from modules.menus.application.queries.list_menus import ListMenusHandler, ListMenusQuery
+from modules.menus.application.queries.search_menu_items import SearchMenuItemsHandler, SearchMenuItemsQuery
 from modules.menus.domain.entities.category import Category
 from modules.menus.domain.entities.menu import Menu
 from modules.menus.domain.entities.menu_item import MenuItem
@@ -449,3 +450,42 @@ class TestListMenuItemsHandler:
 
         assert result.total == 2
         assert len(result.items) == 2
+
+
+class TestSearchMenuItemsHandler:
+    @pytest.mark.asyncio
+    async def test_search_returns_results(self):
+        restaurant_id = uuid.uuid4()
+        items = [_make_item(name="Chicken Burger", restaurant_id=restaurant_id)]
+        repo = AsyncMock()
+        repo.search.return_value = items
+        repo.search_count.return_value = 1
+
+        handler = SearchMenuItemsHandler(repo)
+        result = await handler.handle(
+            SearchMenuItemsQuery(restaurant_id=restaurant_id, query="chicken")
+        )
+
+        assert result.total == 1
+        assert result.items[0].name == "Chicken Burger"
+        repo.search.assert_called_once_with(
+            restaurant_id=restaurant_id,
+            query="chicken",
+            available_only=True,
+            skip=0,
+            limit=20,
+        )
+
+    @pytest.mark.asyncio
+    async def test_search_empty_results(self):
+        repo = AsyncMock()
+        repo.search.return_value = []
+        repo.search_count.return_value = 0
+
+        handler = SearchMenuItemsHandler(repo)
+        result = await handler.handle(
+            SearchMenuItemsQuery(restaurant_id=uuid.uuid4(), query="nonexistent")
+        )
+
+        assert result.total == 0
+        assert result.items == []

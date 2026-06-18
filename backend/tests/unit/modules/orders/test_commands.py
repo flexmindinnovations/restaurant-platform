@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from modules.orders.application.commands.add_to_cart import AddToCartCommand, AddToCartHandler
@@ -18,7 +19,6 @@ from modules.orders.domain.entities.order_item import OrderItem
 from modules.orders.domain.value_objects.order_status import OrderStatus
 from shared.domain.exceptions import ValidationException
 from shared.domain.value_objects import Money
-
 
 # --- Helpers & Fixtures ---
 

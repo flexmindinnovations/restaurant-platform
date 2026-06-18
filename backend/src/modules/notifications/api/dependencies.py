@@ -5,6 +5,11 @@ from app.dependencies import get_db_session
 from modules.notifications.application.commands.send_notification import SendNotificationHandler
 from modules.notifications.application.ports.notification_dispatcher import NotificationDispatcher
 from modules.notifications.application.ports.notification_repository import NotificationRepository
+from modules.notifications.infrastructure.adapters.composite_notification_dispatcher import (
+    CompositeNotificationDispatcher,
+)
+from modules.notifications.infrastructure.adapters.push_notification_dispatcher import PushNotificationDispatcher
+from modules.notifications.infrastructure.adapters.sms_notification_dispatcher import SmsNotificationDispatcher
 from modules.notifications.infrastructure.adapters.smtp_notification_dispatcher import SmtpNotificationDispatcher
 from modules.notifications.infrastructure.repositories.sqlalchemy_notification_repository import (
     SqlAlchemyNotificationRepository,
@@ -19,7 +24,11 @@ def _notification_repo(session: AsyncSession = Depends(get_db_session)) -> Notif
 
 
 def _notification_dispatcher() -> NotificationDispatcher:
-    return SmtpNotificationDispatcher()
+    return CompositeNotificationDispatcher(
+        email=SmtpNotificationDispatcher(),
+        sms=SmsNotificationDispatcher(),
+        push=PushNotificationDispatcher(),
+    )
 
 
 def _uow(session: AsyncSession = Depends(get_db_session)) -> AbstractUnitOfWork:

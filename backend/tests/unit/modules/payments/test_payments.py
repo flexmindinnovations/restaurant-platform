@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+
 import pytest
 
 from modules.payments.domain.entities.payment import Payment
@@ -55,4 +56,3 @@ def test_void_payment():
     p.authorize("tx_123", {})
     p.void({"status": "voided"})
     assert p.status == PaymentStatus.VOIDED
-

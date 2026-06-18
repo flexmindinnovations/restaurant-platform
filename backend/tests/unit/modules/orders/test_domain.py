@@ -1,25 +1,25 @@
 import uuid
 from decimal import Decimal
-import pytest
-from datetime import UTC, datetime
 
-from modules.orders.domain.entities.cart import Cart, CartItem
+import pytest
+
+from modules.orders.domain.entities.cart import Cart
 from modules.orders.domain.entities.order import Order
 from modules.orders.domain.entities.order_item import OrderItem
+from modules.orders.domain.events.order_events import (
+    OrderCancelled,
+    OrderCompleted,
+    OrderConfirmed,
+    OrderDelivered,
+    OrderOutForDelivery,
+    OrderPlaced,
+    OrderPreparing,
+    OrderReady,
+)
 from modules.orders.domain.value_objects.order_number import OrderNumber
 from modules.orders.domain.value_objects.order_status import OrderStatus
 from shared.domain.exceptions import ValidationException
 from shared.domain.value_objects import Money
-from modules.orders.domain.events.order_events import (
-    OrderPlaced,
-    OrderCancelled,
-    OrderConfirmed,
-    OrderPreparing,
-    OrderReady,
-    OrderOutForDelivery,
-    OrderDelivered,
-    OrderCompleted,
-)
 
 
 def test_cart_creation():

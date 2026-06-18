@@ -5,28 +5,37 @@ from fastapi import APIRouter, Depends, Query, status
 
 from modules.menus.api.dependencies import (
     get_add_category_handler,
+    get_add_modifier_handler,
     get_create_item_handler,
     get_create_menu_handler,
+    get_create_modifier_group_handler,
     get_delete_category_handler,
     get_delete_item_handler,
     get_delete_menu_handler,
+    get_delete_modifier_group_handler,
     get_item_query_handler,
     get_list_items_handler,
     get_list_menus_handler,
+    get_list_modifier_groups_handler,
     get_menu_query_handler,
+    get_remove_modifier_handler,
+    get_search_items_handler,
     get_update_category_handler,
     get_update_item_handler,
     get_update_menu_handler,
 )
 from modules.menus.api.schemas import (
+    AddModifierRequest,
     CategoryRequest,
     CategoryResponse,
     CreateMenuItemRequest,
     CreateMenuRequest,
+    CreateModifierGroupRequest,
     MenuItemListResponse,
     MenuItemResponse,
     MenuListResponse,
     MenuResponse,
+    ModifierGroupResponse,
     UpdateCategoryRequest,
     UpdateMenuItemRequest,
     UpdateMenuRequest,
@@ -49,15 +58,53 @@ from modules.menus.application.commands.manage_items import (
     UpdateMenuItemCommand,
     UpdateMenuItemHandler,
 )
+from modules.menus.application.commands.manage_modifiers import (
+    AddModifierCommand,
+    AddModifierHandler,
+    CreateModifierGroupCommand,
+    CreateModifierGroupHandler,
+    DeleteModifierGroupCommand,
+    DeleteModifierGroupHandler,
+    RemoveModifierCommand,
+    RemoveModifierHandler,
+)
 from modules.menus.application.commands.update_menu import UpdateMenuCommand, UpdateMenuHandler
 from modules.menus.application.queries.get_menu import GetMenuHandler, GetMenuQuery
 from modules.menus.application.queries.get_menu_item import GetMenuItemHandler, GetMenuItemQuery
 from modules.menus.application.queries.list_menu_items import ListMenuItemsHandler, ListMenuItemsQuery
 from modules.menus.application.queries.list_menus import ListMenusHandler, ListMenusQuery
+from modules.menus.application.queries.list_modifier_groups import ListModifierGroupsHandler, ListModifierGroupsQuery
+from modules.menus.application.queries.search_menu_items import SearchMenuItemsHandler, SearchMenuItemsQuery
 from shared.api.response import ResponseEnvelope
 from shared.api.security import require_roles
 
 router = APIRouter()
+
+
+# ---------------------------------------------------------------------------
+# Search
+# ---------------------------------------------------------------------------
+
+
+@router.get("/search", response_model=ResponseEnvelope[MenuItemListResponse])
+async def search_menu_items(
+    restaurant_id: uuid.UUID = Query(...),
+    q: str = Query(..., min_length=1, max_length=200),
+    available_only: bool = Query(True),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    handler: SearchMenuItemsHandler = Depends(get_search_items_handler),
+) -> ResponseEnvelope[MenuItemListResponse]:
+    query = SearchMenuItemsQuery(
+        restaurant_id=restaurant_id,
+        query=q,
+        available_only=available_only,
+        skip=skip,
+        limit=limit,
+    )
+    result = await handler.handle(query)
+    items = [MenuItemResponse.model_validate(i) for i in result.items]
+    return ResponseEnvelope(data=MenuItemListResponse(items=items, total=result.total))
 
 
 # ---------------------------------------------------------------------------
@@ -297,3 +344,92 @@ async def delete_menu_item(
     handler: DeleteMenuItemHandler = Depends(get_delete_item_handler),
 ) -> None:
     await handler.handle(DeleteMenuItemCommand(item_id=item_id))
+
+
+# ---------------------------------------------------------------------------
+# Modifier Groups & Modifiers
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/items/{item_id}/modifier-groups",
+    response_model=ResponseEnvelope[list[ModifierGroupResponse]],
+)
+async def list_modifier_groups(
+    item_id: uuid.UUID,
+    handler: ListModifierGroupsHandler = Depends(get_list_modifier_groups_handler),
+) -> ResponseEnvelope[list[ModifierGroupResponse]]:
+    dtos = await handler.handle(ListModifierGroupsQuery(menu_item_id=item_id))
+    return ResponseEnvelope(data=[ModifierGroupResponse.model_validate(g) for g in dtos])
+
+
+@router.post(
+    "/items/{item_id}/modifier-groups",
+    response_model=ResponseEnvelope[dict],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_modifier_group(
+    item_id: uuid.UUID,
+    request: CreateModifierGroupRequest,
+    current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
+    handler: CreateModifierGroupHandler = Depends(get_create_modifier_group_handler),
+) -> ResponseEnvelope[dict]:
+    restaurant_id = uuid.UUID(current_user["restaurant_id"])
+    command = CreateModifierGroupCommand(
+        menu_item_id=item_id,
+        restaurant_id=restaurant_id,
+        name=request.name,
+        selection_type=request.selection_type,
+        min_selections=request.min_selections,
+        max_selections=request.max_selections,
+        is_required=request.is_required,
+        description=request.description,
+        display_order=request.display_order,
+    )
+    group_id = await handler.handle(command)
+    return ResponseEnvelope(data={"id": str(group_id), "message": "Modifier group created"})
+
+
+@router.delete("/modifier-groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_modifier_group(
+    group_id: uuid.UUID,
+    _current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
+    handler: DeleteModifierGroupHandler = Depends(get_delete_modifier_group_handler),
+) -> None:
+    await handler.handle(DeleteModifierGroupCommand(modifier_group_id=group_id))
+
+
+@router.post(
+    "/modifier-groups/{group_id}/modifiers",
+    response_model=ResponseEnvelope[dict],
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_modifier(
+    group_id: uuid.UUID,
+    request: AddModifierRequest,
+    _current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
+    handler: AddModifierHandler = Depends(get_add_modifier_handler),
+) -> ResponseEnvelope[dict]:
+    command = AddModifierCommand(
+        modifier_group_id=group_id,
+        name=request.name,
+        price_adjustment_amount=request.price_adjustment_amount,
+        price_adjustment_currency=request.price_adjustment_currency,
+        is_default=request.is_default,
+        display_order=request.display_order,
+    )
+    modifier_id = await handler.handle(command)
+    return ResponseEnvelope(data={"id": str(modifier_id), "message": "Modifier added"})
+
+
+@router.delete(
+    "/modifier-groups/{group_id}/modifiers/{modifier_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_modifier(
+    group_id: uuid.UUID,
+    modifier_id: uuid.UUID,
+    _current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
+    handler: RemoveModifierHandler = Depends(get_remove_modifier_handler),
+) -> None:
+    await handler.handle(RemoveModifierCommand(modifier_group_id=group_id, modifier_id=modifier_id))

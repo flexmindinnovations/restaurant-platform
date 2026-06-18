@@ -7,6 +7,11 @@ from modules.notifications.application.commands.send_notification import (
     SendNotificationHandler,
 )
 from modules.notifications.domain.entities.notification import NotificationChannel
+from modules.notifications.infrastructure.adapters.composite_notification_dispatcher import (
+    CompositeNotificationDispatcher,
+)
+from modules.notifications.infrastructure.adapters.push_notification_dispatcher import PushNotificationDispatcher
+from modules.notifications.infrastructure.adapters.sms_notification_dispatcher import SmsNotificationDispatcher
 from modules.notifications.infrastructure.adapters.smtp_notification_dispatcher import SmtpNotificationDispatcher
 from modules.notifications.infrastructure.repositories.sqlalchemy_notification_repository import (
     SqlAlchemyNotificationRepository,
@@ -41,7 +46,11 @@ async def handle_partner_assigned(event: Any) -> None:
         order_id, customer_id, partner_name = row[0], row[1], row[2]
 
         repo = SqlAlchemyNotificationRepository(session)
-        dispatcher = SmtpNotificationDispatcher()
+        dispatcher = CompositeNotificationDispatcher(
+            email=SmtpNotificationDispatcher(),
+            sms=SmsNotificationDispatcher(),
+            push=PushNotificationDispatcher(),
+        )
         event_bus = get_event_bus()
         uow = SqlAlchemyUnitOfWork(session, event_bus)
         handler = SendNotificationHandler(repo, dispatcher, uow)

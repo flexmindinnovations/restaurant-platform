@@ -34,3 +34,21 @@ class MenuItemRepository(ABC):
         category_id: uuid.UUID | None = None,
         available_only: bool = False,
     ) -> int: ...
+
+    @abstractmethod
+    async def search(
+        self,
+        restaurant_id: uuid.UUID,
+        query: str,
+        available_only: bool = True,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> list[MenuItem]: ...
+
+    @abstractmethod
+    async def search_count(
+        self,
+        restaurant_id: uuid.UUID,
+        query: str,
+        available_only: bool = True,
+    ) -> int: ...

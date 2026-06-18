@@ -107,3 +107,57 @@ class MenuItemResponse(BaseModel):
 class MenuItemListResponse(BaseModel):
     items: list[MenuItemResponse]
     total: int
+
+
+# --- Modifier schemas ---
+
+
+class CreateModifierGroupRequest(BaseModel):
+    name: str = Field(..., max_length=255)
+    description: str | None = None
+    selection_type: str = "SINGLE"
+    min_selections: int = Field(0, ge=0)
+    max_selections: int = Field(1, ge=1)
+    is_required: bool = False
+    display_order: int = 0
+
+
+class AddModifierRequest(BaseModel):
+    name: str = Field(..., max_length=255)
+    price_adjustment_amount: Decimal = Field(Decimal("0.00"), ge=0)
+    price_adjustment_currency: str = "USD"
+    is_default: bool = False
+    display_order: int = 0
+
+
+class ModifierResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    modifier_group_id: uuid.UUID
+    name: str
+    price_adjustment_amount: Decimal
+    price_adjustment_currency: str
+    is_default: bool
+    is_available: bool
+    display_order: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ModifierGroupResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    menu_item_id: uuid.UUID
+    restaurant_id: uuid.UUID
+    name: str
+    description: str | None
+    selection_type: str
+    min_selections: int
+    max_selections: int
+    is_required: bool
+    display_order: int
+    modifiers: list[ModifierResponse]
+    created_at: datetime
+    updated_at: datetime

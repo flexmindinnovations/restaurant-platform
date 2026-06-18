@@ -76,3 +76,53 @@ class MenuItemModel(Base):
 
     menu = relationship("MenuModel", back_populates="items")
     category = relationship("CategoryModel")
+    modifier_groups = relationship("ModifierGroupModel", back_populates="menu_item", cascade="all, delete-orphan")
+
+
+class ModifierGroupModel(Base):
+    __tablename__ = "modifier_groups"
+    __table_args__ = {"schema": "menus"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    menu_item_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("menus.menu_items.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    restaurant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    selection_type = Column(String(20), default="SINGLE", nullable=False)
+    min_selections = Column(Integer, default=0, nullable=False)
+    max_selections = Column(Integer, default=1, nullable=False)
+    is_required = Column(Boolean, default=False, nullable=False)
+    display_order = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    updated_at = Column(DateTime(timezone=True), nullable=False)
+
+    menu_item = relationship("MenuItemModel", back_populates="modifier_groups")
+    modifiers = relationship("ModifierModel", back_populates="modifier_group", cascade="all, delete-orphan")
+
+
+class ModifierModel(Base):
+    __tablename__ = "modifiers"
+    __table_args__ = {"schema": "menus"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    modifier_group_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("menus.modifier_groups.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name = Column(String(255), nullable=False)
+    price_adjustment_amount = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
+    price_adjustment_currency = Column(String(3), default="USD", nullable=False)
+    is_default = Column(Boolean, default=False, nullable=False)
+    is_available = Column(Boolean, default=True, nullable=False)
+    display_order = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    updated_at = Column(DateTime(timezone=True), nullable=False)
+
+    modifier_group = relationship("ModifierGroupModel", back_populates="modifiers")

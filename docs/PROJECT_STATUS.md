@@ -1,183 +1,177 @@
 # Project Status — Restaurant Platform
 
 > Last updated: 2026-06-18
+> Phase structure matches [phase-wise-development-prompts.md](guides/phase-wise-development-prompts.md)
 
-## Phase 1 — Core Foundation (Sprints 0–1)
+## Phase 0 — Bootstrap (Sprint 0) ✅
 
-### Sprint 0: Infrastructure & Scaffolding ✅
+### Sprint 0A: Backend Bootstrap ✅
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Monorepo setup (uv, Angular CLI, Melos) | ✅ Done | |
+| Python project setup (uv, pyproject.toml, Python 3.13) | ✅ Done | |
+| FastAPI application factory (main.py, config.py) | ✅ Done | |
+| Shared kernel (entity, VOs, events, UoW, event bus, outbox) | ✅ Done | |
+| Module scaffolding (11 bounded contexts) | ✅ Done | |
+| Database setup (Alembic, multi-schema, extensions) | ✅ Done | |
+| Import boundary enforcement (.importlinter) | ✅ Done | |
+| Health check endpoint | ✅ Done | |
+| Test infrastructure | ✅ Done | |
+| Dockerfiles (api + worker) | ✅ Done | |
+| Celery + structured logging + OpenTelemetry | ✅ Done | |
+
+### Sprint 0B: Infrastructure Bootstrap ✅
+
+| Area | Status | Notes |
+|------|--------|-------|
 | Docker Compose (Postgres, Valkey, LocalStack, Mailpit) | ✅ Done | Pinned versions |
-| Terraform modules (networking, compute, database, cache, CDN, storage, security, monitoring, CI/CD) | ✅ Done | Security hardened |
-| Backend FastAPI factory + config | ✅ Done | |
-| Shared kernel (domain primitives, UoW, event bus, outbox) | ✅ Done | |
+| PostgreSQL init scripts (extensions, schemas, roles, RLS) | ✅ Done | |
+| Terraform modules (10 modules) | ✅ Done | Security hardened |
+| Environment configs (dev, staging, production) | ✅ Done | |
+| CI workflows + Dependabot | ✅ Done | |
+
+### Sprint 0C: Code Quality & Remaining ✅
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Pre-commit hooks + git hooks | ✅ Done | |
+| Release workflow | ✅ Done | |
+| Mobile state management (Riverpod + GoRouter) | ✅ Done | |
 | Frontend Angular shell + sidenav | ✅ Done | |
-| Module scaffolding (12 bounded contexts) | ✅ Done | |
-| DB init scripts (extensions, schemas, roles, RLS) | ✅ Done | |
-| Alembic migrations setup | ✅ Done | |
-
-### Sprint 1: Identity, Users, Restaurants — Backend ✅
-
-#### Identity Module
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Domain: Account entity, Email/Password/Phone/Role VOs | ✅ Done | |
-| Domain: Account events (Created, Verified, Deactivated, PasswordChanged, RoleAssigned) | ✅ Done | |
-| Application: RegisterAccount command | ✅ Done | |
-| Application: Login command | ✅ Done | Email verification enforced |
-| Application: VerifyEmail command | ✅ Done | |
-| Application: ChangePassword command | ✅ Done | |
-| Application: ForgotPassword command | ✅ Done | 1h token expiry |
-| Application: ResetPassword command | ✅ Done | Separate reset_token field |
-| Application: RefreshToken command | ✅ Done | Token rotation |
-| Application: AuthService (login, refresh, verify, logout) | ✅ Done | |
-| Application: GetAccount query | ✅ Done | |
-| Application: Ports (AccountRepository, PasswordHasher, TokenService, EmailSender) | ✅ Done | |
-| Infrastructure: SQLAlchemy models + repository | ✅ Done | |
-| Infrastructure: JWT token service | ✅ Done | |
-| Infrastructure: Bcrypt password hasher | ✅ Done | |
-| API: Auth routes (register, login, logout, refresh, verify, forgot/reset password, me) | ✅ Done | |
-| Unit tests: Domain entities & value objects | ✅ Done | |
-| Unit tests: Command handler logic | ✅ Done | Mocked ports |
-
-#### Users Module
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Domain: UserProfile entity (AggregateRoot) | ✅ Done | |
-| Application: CreateProfile command | ✅ Done | |
-| Application: UpdateProfile command | ✅ Done | |
-| Application: GetProfile query | ✅ Done | |
-| Application: Ports (UserRepository) | ✅ Done | |
-| Infrastructure: SQLAlchemy models + repository | ✅ Done | |
-| API: Profile routes (get, update) | ✅ Done | |
-| Event handler: AccountCreated → auto-create profile | ✅ Done | Decoupled via subscribe_by_name |
-| Unit tests: Domain entities | ✅ Done | |
-| Unit tests: Command handler logic | ✅ Done | Mocked ports |
-
-#### Restaurants Module
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Domain: Restaurant entity, Address VO (shared), OperatingHours VO | ✅ Done | |
-| Domain: Restaurant events (Registered, Updated, Verified, Deactivated) | ✅ Done | |
-| Application: RegisterRestaurant command | ✅ Done | |
-| Application: UpdateRestaurant command | ✅ Done | Partial update support |
-| Application: VerifyRestaurant command | ✅ Done | |
-| Application: GetRestaurant query | ✅ Done | |
-| Application: ListRestaurants query | ✅ Done | Pagination + search |
-| Application: Ports (RestaurantRepository) | ✅ Done | |
-| Infrastructure: SQLAlchemy models + repository | ✅ Done | LIKE injection escaped |
-| API: Restaurant routes (register, get, list, update, verify) | ✅ Done | |
-| Ownership checker callback | ✅ Done | Registered from restaurants.startup |
-| Unit tests: Domain entities & value objects | ✅ Done | |
-| Unit tests: Command/query handler logic | ✅ Done | Mocked ports |
-
-#### Cross-Cutting (Sprint 1+)
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| AbstractUnitOfWork in shared.application.ports | ✅ Done | Clean architecture compliant |
-| Transactional outbox in UoW commit | ✅ Done | Events → outbox → publish |
-| Event bus subscribe_by_name (string-based) | ✅ Done | Avoids cross-module imports |
-| Architecture tests (import-linter) | ✅ Done | test_import_boundaries.py |
-| Integration test: Auth flow (register → verify → login → refresh → logout) | ✅ Done | Uses raw SQL, no cross-module imports |
-| Shared API security (JWT auth, RBAC, tenant access) | ✅ Done | shared/api/security.py |
-| WebSocket infrastructure (Redis pub/sub, throttled tracking) | ✅ Done | shared/api/websockets.py |
-| Cross-module adapter pattern (app/adapters/) | ✅ Done | MenuServiceAdapter bridges menus→orders |
+| Development setup + coding standards guides | ✅ Done | |
+| PowerShell convenience scripts | ✅ Done | |
 
 ---
 
-## Phase 2 — Ordering & Menus (Sprint 2–3) ✅
+## Phase 1 — Foundation: Identity & Core Domain (Sprint 1) ✅
 
-### Menus Module ✅
-- [x] Domain: Menu aggregate root, MenuItem aggregate root, Category entity
-- [x] Domain: Price via shared Money VO, availability rules (is_available, publish/unpublish)
-- [x] Domain: Events (MenuCreated, MenuUpdated, MenuPublished, MenuUnpublished, MenuItemCreated, MenuItemUpdated, MenuItemRemoved)
-- [x] Application: Commands (CreateMenu, UpdateMenu, DeleteMenu, AddCategory, UpdateCategory, DeleteCategory, CreateMenuItem, UpdateMenuItem, DeleteMenuItem)
-- [x] Application: Queries (GetMenu with categories, ListMenus, GetMenuItem, ListMenuItems)
-- [x] Application: Ports (MenuRepository, CategoryRepository, MenuItemRepository)
-- [x] Infrastructure: SQLAlchemy models (MenuModel, CategoryModel, MenuItemModel) with schema menus.*
-- [x] Infrastructure: Repository implementations with CRUD and filtering
-- [x] API: Full CRUD routes (menus, categories, items) under /api/v1/menus
-- [x] API: Pydantic request/response schemas with validation
-- [x] Migration: 0003_menus_module (menus, categories, menu_items tables + RLS on menu_items)
-- [x] Unit tests: 18 domain tests + 23 handler tests (41 total)
+### Identity Module ✅ · 22 tests
+- [x] Domain: Account entity, Email/Password/Phone/Role VOs, 5 events
+- [x] Application: Register, Login, VerifyEmail, ChangePassword, ForgotPassword, ResetPassword, RefreshToken, GetAccount
+- [x] Infrastructure: SQLAlchemy repo, JWT token service, bcrypt hasher
+- [x] API: 8 auth routes under /api/v1/auth
+- [x] Migration: identity.accounts, identity.refresh_tokens
 
-### Orders Module ✅
-- [x] Domain: Order aggregate (OrderNumber, Money breakdown with subtotal/tax/delivery_fee/tip, state machine transitions, per-status timestamps, cancellation rules), OrderItem, OrderStatus
-- [x] Domain: Cart aggregate (single-restaurant constraint, item merging, quantity management)
-- [x] Domain: Order lifecycle events (OrderPlaced, OrderConfirmed, OrderPreparing, OrderReady, OrderOutForDelivery, OrderDelivered, OrderCompleted, OrderCancelled)
-- [x] Application: Commands (AddToCart, UpdateCartItem, RemoveFromCart, ClearCart, PlaceOrder, ConfirmOrder, UpdateOrderStatus, CancelOrder) and Queries (GetCart, GetOrder, ListCustomerOrders, ListRestaurantOrders)
-- [x] Application: MenuService anti-corruption layer (port + adapter in app/adapters/) to validate menu items without cross-module imports
-- [x] Infrastructure: SQLAlchemy models (CartModel, CartItemModel, OrderModel, OrderItemModel) with schema orders.*, write-through Valkey (Redis) caching layer (24h TTL)
-- [x] API: Dual routers — Checkout (/api/v1/checkout/) and Orders (/api/v1/orders/) with auth + RBAC
-- [x] Event handlers: DeliveryCompleted → auto-transition order to COMPLETED
-- [x] Migration: 0004_orders_module (carts, cart_items, orders, order_items tables + RLS)
-- [x] Unit tests: 31 tests covering domain invariants (17) and command handlers (14) — 100% green
+### Users Module ✅ · 7 tests
+- [x] Domain: UserProfile aggregate root, events
+- [x] Application: CreateProfile, UpdateProfile, GetProfile
+- [x] Event handler: AccountCreated → auto-create profile
+- [x] API: Profile routes (GET/PATCH /api/v1/me)
 
----
+### Restaurants Module ✅ · 17 tests
+- [x] Domain: Restaurant entity, Address VO, OperatingHours VO, 4 events
+- [x] Application: Register, Update, Verify, Get, List (pagination + search)
+- [x] Infrastructure: SQLAlchemy repo, LIKE injection protection
+- [x] API: 5 routes under /api/v1/restaurants + ownership checker
 
-## Phase 3 — Payments & Delivery (Sprint 4–5) ✅
-
-### Payments Module ✅
-- [x] Domain: Payment entity (AggregateRoot), PaymentMethod entity, PaymentStatus enum, payment events (Initiated, Completed, Failed, Refunded, MethodAdded, MethodRemoved)
-- [x] Application: Commands (InitiatePayment, CapturePayment, RefundPayment, AddPaymentMethod, RemovePaymentMethod, SetDefaultPaymentMethod) and Queries (GetPayment, ListPaymentMethods)
-- [x] Application: Ports (PaymentRepository, PaymentMethodRepository, PaymentGateway)
-- [x] Infrastructure: SQLAlchemy models (PaymentModel, PaymentMethodModel) with schema payments.*, repository implementations
-- [x] Infrastructure: PaymentGateway implementations (MockGateway for dev, StripeGateway stub for prod)
-- [x] API: Payment routes (/api/v1/payments/) with full CRUD
-- [x] Event handlers: OrderPlaced → auto-initiate payment, PaymentCompleted → confirm order
-- [x] Unit tests: 4 tests covering domain and command handlers (100% green)
-
-### Deliveries Module ✅
-- [x] Domain: Delivery entity (AggregateRoot), DeliveryPartner entity, DeliveryStatus enum, Location/GeoLocation VOs, VehicleType enum
-- [x] Domain: Delivery events (Created, Assigned, PickedUp, InTransit, Completed, Failed, PartnerRegistered, PartnerLocationUpdated)
-- [x] Application: Commands (CreateDelivery, AssignPartner, AcceptAssignment, UpdateDeliveryStatus, RegisterPartner, TogglePartnerAvailability, TogglePartnerOnline, UpdatePartnerLocation) and Queries (GetDelivery, GetPartner, ListPartnerDeliveries)
-- [x] Application: Ports (DeliveryRepository, PartnerRepository, LocationCache)
-- [x] Infrastructure: SQLAlchemy models with PostGIS geography columns for location tracking, Redis-backed LocationCache
-- [x] Infrastructure: Repository implementations with ST_GeogFromText/ST_DWithin spatial queries
-- [x] API: Dual routers — delivery assignments (/api/v1/delivery-assignments/) and partners (/api/v1/partners/)
-- [x] API: WebSocket endpoint (/ws/orders/{id}/tracking) for real-time delivery tracking with Redis pub/sub and location throttling
-- [x] Event handlers: OrderConfirmed → auto-create delivery and assign nearest partner
-- [x] Migration: 0005_payments_deliveries (payments.*, deliveries.* tables with PostGIS + RLS)
-- [x] Unit tests: 4 tests covering domain and command handlers (100% green)
+### Cross-Cutting ✅
+- [x] Auth middleware + RBAC (shared/api/security.py)
+- [x] Event bus subscribe_by_name (no cross-module imports)
+- [x] Architecture tests (import-linter)
+- [x] Integration test: full auth flow
 
 ---
 
-## Phase 4 — Engagement & Analytics (Sprint 6–7) 🟡
+## Phase 2 — Core Ordering: Menus, Cart, Checkout (Sprint 2) 🟡
 
-### Notifications Module ✅
-- [x] Domain: Notification entity (AggregateRoot), NotificationChannel enum (EMAIL, SMS, PUSH, IN_APP)
-- [x] Application: SendNotification command, ports (NotificationDispatcher, NotificationRepository)
-- [x] Infrastructure: SMTP email dispatcher, SQLAlchemy models + repository
-- [x] API: Notification routes (/api/v1/notifications/)
-- [x] Event handlers: OrderPlaced/OrderConfirmed/DeliveryAssigned/DeliveryCompleted → auto-send notifications
-- [ ] Unit tests: Not yet written
+### Menus Module (Backend) ✅ · 52 tests
+- [x] Domain: Menu + MenuItem + ModifierGroup + Modifier aggregates, Category entity, Money VO, 7 events
+- [x] Application: 13 commands + 6 queries (incl. search + modifiers)
+- [x] Infrastructure: 5 models (menus.*), repos with filtering, pg_trgm search
+- [x] API: Full CRUD under /api/v1/menus, search (GET /search), modifier endpoints
+- [x] Migration: 0003_menus_module + 0006_menu_search_index + 0007_modifier_groups with RLS
+
+### Orders Module (Backend) ✅ · 31 tests
+- [x] Domain: Order aggregate (OrderNumber, financial breakdown, state machine), Cart aggregate, 8 events
+- [x] Application: 8 commands + 4 queries, MenuService anti-corruption layer
+- [x] Infrastructure: 4 models (orders.*), Redis write-through cache (24h TTL)
+- [x] API: Dual routers — /api/v1/checkout + /api/v1/orders
+- [x] Migration: 0004_orders_module with RLS
+
+### Angular Frontend 🔲
+- [ ] Restaurants page, Menus page, Orders page
+- [ ] NgRx Signal Store + api-client lib
+- [ ] Responsive tables with Angular Material
+
+---
+
+## Phase 3 — Payments & Delivery (Sprint 3) 🟡
+
+### Payments Module (Backend) ✅ · 4 tests
+- [x] Domain: Payment + PaymentMethod entities, PaymentStatus, 6 events
+- [x] Application: 6 commands + 2 queries, PaymentGateway port
+- [x] Infrastructure: MockGateway + StripeGateway, SQLAlchemy repos (payments.*)
+- [x] Event handlers: OrderPlaced → initiate payment, PaymentCompleted → confirm order
+
+### Deliveries Module (Backend) ✅ · 4 tests
+- [x] Domain: Delivery + DeliveryPartner entities, GeoLocation VOs, 8 events
+- [x] Application: 8 commands + 3 queries, LocationCache port
+- [x] Infrastructure: PostGIS spatial queries, Redis location cache
+- [x] API: Dual routers — /api/v1/delivery-assignments + /api/v1/partners
+- [x] Migration: 0005_payments_deliveries with PostGIS + RLS
+
+### WebSocket — Live Tracking ✅
+- [x] /ws/orders/{id}/tracking with JWT auth, Redis pub/sub, location throttling
+
+### Notifications Module ✅ · 9 tests
+- [x] Domain + Application + Infrastructure + API + event handlers
+- [x] Unit tests: 5 domain + 4 handler (9 total)
+- [x] SMS/push dispatcher placeholders (CompositeNotificationDispatcher)
+- [ ] Celery async sending (currently synchronous)
+
+---
+
+## Phase 4 — Mobile Apps & Admin Dashboard (Sprint 4) 🔲
+
+### Shared Flutter Packages 🔲
+- [ ] networking, authentication, design_system, core, realtime, maps, localization, storage
+
+### Customer App 🔲
+- [ ] Auth, home/discovery, restaurant detail, menu/cart, checkout, order tracking, history, profile
+
+### Restaurant App 🔲
+- [ ] Auth, dashboard, order management, menu management, profile, analytics
+
+### Delivery App 🔲
+- [ ] Auth, availability toggle, assignment, active delivery, history, earnings, profile
+
+### Angular Admin Dashboard 🔲
+- [ ] Dashboard, Users, Restaurants, Orders, Deliveries, Payments, Analytics, Settings pages
+
+---
+
+## Phase 5 — AI Features & Polish (Sprint 5) 🔲
 
 ### Reviews Module 🔲
-- [ ] Domain: Review entity, rating aggregation
-- [ ] Application: SubmitReview, ModerateReview
+- [ ] Domain, application, infrastructure, API, migration, tests
 
 ### Promotions Module 🔲
-- [ ] Domain: Promotion entity, discount rules
-- [ ] Application: CreatePromotion, ApplyPromotion
+- [ ] Domain, application, infrastructure, API, migration, tests
 
 ### Analytics Module 🔲
-- [ ] Domain: Event aggregation models
-- [ ] Infrastructure: Analytics pipeline
+- [ ] Read-only module with materialized views, API
+
+### AI Services 🔲
+- [ ] Semantic menu search (pgvector), AI support assistant, smart recommendations, review sentiment analysis
+
+### Production Hardening 🔲
+- [ ] Rate limiting, caching, error handling audit, security hardening
+
+### Comprehensive Testing 🔲
+- [ ] Backend >=80% coverage, frontend E2E, mobile widget tests, load testing
 
 ---
 
-## Phase 5 — AI Services (Sprint 8) 🔲
+## Phase 6 — MVP Release & Production Deployment (Sprint 6) 🔲
 
-### AI Module
-- [ ] Recommendation engine
-- [ ] Demand forecasting
-- [ ] Smart search / NLP
+- [ ] Terraform production environment (VPC, ECS, RDS, ElastiCache, S3, CloudFront, WAF, Route 53)
+- [ ] CI/CD production pipeline (release workflow, rollback procedure)
+- [ ] Monitoring & alerting (CloudWatch dashboards, P1/P2/P3 alarms, distributed tracing)
+- [ ] Operational runbooks (incident response, deployment, database ops, scaling, common issues)
+- [ ] Documentation finalization (deployment guide, OpenAPI, ADRs, README)
+- [ ] Security checklist (13 items)
+- [ ] Mobile release preparation (signed builds, app store metadata, FCM)
+- [ ] Final integration testing (all 4 user roles + load test)
 
 ---
 
@@ -186,5 +180,5 @@
 | Symbol | Meaning |
 |--------|---------|
 | ✅ | Complete |
+| 🟡 | Backend done, frontend/mobile pending |
 | 🔲 | Not started |
-| 🟡 | In progress |

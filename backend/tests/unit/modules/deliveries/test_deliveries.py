@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+
 import pytest
 
 from modules.deliveries.domain.entities.delivery import Delivery

@@ -1,7 +1,7 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.menus.application.ports.menu_item_repository import MenuItemRepository
@@ -92,6 +92,48 @@ class SqlAlchemyMenuItemRepository(MenuItemRepository):
         if available_only:
             query = query.where(MenuItemModel.is_available.is_(True))
         result = await self._session.execute(query)
+        return result.scalar_one()
+
+    def _search_filter(self, query: str, available_only: bool, restaurant_id: uuid.UUID):
+        search_term = query.strip()
+        base = select(MenuItemModel).where(MenuItemModel.restaurant_id == restaurant_id)
+        if available_only:
+            base = base.where(MenuItemModel.is_available.is_(True))
+        similarity = func.similarity(
+            func.coalesce(MenuItemModel.name, "") + " " + func.coalesce(MenuItemModel.description, ""),
+            search_term,
+        )
+        base = base.where(
+            or_(
+                MenuItemModel.name.ilike(f"%{search_term}%"),
+                MenuItemModel.description.ilike(f"%{search_term}%"),
+                similarity > text("0.1"),
+            )
+        )
+        return base, similarity
+
+    async def search(
+        self,
+        restaurant_id: uuid.UUID,
+        query: str,
+        available_only: bool = True,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> list[MenuItem]:
+        base, similarity = self._search_filter(query, available_only, restaurant_id)
+        stmt = base.order_by(similarity.desc()).offset(skip).limit(limit)
+        result = await self._session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def search_count(
+        self,
+        restaurant_id: uuid.UUID,
+        query: str,
+        available_only: bool = True,
+    ) -> int:
+        base, _similarity = self._search_filter(query, available_only, restaurant_id)
+        count_stmt = select(func.count()).select_from(base.subquery())
+        result = await self._session.execute(count_stmt)
         return result.scalar_one()
 
     def _to_domain(self, model: MenuItemModel) -> MenuItem:
