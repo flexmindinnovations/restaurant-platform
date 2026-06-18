@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.restaurants.application.ports.restaurant_repository import RestaurantRepository
 from modules.restaurants.domain.entities.restaurant import Restaurant
-from shared.domain.value_objects import Address
 from modules.restaurants.domain.value_objects.operating_hours import OperatingHours
 from modules.restaurants.infrastructure.models.restaurant_model import RestaurantModel
+from shared.domain.value_objects import Address
 
 
 class SqlAlchemyRestaurantRepository(RestaurantRepository):
@@ -41,18 +41,14 @@ class SqlAlchemyRestaurantRepository(RestaurantRepository):
         self._session.add(model)
 
     async def get_by_id(self, restaurant_id: uuid.UUID) -> Restaurant | None:
-        result = await self._session.execute(
-            select(RestaurantModel).where(RestaurantModel.id == restaurant_id)
-        )
+        result = await self._session.execute(select(RestaurantModel).where(RestaurantModel.id == restaurant_id))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def update(self, restaurant: Restaurant) -> None:
-        result = await self._session.execute(
-            select(RestaurantModel).where(RestaurantModel.id == restaurant.id)
-        )
+        result = await self._session.execute(select(RestaurantModel).where(RestaurantModel.id == restaurant.id))
         model = result.scalar_one_or_none()
         if model:
             model.name = restaurant.name
@@ -83,8 +79,7 @@ class SqlAlchemyRestaurantRepository(RestaurantRepository):
         if search:
             escaped = self._escape_like(search)
             query = query.where(
-                (RestaurantModel.name.ilike(f"%{escaped}%")) |
-                (RestaurantModel.description.ilike(f"%{escaped}%"))
+                (RestaurantModel.name.ilike(f"%{escaped}%")) | (RestaurantModel.description.ilike(f"%{escaped}%"))
             )
         query = query.order_by(RestaurantModel.created_at.desc()).offset(skip).limit(limit)
         result = await self._session.execute(query)
@@ -96,8 +91,7 @@ class SqlAlchemyRestaurantRepository(RestaurantRepository):
         if search:
             escaped = self._escape_like(search)
             query = query.where(
-                (RestaurantModel.name.ilike(f"%{escaped}%")) |
-                (RestaurantModel.description.ilike(f"%{escaped}%"))
+                (RestaurantModel.name.ilike(f"%{escaped}%")) | (RestaurantModel.description.ilike(f"%{escaped}%"))
             )
         result = await self._session.execute(query)
         return result.scalar_one()

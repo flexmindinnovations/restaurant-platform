@@ -100,7 +100,7 @@ async def get_restaurant(
 async def update_restaurant(
     restaurant_id: uuid.UUID,
     request: UpdateRestaurantRequest,
-    authorized_id: uuid.UUID = Depends(require_restaurant_access),
+    _authorized_id: uuid.UUID = Depends(require_restaurant_access),
     handler: UpdateRestaurantHandler = Depends(get_update_restaurant_handler),
 ) -> ResponseEnvelope[dict]:
     command = UpdateRestaurantCommand(
@@ -126,7 +126,7 @@ async def update_restaurant(
 @admin_router.post("/{restaurant_id}/verify", response_model=ResponseEnvelope[dict], status_code=status.HTTP_200_OK)
 async def verify_restaurant(
     restaurant_id: uuid.UUID,
-    current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
+    _current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
     handler: VerifyRestaurantHandler = Depends(get_verify_restaurant_handler),
 ) -> ResponseEnvelope[dict]:
     command = VerifyRestaurantCommand(restaurant_id=restaurant_id)

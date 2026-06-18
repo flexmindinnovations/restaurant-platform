@@ -33,45 +33,35 @@ class SqlAlchemyAccountRepository(AccountRepository):
         self._session.add(model)
 
     async def get_by_id(self, account_id: uuid.UUID) -> Account | None:
-        result = await self._session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
+        result = await self._session.execute(select(AccountModel).where(AccountModel.id == account_id))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def get_by_email(self, email: Email) -> Account | None:
-        result = await self._session.execute(
-            select(AccountModel).where(AccountModel.email == email.value)
-        )
+        result = await self._session.execute(select(AccountModel).where(AccountModel.email == email.value))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def get_by_verification_token(self, token: str) -> Account | None:
-        result = await self._session.execute(
-            select(AccountModel).where(AccountModel.verification_token == token)
-        )
+        result = await self._session.execute(select(AccountModel).where(AccountModel.verification_token == token))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def get_by_reset_token(self, token: str) -> Account | None:
-        result = await self._session.execute(
-            select(AccountModel).where(AccountModel.reset_token == token)
-        )
+        result = await self._session.execute(select(AccountModel).where(AccountModel.reset_token == token))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def update(self, account: Account) -> None:
-        result = await self._session.execute(
-            select(AccountModel).where(AccountModel.id == account.id)
-        )
+        result = await self._session.execute(select(AccountModel).where(AccountModel.id == account.id))
         model = result.scalar_one_or_none()
         if model:
             model.email = account.email.value

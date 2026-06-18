@@ -4,9 +4,9 @@ from typing import Any
 
 from modules.restaurants.application.ports.restaurant_repository import RestaurantRepository
 from modules.restaurants.domain.entities.restaurant import Restaurant
-from shared.domain.value_objects import Address
 from modules.restaurants.domain.value_objects.operating_hours import OperatingHours
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.value_objects import Address
 
 
 @dataclass(frozen=True)

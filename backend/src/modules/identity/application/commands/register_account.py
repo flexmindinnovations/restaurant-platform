@@ -10,8 +10,8 @@ from modules.identity.domain.value_objects.email import Email
 from modules.identity.domain.value_objects.password import Password
 from modules.identity.domain.value_objects.phone_number import PhoneNumber
 from modules.identity.domain.value_objects.role import Role
-from shared.domain.exceptions import ValidationException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import ValidationException
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,7 @@ class RegisterAccountHandler:
                 try:
                     roles_vo.append(Role(role_str))
                 except ValueError:
-                    raise ValidationException(f"Invalid role: {role_str}")
+                    raise ValidationException(f"Invalid role: {role_str}") from None
         else:
             roles_vo = [Role.CUSTOMER]
 
@@ -60,10 +60,7 @@ class RegisterAccountHandler:
         verification_token = secrets.token_urlsafe(32)
 
         # Create Password value object (uses hasher callback)
-        password_vo = Password.create(
-            command.password,
-            self._password_hasher.hash
-        )
+        password_vo = Password.create(command.password, self._password_hasher.hash)
 
         # Register aggregate
         account = Account.register(
@@ -79,11 +76,9 @@ class RegisterAccountHandler:
             self._uow.register_aggregate(account)
             await self._uow.commit()
 
-        # Send verification email in background/asynchronously
-        try:
+        import contextlib
+
+        with contextlib.suppress(Exception):
             await self._email_sender.send_verification_email(command.email, verification_token)
-        except Exception:
-            # Don't fail the registration if sending email fails, but log it or handle it
-            pass
 
         return account.id

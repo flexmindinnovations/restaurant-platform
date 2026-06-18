@@ -6,8 +6,8 @@ from modules.identity.application.ports.account_repository import AccountReposit
 from modules.identity.application.ports.password_hasher import PasswordHasher
 from modules.identity.application.ports.token_service import TokenService
 from modules.identity.domain.value_objects.email import Email
-from shared.domain.exceptions import ValidationException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import ValidationException
 
 
 @dataclass(frozen=True)

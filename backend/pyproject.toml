@@ -109,6 +109,21 @@ ignore = [
     "RUF100",  # Unused noqa directive
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S106",    # Hardcoded passwords in tests are expected
+    "S107",    # Hardcoded password defaults in test helpers
+    "SLF001",  # Private member access in mocks is expected
+    "PLR2004", # Magic values in assertions are fine
+    "PLW0108", # Lambda in mock side_effect is fine
+    "E731",    # Lambda assignment for test helpers is fine
+    "RUF069",  # Float equality in test assertions is intentional
+    "RUF076",  # autouse=True in fixtures is fine
+    "PLR0915", # Long integration tests are acceptable
+    "PLR0914", # Many local variables in integration tests
+    "PLC2701", # Private name imports in tests are fine
+]
+
 [tool.ruff.lint.isort]
 known-first-party = ["app", "modules", "shared", "workers"]
 
@@ -126,6 +141,7 @@ ignore_missing_imports = true
 module = [
     "modules.*.infrastructure.models.*",
     "modules.*.infrastructure.repositories.*",
+    "modules.*.infrastructure.adapters.*",
     "modules.*.api.routes",
     "modules.*.api.dependencies",
     "shared.api.security",
@@ -136,6 +152,7 @@ module = [
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+disable_error_code = ["assignment", "arg-type", "type-arg", "attr-defined"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

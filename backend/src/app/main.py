@@ -33,6 +33,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 
     # Register module hooks
     from modules.restaurants.startup import register_restaurants_hooks
+
     register_restaurants_hooks()
 
     # Wire event handlers

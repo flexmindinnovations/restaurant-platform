@@ -8,11 +8,8 @@ from shared.api.security import register_ownership_checker
 
 
 async def _check_restaurant_ownership(restaurant_id: uuid.UUID, session: AsyncSession) -> uuid.UUID | None:
-    result = await session.execute(
-        select(RestaurantModel.owner_id).where(RestaurantModel.id == restaurant_id)
-    )
-    row = result.scalar_one_or_none()
-    return row
+    result = await session.execute(select(RestaurantModel.owner_id).where(RestaurantModel.id == restaurant_id))
+    return result.scalar_one_or_none()
 
 
 def register_restaurants_hooks() -> None:

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 from modules.identity.application.ports.account_repository import AccountRepository
 from modules.identity.application.ports.token_service import TokenService
-from shared.domain.exceptions import ValidationException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import ValidationException
 
 
 @dataclass(frozen=True)
@@ -36,12 +36,12 @@ class RefreshTokenHandler:
         try:
             payload = self._token_service.decode_refresh_token(command.refresh_token)
         except Exception:
-            raise ValidationException("Invalid refresh token")
+            raise ValidationException("Invalid refresh token") from None
 
         # Hash refresh token to check in DB
         old_token_hash = hashlib.sha256(command.refresh_token.encode()).hexdigest()
         token_record = await self._account_repo.get_refresh_token(old_token_hash)
-        
+
         expires_at = token_record.get("expires_at") if token_record else None
         if not token_record or token_record.get("is_revoked") or expires_at is None or float(expires_at) < time.time():
             raise ValidationException("Invalid refresh token")

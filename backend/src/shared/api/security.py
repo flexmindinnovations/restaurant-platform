@@ -40,17 +40,18 @@ def get_current_user(
         payload = decode_token(token, settings.jwt_secret_key, settings.jwt_algorithm)
         if payload.get("type") != "access":
             raise jwt.PyJWTError("Invalid token type")
-        return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
-        )
+        ) from None
     except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
-        )
+        ) from None
+    else:
+        return payload
 
 
 def require_roles(*allowed_roles: str):
@@ -64,6 +65,7 @@ def require_roles(*allowed_roles: str):
                 detail="Not authorized to access this resource",
             )
         return current_user
+
     return dependency
 
 

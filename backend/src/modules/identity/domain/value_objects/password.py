@@ -6,9 +6,7 @@ from shared.domain.exceptions import ValidationException
 from shared.domain.value_objects import ValueObject
 
 # Password complexity regex: min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
-PASSWORD_REGEX = re.compile(
-    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-)
+PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
 
 
 @dataclass(frozen=True)

@@ -7,10 +7,10 @@ from modules.restaurants.domain.events.restaurant_events import (
     RestaurantRegistered,
     RestaurantVerified,
 )
-from shared.domain.value_objects import Address
 from modules.restaurants.domain.value_objects.operating_hours import OperatingHours
 from shared.domain.entity import AggregateRoot
 from shared.domain.exceptions import ValidationException
+from shared.domain.value_objects import Address
 
 
 @dataclass

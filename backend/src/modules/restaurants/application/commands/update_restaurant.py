@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from modules.restaurants.application.ports.restaurant_repository import RestaurantRepository
-from shared.domain.value_objects import Address
 from modules.restaurants.domain.value_objects.operating_hours import OperatingHours
-from shared.domain.exceptions import NotFoundException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import NotFoundException
+from shared.domain.value_objects import Address
 
 
 @dataclass(frozen=True)
@@ -46,17 +46,18 @@ class UpdateRestaurantHandler:
             command.address_postal_code,
             command.address_country,
             command.address_latitude is not None,
-            command.address_longitude is not None
+            command.address_longitude is not None,
         ]):
             current_address = restaurant.address
+            ca = current_address
             address = Address(
-                street=command.address_street if command.address_street is not None else current_address.street,
-                city=command.address_city if command.address_city is not None else current_address.city,
-                state=command.address_state if command.address_state is not None else current_address.state,
-                postal_code=command.address_postal_code if command.address_postal_code is not None else current_address.postal_code,
-                country=command.address_country if command.address_country is not None else current_address.country,
-                latitude=command.address_latitude if command.address_latitude is not None else current_address.latitude,
-                longitude=command.address_longitude if command.address_longitude is not None else current_address.longitude,
+                street=command.address_street if command.address_street is not None else ca.street,
+                city=command.address_city if command.address_city is not None else ca.city,
+                state=command.address_state if command.address_state is not None else ca.state,
+                postal_code=command.address_postal_code or ca.postal_code,
+                country=command.address_country if command.address_country is not None else ca.country,
+                latitude=command.address_latitude if command.address_latitude is not None else ca.latitude,
+                longitude=command.address_longitude if command.address_longitude is not None else ca.longitude,
             )
 
         operating_hours = None
@@ -70,7 +71,7 @@ class UpdateRestaurantHandler:
             address=address,
             phone=command.phone,
             email=command.email,
-            operating_hours=operating_hours
+            operating_hours=operating_hours,
         )
 
         async with self._uow:

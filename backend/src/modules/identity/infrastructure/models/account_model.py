@@ -32,7 +32,12 @@ class RefreshTokenModel(Base):
     __table_args__ = {"schema": "identity"}
 
     token_hash = Column(String(255), primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("identity.accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("identity.accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)
 

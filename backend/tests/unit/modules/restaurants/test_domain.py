@@ -1,10 +1,11 @@
-import pytest
 import uuid
 
+import pytest
+
 from modules.restaurants.domain.entities.restaurant import Restaurant
-from shared.domain.value_objects import Address
 from modules.restaurants.domain.value_objects.operating_hours import OperatingHours
 from shared.domain.exceptions import ValidationException
+from shared.domain.value_objects import Address
 
 
 @pytest.mark.unit
@@ -52,7 +53,7 @@ def test_restaurant_registration():
     owner_id = uuid.uuid4()
     address = Address("Street", "City", "State", "Zip", "Country")
     oh = OperatingHours({"monday": {"open": "09:00", "close": "22:00"}})
-    
+
     restaurant = Restaurant.register(
         owner_id=owner_id,
         name="Taco Palace",
@@ -63,7 +64,7 @@ def test_restaurant_registration():
         description="Best tacos in town",
         cuisine_types=["Mexican", "Fast Food"],
     )
-    
+
     assert restaurant.name == "Taco Palace"
     assert restaurant.owner_id == owner_id
     assert restaurant.address == address
@@ -74,7 +75,7 @@ def test_restaurant_registration():
     assert restaurant.cuisine_types == ["Mexican", "Fast Food"]
     assert restaurant.is_active is True
     assert restaurant.is_verified is False
-    
+
     events = restaurant.collect_events()
     assert len(events) == 1
     assert events[0].name == "Taco Palace"
@@ -85,7 +86,7 @@ def test_restaurant_update():
     owner_id = uuid.uuid4()
     address = Address("Street", "City", "State", "Zip", "Country")
     oh = OperatingHours({"monday": {"open": "09:00", "close": "22:00"}})
-    
+
     restaurant = Restaurant.register(
         owner_id=owner_id,
         name="Taco Palace",
@@ -94,14 +95,14 @@ def test_restaurant_update():
         email="info@tacopalace.com",
         operating_hours=oh,
     )
-    
+
     new_address = Address("Street 2", "City", "State", "Zip", "Country")
     restaurant.update_details(
         name="Taco Express",
         description="Fast tacos",
         address=new_address,
     )
-    
+
     assert restaurant.name == "Taco Express"
     assert restaurant.description == "Fast tacos"
     assert restaurant.address == new_address
@@ -112,7 +113,7 @@ def test_restaurant_verify_and_deactivate():
     owner_id = uuid.uuid4()
     address = Address("Street", "City", "State", "Zip", "Country")
     oh = OperatingHours({"monday": {"open": "09:00", "close": "22:00"}})
-    
+
     restaurant = Restaurant.register(
         owner_id=owner_id,
         name="Taco Palace",
@@ -121,15 +122,15 @@ def test_restaurant_verify_and_deactivate():
         email="info@tacopalace.com",
         operating_hours=oh,
     )
-    
+
     assert restaurant.is_verified is False
     restaurant.verify()
     assert restaurant.is_verified is True
-    
+
     assert restaurant.is_active is True
     restaurant.deactivate()
     assert restaurant.is_active is False
-    
+
     # Cannot update deactivated restaurant
     with pytest.raises(ValidationException):
         restaurant.update_details(name="Failed")

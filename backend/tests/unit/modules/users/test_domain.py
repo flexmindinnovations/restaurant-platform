@@ -1,5 +1,6 @@
-import pytest
 import uuid
+
+import pytest
 
 from modules.users.domain.entities.user_profile import UserProfile
 
@@ -13,7 +14,7 @@ def test_user_profile_creation():
         last_name="Doe",
         preferred_language="fr",
     )
-    
+
     assert profile.account_id == account_id
     assert profile.first_name == "John"
     assert profile.last_name == "Doe"
@@ -30,13 +31,13 @@ def test_user_profile_update():
         first_name="John",
         last_name="Doe",
     )
-    
+
     profile.update_profile(
         first_name="Jane",
         display_name="Jane D.",
         avatar_url="http://avatar.com/jane",
     )
-    
+
     assert profile.first_name == "Jane"
     assert profile.last_name == "Doe"
     assert profile.display_name == "Jane D."

@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from modules.identity.application.ports.account_repository import AccountRepository
 from modules.identity.application.ports.password_hasher import PasswordHasher
 from modules.identity.domain.value_objects.password import Password
-from shared.domain.exceptions import ValidationException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import ValidationException
 
 
 @dataclass(frozen=True)
@@ -36,10 +36,7 @@ class ChangePasswordHandler:
             raise ValidationException("Invalid current password")
 
         # Create Password value object (validates complexity)
-        new_password_vo = Password.create(
-            command.new_password,
-            self._password_hasher.hash
-        )
+        new_password_vo = Password.create(command.new_password, self._password_hasher.hash)
 
         account.change_password(new_password_vo)
 

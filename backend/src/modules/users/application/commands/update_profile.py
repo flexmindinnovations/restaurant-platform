@@ -2,8 +2,8 @@ import uuid
 from dataclasses import dataclass
 
 from modules.users.application.ports.user_repository import UserRepository
-from shared.domain.exceptions import NotFoundException
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
+from shared.domain.exceptions import NotFoundException
 
 
 @dataclass(frozen=True)

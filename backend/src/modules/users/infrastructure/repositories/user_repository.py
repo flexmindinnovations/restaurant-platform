@@ -27,27 +27,21 @@ class SqlAlchemyUserRepository(UserRepository):
         self._session.add(model)
 
     async def get_by_id(self, profile_id: uuid.UUID) -> UserProfile | None:
-        result = await self._session.execute(
-            select(ProfileModel).where(ProfileModel.id == profile_id)
-        )
+        result = await self._session.execute(select(ProfileModel).where(ProfileModel.id == profile_id))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def get_by_account_id(self, account_id: uuid.UUID) -> UserProfile | None:
-        result = await self._session.execute(
-            select(ProfileModel).where(ProfileModel.account_id == account_id)
-        )
+        result = await self._session.execute(select(ProfileModel).where(ProfileModel.account_id == account_id))
         model = result.scalar_one_or_none()
         if not model:
             return None
         return self._to_domain(model)
 
     async def update(self, profile: UserProfile) -> None:
-        result = await self._session.execute(
-            select(ProfileModel).where(ProfileModel.id == profile.id)
-        )
+        result = await self._session.execute(select(ProfileModel).where(ProfileModel.id == profile.id))
         model = result.scalar_one_or_none()
         if model:
             model.first_name = profile.first_name

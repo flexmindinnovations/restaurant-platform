@@ -41,7 +41,7 @@ class CreateProfileHandler:
 def parse_names_from_email(email: str) -> tuple[str, str]:
     """Parse first name and last name from email local part."""
     local_part = email.split("@", maxsplit=1)[0]
-    parts = local_part.split(".")
-    if len(parts) >= 2:
+    parts = local_part.split(".", maxsplit=1)
+    if "." in local_part:
         return parts[0].capitalize(), parts[1].capitalize()
     return local_part.capitalize(), "User"

@@ -1,4 +1,5 @@
 import pytest
+
 from modules.identity.domain.entities.account import Account
 from modules.identity.domain.value_objects.email import Email
 from modules.identity.domain.value_objects.password import Password
@@ -33,11 +34,11 @@ def test_password_valid():
 def test_password_invalid():
     dummy_hash = lambda x: f"hashed_{x}"
     invalid_passwords = [
-        "short",          # < 8 chars
+        "short",  # < 8 chars
         "nouppercase1!",  # missing uppercase
         "NOLOWERCASE1!",  # missing lowercase
-        "NoSpecialChar1", # missing special
-        "NoNumbers!_abc"  # missing digits
+        "NoSpecialChar1",  # missing special
+        "NoNumbers!_abc",  # missing digits
     ]
     for val in invalid_passwords:
         with pytest.raises(ValidationException):
@@ -63,15 +64,11 @@ def test_account_registration():
     email = Email("customer@example.com")
     password = Password.from_hash("hashed_password")
     phone = PhoneNumber("+1234567890")
-    
+
     account = Account.register(
-        email=email,
-        password=password,
-        phone_number=phone,
-        verification_token="token123",
-        roles=[Role.CUSTOMER]
+        email=email, password=password, phone_number=phone, verification_token="token123", roles=[Role.CUSTOMER]
     )
-    
+
     assert account.email == email
     assert account.password_hash == "hashed_password"
     assert account.phone_number == phone
@@ -79,7 +76,7 @@ def test_account_registration():
     assert account.is_active is True
     assert account.verification_token == "token123"
     assert account.roles == [Role.CUSTOMER]
-    
+
     events = account.collect_events()
     assert len(events) == 1
     assert events[0].email == "customer@example.com"
@@ -89,23 +86,21 @@ def test_account_registration():
 @pytest.mark.unit
 def test_account_email_verification():
     account = Account.register(
-        email=Email("test@example.com"),
-        password=Password.from_hash("hashed_pwd"),
-        verification_token="my_token"
+        email=Email("test@example.com"), password=Password.from_hash("hashed_pwd"), verification_token="my_token"
     )
     account.collect_events()  # Clear registration event
-    
+
     # Verify with wrong token
     with pytest.raises(ValidationException):
         account.verify_email("wrong_token")
-        
+
     assert account.is_verified is False
-    
+
     # Verify with correct token
     account.verify_email("my_token")
     assert account.is_verified is True
     assert account.verification_token is None
-    
+
     events = account.collect_events()
     # collect_events in register has been cleared, so we only see AccountVerified
     assert len(events) == 1
@@ -113,48 +108,39 @@ def test_account_email_verification():
 
 @pytest.mark.unit
 def test_account_deactivation():
-    account = Account.register(
-        email=Email("test@example.com"),
-        password=Password.from_hash("hashed_pwd")
-    )
+    account = Account.register(email=Email("test@example.com"), password=Password.from_hash("hashed_pwd"))
     assert account.is_active is True
-    
+
     account.deactivate()
     assert account.is_active is False
-    
+
     # Verification and change password should fail on deactivated accounts
     with pytest.raises(ValidationException):
         account.verify_email("any")
-        
+
     with pytest.raises(ValidationException):
         account.change_password(Password.from_hash("new"))
 
 
 @pytest.mark.unit
 def test_account_change_password():
-    account = Account.register(
-        email=Email("test@example.com"),
-        password=Password.from_hash("old_hash")
-    )
-    
+    account = Account.register(email=Email("test@example.com"), password=Password.from_hash("old_hash"))
+
     account.change_password(Password.from_hash("new_hash"))
     assert account.password_hash == "new_hash"
 
 
 @pytest.mark.unit
 def test_account_roles():
-    account = Account.register(
-        email=Email("test@example.com"),
-        password=Password.from_hash("hash")
-    )
+    account = Account.register(email=Email("test@example.com"), password=Password.from_hash("hash"))
     assert account.roles == [Role.CUSTOMER]
-    
+
     account.add_role(Role.RESTAURANT_OWNER)
     assert Role.RESTAURANT_OWNER in account.roles
-    
+
     account.remove_role(Role.CUSTOMER)
     assert account.roles == [Role.RESTAURANT_OWNER]
-    
+
     # Cannot remove last role
     with pytest.raises(ValidationException):
         account.remove_role(Role.RESTAURANT_OWNER)

@@ -18,7 +18,5 @@ class PhoneNumber(ValueObject):
         # Remove spaces or hyphens if any before validating
         normalized = self.value.strip().replace(" ", "").replace("-", "")
         if not PHONE_REGEX.match(normalized):
-            raise ValidationException(
-                "Invalid phone number format. Must be E.164 compliant (e.g., +1234567890)"
-            )
+            raise ValidationException("Invalid phone number format. Must be E.164 compliant (e.g., +1234567890)")
         object.__setattr__(self, "value", normalized)

@@ -10,7 +10,12 @@ logger = structlog.get_logger()
 
 
 class SmtpEmailSender(EmailSender):
-    def __init__(self, smtp_host: str = "localhost", smtp_port: int = 1025, from_email: str = "noreply@restaurantplatform.com") -> None:
+    def __init__(
+        self,
+        smtp_host: str = "localhost",
+        smtp_port: int = 1025,
+        from_email: str = "noreply@restaurantplatform.com",
+    ) -> None:
         self._smtp_host = smtp_host
         self._smtp_port = smtp_port
         self._from_email = from_email
@@ -28,15 +33,17 @@ class SmtpEmailSender(EmailSender):
     async def _send_email(self, to_email: str, subject: str, body: str) -> None:
         logger.info("sending_email", to=to_email, subject=subject)
         try:
-            msg = MIMEMultipart()
-            msg["From"] = self._from_email
-            msg["To"] = to_email
-            msg["Subject"] = subject
-            msg.attach(MIMEText(body, "plain"))
-
-            # Sync send, suitable for local dev with Mailpit
+            msg = self._build_message(to_email, subject, body)
             with smtplib.SMTP(self._smtp_host, self._smtp_port) as server:
                 server.sendmail(self._from_email, to_email, msg.as_string())
             logger.info("email_sent_successfully", to=to_email)
         except Exception as e:
-            logger.error("email_send_failed", to=to_email, error=str(e))
+            logger.exception("email_send_failed", to=to_email, error=str(e))
+
+    def _build_message(self, to_email: str, subject: str, body: str) -> MIMEMultipart:
+        msg = MIMEMultipart()
+        msg["From"] = self._from_email
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+        return msg

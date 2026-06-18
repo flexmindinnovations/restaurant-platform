@@ -6,7 +6,6 @@ from modules.identity.api.dependencies import (
     get_register_handler,
     get_reset_password_handler,
 )
-from shared.api.response import ResponseEnvelope
 from modules.identity.api.schemas import (
     ForgotPasswordRequest,
     LoginRequest,
@@ -24,6 +23,7 @@ from modules.identity.application.commands.register_account import RegisterAccou
 from modules.identity.application.commands.reset_password import ResetPasswordCommand, ResetPasswordHandler
 from modules.identity.application.commands.verify_email import VerifyEmailCommand
 from modules.identity.application.services.auth_service import AuthService
+from shared.api.response import ResponseEnvelope
 
 router = APIRouter()
 

@@ -1,4 +1,3 @@
-import json
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -27,7 +26,7 @@ class OutboxMessage(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
-async def store_outbox_events(session: AsyncSession, events: list[DomainEvent]) -> None:
+async def store_outbox_events(session: AsyncSession, events: list[DomainEvent]) -> None:  # noqa: RUF029
     for event in events:
         payload: dict[str, Any] = {}
         for k, v in event.__dict__.items():
