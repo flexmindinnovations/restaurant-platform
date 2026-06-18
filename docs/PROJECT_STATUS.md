@@ -88,14 +88,21 @@
 
 ---
 
-## Phase 2 — Ordering & Menus (Sprint 2–3) 🔲
+## Phase 2 — Ordering & Menus (Sprint 2–3) 🟡
 
-### Menus Module
-- [ ] Domain: Menu, MenuItem, Category entities
-- [ ] Domain: Price VO, availability rules
-- [ ] Application: CRUD commands & queries
-- [ ] Infrastructure: Repository, models
-- [ ] API: Menu routes
+### Menus Module ✅
+- [x] Domain: Menu aggregate root, MenuItem aggregate root, Category entity
+- [x] Domain: Price via shared Money VO, availability rules (is_available, publish/unpublish)
+- [x] Domain: Events (MenuCreated, MenuUpdated, MenuPublished, MenuUnpublished, MenuItemCreated, MenuItemUpdated, MenuItemRemoved)
+- [x] Application: Commands (CreateMenu, UpdateMenu, DeleteMenu, AddCategory, UpdateCategory, DeleteCategory, CreateMenuItem, UpdateMenuItem, DeleteMenuItem)
+- [x] Application: Queries (GetMenu with categories, ListMenus, GetMenuItem, ListMenuItems)
+- [x] Application: Ports (MenuRepository, CategoryRepository, MenuItemRepository)
+- [x] Infrastructure: SQLAlchemy models (MenuModel, CategoryModel, MenuItemModel) with schema menus.*
+- [x] Infrastructure: Repository implementations with CRUD and filtering
+- [x] API: Full CRUD routes (menus, categories, items) under /api/v1/menus
+- [x] API: Pydantic request/response schemas with validation
+- [x] Migration: 0003_menus_module (menus, categories, menu_items tables + RLS on menu_items)
+- [x] Unit tests: 18 domain tests + 23 handler tests (41 total)
 
 ### Orders Module
 - [ ] Domain: Order aggregate, OrderItem, OrderStatus
