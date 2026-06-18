@@ -76,7 +76,7 @@
 | Unit tests: Domain entities & value objects | ✅ Done | |
 | Unit tests: Command/query handler logic | ✅ Done | Mocked ports |
 
-#### Cross-Cutting (Sprint 1)
+#### Cross-Cutting (Sprint 1+)
 
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -85,10 +85,13 @@
 | Event bus subscribe_by_name (string-based) | ✅ Done | Avoids cross-module imports |
 | Architecture tests (import-linter) | ✅ Done | test_import_boundaries.py |
 | Integration test: Auth flow (register → verify → login → refresh → logout) | ✅ Done | Uses raw SQL, no cross-module imports |
+| Shared API security (JWT auth, RBAC, tenant access) | ✅ Done | shared/api/security.py |
+| WebSocket infrastructure (Redis pub/sub, throttled tracking) | ✅ Done | shared/api/websockets.py |
+| Cross-module adapter pattern (app/adapters/) | ✅ Done | MenuServiceAdapter bridges menus→orders |
 
 ---
 
-## Phase 2 — Ordering & Menus (Sprint 2–3) 🟡
+## Phase 2 — Ordering & Menus (Sprint 2–3) ✅
 
 ### Menus Module ✅
 - [x] Domain: Menu aggregate root, MenuItem aggregate root, Category entity
@@ -104,46 +107,66 @@
 - [x] Migration: 0003_menus_module (menus, categories, menu_items tables + RLS on menu_items)
 - [x] Unit tests: 18 domain tests + 23 handler tests (41 total)
 
-### Orders Module
-- [ ] Domain: Order aggregate, OrderItem, OrderStatus
-- [ ] Domain: Order lifecycle events
-- [ ] Application: PlaceOrder, UpdateOrderStatus, CancelOrder
-- [ ] Infrastructure: Repository, models
-- [ ] API: Order routes
+### Orders Module ✅
+- [x] Domain: Order aggregate (OrderNumber, Money breakdown with subtotal/tax/delivery_fee/tip, state machine transitions, per-status timestamps, cancellation rules), OrderItem, OrderStatus
+- [x] Domain: Cart aggregate (single-restaurant constraint, item merging, quantity management)
+- [x] Domain: Order lifecycle events (OrderPlaced, OrderConfirmed, OrderPreparing, OrderReady, OrderOutForDelivery, OrderDelivered, OrderCompleted, OrderCancelled)
+- [x] Application: Commands (AddToCart, UpdateCartItem, RemoveFromCart, ClearCart, PlaceOrder, ConfirmOrder, UpdateOrderStatus, CancelOrder) and Queries (GetCart, GetOrder, ListCustomerOrders, ListRestaurantOrders)
+- [x] Application: MenuService anti-corruption layer (port + adapter in app/adapters/) to validate menu items without cross-module imports
+- [x] Infrastructure: SQLAlchemy models (CartModel, CartItemModel, OrderModel, OrderItemModel) with schema orders.*, write-through Valkey (Redis) caching layer (24h TTL)
+- [x] API: Dual routers — Checkout (/api/v1/checkout/) and Orders (/api/v1/orders/) with auth + RBAC
+- [x] Event handlers: DeliveryCompleted → auto-transition order to COMPLETED
+- [x] Migration: 0004_orders_module (carts, cart_items, orders, order_items tables + RLS)
+- [x] Unit tests: 31 tests covering domain invariants (17) and command handlers (14) — 100% green
 
 ---
 
-## Phase 3 — Payments & Delivery (Sprint 4–5) 🔲
+## Phase 3 — Payments & Delivery (Sprint 4–5) ✅
 
-### Payments Module
-- [ ] Domain: Payment entity, PaymentStatus, PaymentMethod
-- [ ] Application: ProcessPayment, RefundPayment
-- [ ] Infrastructure: Payment gateway integration
-- [ ] API: Payment routes
+### Payments Module ✅
+- [x] Domain: Payment entity (AggregateRoot), PaymentMethod entity, PaymentStatus enum, payment events (Initiated, Completed, Failed, Refunded, MethodAdded, MethodRemoved)
+- [x] Application: Commands (InitiatePayment, CapturePayment, RefundPayment, AddPaymentMethod, RemovePaymentMethod, SetDefaultPaymentMethod) and Queries (GetPayment, ListPaymentMethods)
+- [x] Application: Ports (PaymentRepository, PaymentMethodRepository, PaymentGateway)
+- [x] Infrastructure: SQLAlchemy models (PaymentModel, PaymentMethodModel) with schema payments.*, repository implementations
+- [x] Infrastructure: PaymentGateway implementations (MockGateway for dev, StripeGateway stub for prod)
+- [x] API: Payment routes (/api/v1/payments/) with full CRUD
+- [x] Event handlers: OrderPlaced → auto-initiate payment, PaymentCompleted → confirm order
+- [x] Unit tests: 4 tests covering domain and command handlers (100% green)
 
-### Deliveries Module
-- [ ] Domain: Delivery entity, DeliveryStatus, Location tracking
-- [ ] Application: AssignDriver, UpdateDeliveryStatus
-- [ ] Infrastructure: Repository, models
-- [ ] API: Delivery routes + WebSocket tracking
+### Deliveries Module ✅
+- [x] Domain: Delivery entity (AggregateRoot), DeliveryPartner entity, DeliveryStatus enum, Location/GeoLocation VOs, VehicleType enum
+- [x] Domain: Delivery events (Created, Assigned, PickedUp, InTransit, Completed, Failed, PartnerRegistered, PartnerLocationUpdated)
+- [x] Application: Commands (CreateDelivery, AssignPartner, AcceptAssignment, UpdateDeliveryStatus, RegisterPartner, TogglePartnerAvailability, TogglePartnerOnline, UpdatePartnerLocation) and Queries (GetDelivery, GetPartner, ListPartnerDeliveries)
+- [x] Application: Ports (DeliveryRepository, PartnerRepository, LocationCache)
+- [x] Infrastructure: SQLAlchemy models with PostGIS geography columns for location tracking, Redis-backed LocationCache
+- [x] Infrastructure: Repository implementations with ST_GeogFromText/ST_DWithin spatial queries
+- [x] API: Dual routers — delivery assignments (/api/v1/delivery-assignments/) and partners (/api/v1/partners/)
+- [x] API: WebSocket endpoint (/ws/orders/{id}/tracking) for real-time delivery tracking with Redis pub/sub and location throttling
+- [x] Event handlers: OrderConfirmed → auto-create delivery and assign nearest partner
+- [x] Migration: 0005_payments_deliveries (payments.*, deliveries.* tables with PostGIS + RLS)
+- [x] Unit tests: 4 tests covering domain and command handlers (100% green)
 
 ---
 
-## Phase 4 — Engagement & Analytics (Sprint 6–7) 🔲
+## Phase 4 — Engagement & Analytics (Sprint 6–7) 🟡
 
-### Notifications Module
-- [ ] Domain: Notification entity, channels (email, push, SMS)
-- [ ] Infrastructure: SES/SNS integration
+### Notifications Module ✅
+- [x] Domain: Notification entity (AggregateRoot), NotificationChannel enum (EMAIL, SMS, PUSH, IN_APP)
+- [x] Application: SendNotification command, ports (NotificationDispatcher, NotificationRepository)
+- [x] Infrastructure: SMTP email dispatcher, SQLAlchemy models + repository
+- [x] API: Notification routes (/api/v1/notifications/)
+- [x] Event handlers: OrderPlaced/OrderConfirmed/DeliveryAssigned/DeliveryCompleted → auto-send notifications
+- [ ] Unit tests: Not yet written
 
-### Reviews Module
+### Reviews Module 🔲
 - [ ] Domain: Review entity, rating aggregation
 - [ ] Application: SubmitReview, ModerateReview
 
-### Promotions Module
+### Promotions Module 🔲
 - [ ] Domain: Promotion entity, discount rules
 - [ ] Application: CreatePromotion, ApplyPromotion
 
-### Analytics Module
+### Analytics Module 🔲
 - [ ] Domain: Event aggregation models
 - [ ] Infrastructure: Analytics pipeline
 

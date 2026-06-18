@@ -168,8 +168,8 @@ async def add_category(
             description=request.description,
             display_order=request.display_order,
             is_active=True,
-            created_at=None,  # type: ignore[arg-type]
-            updated_at=None,  # type: ignore[arg-type]
+            created_at=None,
+            updated_at=None,
         )
     )
 

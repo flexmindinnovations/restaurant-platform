@@ -7,10 +7,16 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.observability import setup_logging, setup_telemetry
 from modules.analytics.api.routes import router as analytics_router
-from modules.deliveries.api.routes import router as deliveries_router
+from modules.deliveries.api.routes import (
+    partners_router as deliveries_partners_router,
+)
+from modules.deliveries.api.routes import (
+    router as deliveries_router,
+)
 from modules.identity.api.routes import router as identity_router
 from modules.menus.api.routes import router as menus_router
 from modules.notifications.api.routes import router as notifications_router
+from modules.orders.api.routes import checkout_router
 from modules.orders.api.routes import router as orders_router
 from modules.payments.api.routes import router as payments_router
 from modules.promotions.api.routes import router as promotions_router
@@ -127,9 +133,13 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(restaurants_router, prefix="/api/v1/restaurants", tags=["restaurants"])
     app.include_router(restaurants_admin_router, prefix="/api/v1/admin/restaurants", tags=["restaurants-admin"])
     app.include_router(menus_router, prefix="/api/v1/menus", tags=["menus"])
+    app.include_router(checkout_router, prefix="/api/v1/checkout", tags=["checkout"])
     app.include_router(orders_router, prefix="/api/v1/orders", tags=["orders"])
     app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])
     app.include_router(deliveries_router, prefix="/api/v1/delivery-assignments", tags=["deliveries"])
+    app.include_router(deliveries_partners_router, prefix="/api/v1/partners", tags=["partners"])
+    from shared.api.websockets import router as websocket_router
+    app.include_router(websocket_router)
     app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["notifications"])
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
@@ -137,8 +147,16 @@ def _register_routes(app: FastAPI) -> None:
 
 
 def _wire_event_handlers() -> None:
+    from modules.deliveries.event_handlers import register_event_handlers as register_deliveries_events
+    from modules.notifications.event_handlers import register_event_handlers as register_notifications_events
+    from modules.orders.event_handlers import register_event_handlers as register_orders_events
+    from modules.payments.event_handlers import register_event_handlers as register_payments_events
     from modules.users.event_handlers import register_event_handlers as register_users_events
     from shared.infrastructure.event_bus import get_event_bus
 
     event_bus = get_event_bus()
     register_users_events(event_bus)
+    register_payments_events(event_bus)
+    register_deliveries_events(event_bus)
+    register_orders_events(event_bus)
+    register_notifications_events(event_bus)

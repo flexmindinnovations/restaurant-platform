@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
 
+    # Stripe
+    stripe_secret_key: str = "sk_test_51MockKeyChangeInProduction"
+
 
 def get_settings() -> Settings:
     return Settings()

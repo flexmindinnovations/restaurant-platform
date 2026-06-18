@@ -34,6 +34,8 @@ async def store_outbox_events(session: AsyncSession, events: list[DomainEvent]) 
                 payload[k] = str(v)
             elif isinstance(v, datetime):
                 payload[k] = v.isoformat()
+            elif hasattr(v, "__class__") and v.__class__.__name__ == "Decimal":
+                payload[k] = str(v)
             else:
                 payload[k] = v
         msg = OutboxMessage(

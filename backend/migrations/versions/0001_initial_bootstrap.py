@@ -24,8 +24,9 @@ def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS postgis SCHEMA public")
     op.execute("CREATE EXTENSION IF NOT EXISTS btree_gist SCHEMA public")
 
-    # 2. Create the 11 module schemas
+    # 2. Create the 12 module schemas (including shared)
     schemas = [
+        "shared",
         "identity",
         "users",
         "restaurants",
@@ -41,25 +42,28 @@ def upgrade() -> None:
     for schema in schemas:
         op.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
 
-    # 3. Create Outbox Messages table in default (public) schema
+    # 3. Create Outbox Messages table in shared schema
     op.create_table(
         'outbox_messages',
         sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('aggregate_id', sa.UUID(), nullable=False),
         sa.Column('event_type', sa.String(length=255), nullable=False),
         sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column('occurred_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('processed_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('error', sa.Text(), nullable=True),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        schema='shared'
     )
 
 
 def downgrade() -> None:
-    # 1. Drop outbox_messages table
-    op.drop_table('outbox_messages')
+    # 1. Drop outbox_messages table from shared schema
+    op.drop_table('outbox_messages', schema='shared')
 
-    # 2. Drop the 11 module schemas
+    # 2. Drop the 12 module schemas
     schemas = [
+        "shared",
         "identity",
         "users",
         "restaurants",

@@ -30,7 +30,9 @@ class SqlAlchemyRestaurantRepository(RestaurantRepository):
             address_longitude=restaurant.address.longitude,
             phone=restaurant.phone,
             email=restaurant.email,
-            operating_hours=restaurant.operating_hours.schedule,
+            operating_hours={
+                day: dict(times) for day, times in restaurant.operating_hours.schedule.items()
+            },
             is_active=restaurant.is_active,
             is_verified=restaurant.is_verified,
             rating_avg=restaurant.rating_avg,
@@ -63,7 +65,9 @@ class SqlAlchemyRestaurantRepository(RestaurantRepository):
             model.address_longitude = restaurant.address.longitude
             model.phone = restaurant.phone
             model.email = restaurant.email
-            model.operating_hours = restaurant.operating_hours.schedule
+            model.operating_hours = {
+                day: dict(times) for day, times in restaurant.operating_hours.schedule.items()
+            }
             model.is_active = restaurant.is_active
             model.is_verified = restaurant.is_verified
             model.rating_avg = restaurant.rating_avg

@@ -101,7 +101,7 @@ class MenuItem(AggregateRoot):
             self.dietary_labels = dietary_labels
         if preparation_time_minutes is not None:
             self.preparation_time_minutes = preparation_time_minutes
-        if category_id is not ...:
+        if category_id is not ...:  # type: ignore[comparison-overlap]
             self.category_id = category_id
         self.updated_at = datetime.now(UTC)
         self.register_event(MenuItemUpdated(aggregate_id=self.id))

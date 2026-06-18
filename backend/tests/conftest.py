@@ -8,9 +8,11 @@ from app.main import create_app
 
 
 @pytest.fixture
-def app():
+async def app():
     """Fixture to create the FastAPI application instance."""
-    return create_app()
+    app_instance = create_app()
+    async with app_instance.router.lifespan_context(app_instance):
+        yield app_instance
 
 
 @pytest.fixture
