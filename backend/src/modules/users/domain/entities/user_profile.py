@@ -2,6 +2,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from modules.users.domain.events.profile_events import ProfileCreated, ProfileUpdated
 from shared.domain.entity import AggregateRoot
 
 
@@ -25,7 +26,7 @@ class UserProfile(AggregateRoot):
         preferred_language: str = "en",
     ) -> "UserProfile":
         profile_id = uuid.uuid4()
-        return cls(
+        profile = cls(
             id=profile_id,
             account_id=account_id,
             first_name=first_name,
@@ -36,6 +37,15 @@ class UserProfile(AggregateRoot):
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
         )
+        profile.register_event(
+            ProfileCreated(
+                aggregate_id=profile_id,
+                account_id=account_id,
+                first_name=first_name,
+                last_name=last_name,
+            )
+        )
+        return profile
 
     def update_profile(
         self,
@@ -56,3 +66,4 @@ class UserProfile(AggregateRoot):
         if preferred_language is not None:
             self.preferred_language = preferred_language
         self.updated_at = datetime.now(UTC)
+        self.register_event(ProfileUpdated(aggregate_id=self.id))

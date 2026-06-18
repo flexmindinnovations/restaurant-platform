@@ -58,6 +58,8 @@ def upgrade() -> None:
         sa.Column('is_verified', sa.Boolean(), server_default='false', nullable=False),
         sa.Column('is_active', sa.Boolean(), server_default='true', nullable=False),
         sa.Column('verification_token', sa.String(length=255), nullable=True),
+        sa.Column('reset_token', sa.String(length=255), nullable=True),
+        sa.Column('reset_token_expires_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('roles', postgresql.JSONB(astext_type=sa.Text()), server_default='[]', nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

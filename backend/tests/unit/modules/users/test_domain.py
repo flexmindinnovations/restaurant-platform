@@ -22,6 +22,11 @@ def test_user_profile_creation():
     assert profile.preferred_language == "fr"
     assert profile.avatar_url is None
 
+    events = profile.collect_events()
+    assert len(events) == 1
+    assert events[0].first_name == "John"
+    assert events[0].account_id == account_id
+
 
 @pytest.mark.unit
 def test_user_profile_update():
@@ -42,3 +47,6 @@ def test_user_profile_update():
     assert profile.last_name == "Doe"
     assert profile.display_name == "Jane D."
     assert profile.avatar_url == "http://avatar.com/jane"
+
+    events = profile.collect_events()
+    assert any(e.__class__.__name__ == "ProfileUpdated" for e in events)
