@@ -81,15 +81,15 @@
 
 ## Phase 2 — Core ordering: Menus, cart, checkout (Sprint 2) ✅ (backend only)
 
-### Menus module (backend) ✅ `aa10742` · 41 tests
-- [x] Domain: Menu + MenuItem aggregates, Category entity, Money VO, 7 events
-- [x] Application: 9 commands + 4 queries, 3 ports
-- [x] Infrastructure: 3 SQLAlchemy models (menus.*), repos with filtering
-- [x] API: Full CRUD under /api/v1/menus (menus, categories, items)
-- [x] Migration: 0003_menus_module with RLS on menu_items
-- [x] Unit tests: 18 domain + 23 handler (41 total)
-- [ ] Full-text search with pg_trgm + GIN index → see **Backlog** section
-- [ ] ModifierGroup/Modifier entities → see **Backlog** section
+### Menus module (backend) ✅ `aa10742` `d1e70f4` · 52 tests
+- [x] Domain: Menu + MenuItem + ModifierGroup + Modifier aggregates, Category entity, Money VO, 7 events
+- [x] Application: 13 commands + 6 queries, 4 ports
+- [x] Infrastructure: 5 SQLAlchemy models (menus.*), repos with filtering + pg_trgm search
+- [x] API: Full CRUD under /api/v1/menus (menus, categories, items, modifier-groups, modifiers, search)
+- [x] Migration: 0003_menus_module + 0006_menu_search_index + 0007_modifier_groups with RLS
+- [x] Unit tests: 27 domain + 25 handler (52 total)
+- [x] Full-text search with pg_trgm + GIN index (GET /api/v1/menus/search)
+- [x] ModifierGroup/Modifier entities (domain, infra, API, migration)
 
 ### Orders module (backend) ✅ `42f02b8` · 31 tests
 - [x] Domain: Order aggregate (OrderNumber, financial breakdown, state machine, per-status timestamps), Cart aggregate (single-restaurant constraint, item merging), 8 events
