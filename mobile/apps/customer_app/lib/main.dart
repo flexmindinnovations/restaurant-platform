@@ -1,9 +1,23 @@
 import 'package:customer_app/navigation/router.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:localization/localization.dart';
+import 'package:storage/storage.dart';
 
-void main() {
-  runApp(const ProviderScope(child: CustomerApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final storage = await LocalStorageService.init();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        localStorageServiceProvider.overrideWithValue(storage),
+      ],
+      child: const CustomerApp(),
+    ),
+  );
 }
 
 class CustomerApp extends ConsumerWidget {
@@ -16,20 +30,19 @@ class CustomerApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Restaurant Platform',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepOrange,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepOrange,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppThemes.lightTheme,
+      darkTheme: AppThemes.darkTheme,
       routerConfig: router,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('es', ''),
+      ],
     );
   }
 }

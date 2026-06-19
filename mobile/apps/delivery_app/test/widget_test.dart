@@ -9,7 +9,10 @@ void main() {
     );
 
     expect(find.text('Delivery Home'), findsOneWidget);
-    expect(find.text('Go online to start receiving deliveries.'), findsOneWidget);
+    expect(
+      find.text('Go online to start receiving deliveries.'),
+      findsOneWidget,
+    );
     expect(find.byIcon(Icons.delivery_dining_outlined), findsOneWidget);
   });
 }
