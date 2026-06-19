@@ -19,6 +19,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final _postalCodeController = TextEditingController(text: '94043');
   final _countryController = TextEditingController(text: 'USA');
   final _notesController = TextEditingController();
+  final _couponController = TextEditingController();
+  String _appliedPromo = '';
 
   double _tipAmount = 2;
   String _paymentMethod = 'Credit Card';
@@ -32,6 +34,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     _postalCodeController.dispose();
     _countryController.dispose();
     _notesController.dispose();
+    _couponController.dispose();
     super.dispose();
   }
 
@@ -255,6 +258,50 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
+                  'Promo Code',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppTextField(
+                        controller: _couponController,
+                        labelText: 'Enter coupon/promo code',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _appliedPromo = _couponController.text.trim();
+                           if (_appliedPromo.isNotEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Promo code "$_appliedPromo" applied!',
+                                ),
+                              ),
+                            );
+                          }
+                        });
+                      },
+                      child: const Text('Apply'),
+                    ),
+                  ],
+                ),
+                if (_appliedPromo.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Applied Promo: $_appliedPromo (10% discount applied)',
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text(
                   'Payment Method',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
@@ -308,7 +355,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       ),
                     ),
                     Text(
-                      '\$${(cart.totalAmount + _tipAmount).toStringAsFixed(2)}',
+                      () {
+                        final rate = _appliedPromo.isNotEmpty ? 0.90 : 1.0;
+                        final total = cart.totalAmount * rate + _tipAmount;
+                        return '\$${total.toStringAsFixed(2)}';
+                      }(),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

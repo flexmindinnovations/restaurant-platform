@@ -54,6 +54,72 @@ class DashboardMenuItem {
 }
 
 // ----------------------------------------------------
+// Review Model & Notifier
+// ----------------------------------------------------
+class RestaurantReview {
+  RestaurantReview({
+    required this.id,
+    required this.customerName,
+    required this.rating,
+    required this.comment,
+    required this.date,
+    this.reply,
+  });
+
+  final String id;
+  final String customerName;
+  final int rating;
+  final String comment;
+  final String date;
+  String? reply;
+}
+
+class RestaurantReviewsNotifier extends Notifier<List<RestaurantReview>> {
+  @override
+  List<RestaurantReview> build() {
+    return [
+      RestaurantReview(
+        id: 'rev-1',
+        customerName: 'John Doe',
+        rating: 5,
+        comment: 'Absolutely loved the Signature Burger! '
+            'Hot, fresh and super fast.',
+        date: '2026-06-18',
+      ),
+      RestaurantReview(
+        id: 'rev-2',
+        customerName: 'Jane Smith',
+        rating: 3,
+        comment: 'Pizza was decent, but fries were a bit cold on arrival.',
+        date: '2026-06-17',
+      ),
+    ];
+  }
+
+  void replyToReview(String reviewId, String replyText) {
+    state = [
+      for (final review in state)
+        if (review.id == reviewId)
+          RestaurantReview(
+            id: review.id,
+            customerName: review.customerName,
+            rating: review.rating,
+            comment: review.comment,
+            date: review.date,
+            reply: replyText,
+          )
+        else
+          review
+    ];
+  }
+}
+
+final restaurantReviewsProvider =
+    NotifierProvider<RestaurantReviewsNotifier, List<RestaurantReview>>(() {
+  return RestaurantReviewsNotifier();
+});
+
+// ----------------------------------------------------
 // Notifiers (Riverpod 3.0 compatible)
 // ----------------------------------------------------
 class RestaurantOrdersNotifier
@@ -225,6 +291,172 @@ final restaurantItemsProvider =
     });
 
 // ----------------------------------------------------
+// Custom Painters for Charts
+// ----------------------------------------------------
+class LineChartPainter extends CustomPainter {
+  LineChartPainter({required this.data, required this.labels});
+
+  final List<double> data;
+  final List<String> labels;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+
+    final paintLine = Paint()
+      ..color = Colors.blue
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+
+    final paintFill = Paint()
+      ..color = Colors.blue.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    final paintDot = Paint()
+      ..color = Colors.blue.shade700
+      ..strokeWidth = 6
+      ..style = PaintingStyle.fill;
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    final maxVal = data.reduce((a, b) => a > b ? a : b);
+    final stepX = size.width / (data.length - 1);
+
+    final path = Path();
+    final fillPath = Path()..moveTo(0, size.height - 20);
+
+    for (var i = 0; i < data.length; i++) {
+      final x = i * stepX;
+      final y = (size.height - 35) - (data[i] / maxVal) * (size.height - 50);
+
+      if (i == 0) {
+        path.moveTo(x, y);
+        fillPath.lineTo(x, y);
+      } else {
+        path.lineTo(x, y);
+        fillPath.lineTo(x, y);
+      }
+    }
+
+    fillPath
+      ..lineTo(size.width, size.height - 20)
+      ..close();
+
+    canvas
+      ..drawPath(fillPath, paintFill)
+      ..drawPath(path, paintLine);
+
+    // Draw dots and labels
+    for (var i = 0; i < data.length; i++) {
+      final x = i * stepX;
+      final y = (size.height - 35) - (data[i] / maxVal) * (size.height - 50);
+      canvas.drawCircle(Offset(x, y), 4, paintDot);
+
+      // Label below
+      textPainter
+        ..text = TextSpan(
+          text: labels[i],
+          style: const TextStyle(fontSize: 10, color: Colors.grey),
+        )
+        ..layout()
+        ..paint(
+          canvas,
+          Offset(x - textPainter.width / 2, size.height - 15),
+        )
+        ..text = TextSpan(
+          text: '\$${data[i].toInt()}',
+          style: const TextStyle(
+            fontSize: 9,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        )
+        ..layout()
+        ..paint(
+          canvas,
+          Offset(x - textPainter.width / 2, y - 15),
+        );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LineChartPainter oldDelegate) =>
+      oldDelegate.data != data;
+}
+
+class BarChartPainter extends CustomPainter {
+  BarChartPainter({required this.data, required this.labels});
+
+  final List<double> data;
+  final List<String> labels;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+
+    final paintBar = Paint()
+      ..color = Colors.teal
+      ..style = PaintingStyle.fill;
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    final maxVal = data.reduce((a, b) => a > b ? a : b);
+    final barSpacing = size.width / data.length;
+    final barWidth = barSpacing * 0.6;
+
+    for (var i = 0; i < data.length; i++) {
+      final x = i * barSpacing + (barSpacing - barWidth) / 2;
+      final y = (size.height - 25) - (data[i] / maxVal) * (size.height - 45);
+
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTRB(x, y, x + barWidth, size.height - 20),
+        const Radius.circular(4),
+      );
+      canvas.drawRRect(rect, paintBar);
+
+      // Label below
+      textPainter
+        ..text = TextSpan(
+          text: labels[i],
+          style: const TextStyle(fontSize: 10, color: Colors.grey),
+        )
+        ..layout()
+        ..paint(
+          canvas,
+          Offset(
+            x + (barWidth - textPainter.width) / 2,
+            size.height - 15,
+          ),
+        )
+        ..text = TextSpan(
+          text: data[i].toInt().toString(),
+          style: const TextStyle(
+            fontSize: 9,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        )
+        ..layout()
+        ..paint(
+          canvas,
+          Offset(
+            x + (barWidth - textPainter.width) / 2,
+            y - 12,
+          ),
+        );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant BarChartPainter oldDelegate) =>
+      oldDelegate.data != data;
+}
+
+// ----------------------------------------------------
 // Screen Widget
 // ----------------------------------------------------
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -241,13 +473,111 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Widget _buildReviewsTab() {
+    final reviews = ref.watch(restaurantReviewsProvider);
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: reviews.length,
+      itemBuilder: (context, index) {
+        final review = reviews[index];
+        final replyController = TextEditingController();
+
+        return AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    review.customerName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    review.date,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: List.generate(5, (starIdx) {
+                  return Icon(
+                    starIdx < review.rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 18,
+                  );
+                }),
+              ),
+              const SizedBox(height: 8),
+              Text(review.comment),
+              const Divider(height: 24),
+              if (review.reply != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Your Response:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(review.reply!),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppTextField(
+                        controller: replyController,
+                        labelText: 'Write a response...',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        final text = replyController.text.trim();
+                        if (text.isNotEmpty) {
+                          ref
+                              .read(restaurantReviewsProvider.notifier)
+                              .replyToReview(review.id, text);
+                        }
+                      },
+                      child: const Text('Reply'),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -275,6 +605,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             Tab(icon: Icon(Icons.list_alt), text: 'Orders'),
             Tab(icon: Icon(Icons.menu_book), text: 'Menu'),
             Tab(icon: Icon(Icons.bar_chart), text: 'Stats'),
+            Tab(icon: Icon(Icons.rate_review), text: 'Reviews'),
           ],
         ),
       ),
@@ -348,9 +679,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, s) => Center(child: Text('Error: $e')),
           ),
-          Padding(
+          SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -399,9 +731,42 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Weekly Revenue (USD)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 150,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: LineChartPainter(
+                      data: [120, 240, 180, 320, 280, 420, 350],
+                      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'Orders Per Day',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 150,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: BarChartPainter(
+                      data: [5, 12, 8, 15, 10, 20, 18],
+                      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
+          _buildReviewsTab(),
         ],
       ),
     );
@@ -437,66 +802,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         const SizedBox(height: 8),
         ...orders.map((order) {
           return AppCard(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      order.orderNumber,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text('Total: \$${order.totalAmount.toStringAsFixed(2)}'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    if (showAccept)
-                      AppButton(
-                        text: 'Accept',
-                        width: 80,
-                        height: 36,
-                        onPressed: () {
-                          unawaited(
-                            ref
-                                .read(restaurantOrdersProvider.notifier)
-                                .updateStatus(order.id, 'CONFIRMED'),
-                          );
-                        },
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.orderNumber,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    if (showPreparing) ...[
-                      if (order.status == 'CONFIRMED')
+                      Text('Total: \$${order.totalAmount.toStringAsFixed(2)}'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      if (showAccept)
                         AppButton(
-                          text: 'Prepare',
+                          text: 'Accept',
                           width: 80,
                           height: 36,
                           onPressed: () {
                             unawaited(
                               ref
                                   .read(restaurantOrdersProvider.notifier)
-                                  .updateStatus(order.id, 'PREPARING'),
-                            );
-                          },
-                        )
-                      else
-                        AppButton(
-                          text: 'Ready',
-                          width: 80,
-                          height: 36,
-                          onPressed: () {
-                            unawaited(
-                              ref
-                                  .read(restaurantOrdersProvider.notifier)
-                                  .updateStatus(order.id, 'READY'),
+                                  .updateStatus(order.id, 'CONFIRMED'),
                             );
                           },
                         ),
+                      if (showPreparing) ...[
+                        if (order.status == 'CONFIRMED')
+                          AppButton(
+                            text: 'Prepare',
+                            width: 80,
+                            height: 36,
+                            onPressed: () {
+                              unawaited(
+                                ref
+                                    .read(restaurantOrdersProvider.notifier)
+                                    .updateStatus(order.id, 'PREPARING'),
+                              );
+                            },
+                          )
+                        else
+                          AppButton(
+                            text: 'Ready',
+                            width: 80,
+                            height: 36,
+                            onPressed: () {
+                              unawaited(
+                                ref
+                                    .read(restaurantOrdersProvider.notifier)
+                                    .updateStatus(order.id, 'READY'),
+                              );
+                            },
+                          ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           );
         }),

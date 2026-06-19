@@ -127,6 +127,13 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
           final status = _driverLocation != null
               ? 'OUT_FOR_DELIVERY'
               : details.status;
+
+          if (status == 'DELIVERED') {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/review/${details.id}');
+            });
+          }
+
           final initialCenter = LatLng(
             latitude: details.destinationLat,
             longitude: details.destinationLng,
@@ -171,24 +178,36 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              details.restaurantName,
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Order Status: $status',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                details.restaurantName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Order Status: $status',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const CircularProgressIndicator(),
+                        if (status != 'DELIVERED')
+                          ElevatedButton(
+                            onPressed: () {
+                              context.go('/review/${details.id}');
+                            },
+                            child: const Text('Simulate Delivery'),
+                          )
+                        else
+                          const CircularProgressIndicator(),
                       ],
                     ),
                     const SizedBox(height: 16),

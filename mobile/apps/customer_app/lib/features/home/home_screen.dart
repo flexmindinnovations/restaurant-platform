@@ -109,11 +109,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
+  final _aiSearchController = TextEditingController();
   String _selectedFilter = 'All';
 
   @override
   void dispose() {
     _searchController.dispose();
+    _aiSearchController.dispose();
     super.dispose();
   }
 
@@ -139,12 +141,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: AppTextField(
               controller: _searchController,
               labelText: 'Search Restaurants',
               prefixIcon: const Icon(Icons.search),
               onChanged: (_) => setState(() {}),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextFormField(
+              controller: _aiSearchController,
+              decoration: InputDecoration(
+                labelText: 'AI Search (e.g. cheesy pizza, quick burgers)',
+                prefixIcon: const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.purple,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                  ),
+                ),
+              ),
+              onFieldSubmitted: (query) {
+                if (query.trim().isNotEmpty) {
+                  final encoded = Uri.encodeComponent(query.trim());
+                  unawaited(context.push('/ai-search?q=$encoded'));
+                }
+              },
             ),
           ),
           SingleChildScrollView(
