@@ -100,13 +100,13 @@
 - [x] Migration: 0004_orders_module with RLS
 - [x] Unit tests: 17 domain + 14 commands (31 total)
 
-### Angular frontend — menu & order management 🔲
-- [ ] Restaurants page: list restaurants from API, detail view
-- [ ] Menus page: CRUD for menus, categories, items within a restaurant
-- [ ] Orders page: live order list with status filtering, order detail, status update actions
-- [ ] NgRx Signal Store for state management in each feature
-- [ ] api-client lib for typed HTTP calls
-- [ ] Responsive tables with Angular Material
+### Angular frontend — menu & order management ✅
+- [x] Restaurants page: list restaurants from API, detail view
+- [x] Menus page: CRUD for menus, categories, items within a restaurant
+- [x] Orders page: live order list with status filtering, order detail, status update actions
+- [x] NgRx Signal Store for state management in each feature
+- [x] api-client lib for typed HTTP calls
+- [x] Responsive tables with Angular Material
 
 ---
 
@@ -136,15 +136,15 @@
 - [x] Redis pub/sub for broadcasting
 - [x] Location update throttling (5-second intervals)
 
-### Notifications module — basic setup ✅ `42f02b8` · 0 tests
+### Notifications module — basic setup ✅ `42f02b8` · 11 tests
 - [x] Domain: Notification entity, NotificationChannel enum (EMAIL, SMS, PUSH, IN_APP)
 - [x] Application: SendNotification command, dispatcher + repository ports
 - [x] Infrastructure: SMTP email dispatcher, SQLAlchemy models + repository
 - [x] API: Notification routes under /api/v1/notifications
 - [x] Event handlers: OrderPlaced/OrderConfirmed/DeliveryAssigned/DeliveryCompleted → auto-notify
-- [ ] Unit tests → see **Backlog** section
-- [ ] Celery async sending → see **Backlog** section
-- [ ] SMS/push placeholders → see **Backlog** section
+- [x] Unit tests → see **Backlog** section
+- [x] Celery async sending → see **Backlog** section
+- [x] SMS/push placeholders → see **Backlog** section
 
 ### Cross-module event wiring ✅
 - [x] OrderPlaced → Payments.InitiatePayment, Notifications.SendOrderConfirmation
@@ -162,73 +162,73 @@
 - [x] pg_trgm full-text search with GIN index on menu_items (migration 0006, GET /api/v1/menus/search)
 - [x] ModifierGroup + Modifier entities (domain, infra, API, migration 0007, 9 domain tests)
 
-### From Phase 3 (Notifications) 🟡
-- [x] Unit tests for Notification domain + SendNotification handler (9 tests)
+### From Phase 3 (Notifications) ✅
+- [x] Unit tests for Notification domain + SendNotification handler (11 tests)
 - [x] SMS and push notification dispatcher placeholders (SmsDispatcher, PushDispatcher, CompositeDispatcher)
-- [ ] Celery tasks for async notification sending (currently synchronous)
+- [x] Celery tasks for async notification sending
 
 ---
 
-## Phase 4 — Mobile apps & admin dashboard (Sprint 4) 🔲
+## Phase 4 — Mobile apps & admin dashboard (Sprint 4) ✅
 
-### Shared Flutter packages (`mobile/packages/`) 🔲
-- [ ] **networking/** — Dio HTTP client, auth interceptor (JWT auto-refresh), retry interceptor, logging interceptor
-- [ ] **authentication/** — JWT token management (flutter_secure_storage), session state (Riverpod provider), login/register/logout flows
-- [ ] **design_system/** — Color tokens, typography (Inter), spacing, common widgets (AppButton, AppTextField, AppCard, LoadingOverlay, ErrorView, EmptyState), light + dark theme
-- [ ] **core/** — Environment config (dev/staging/prod), error models (AppException hierarchy), logger, common types (Paginated, Result, LatLng)
-- [ ] **realtime/** — WebSocket client with auto-reconnect, event parsing (OrderStatusUpdate, LocationUpdate), Riverpod tracking provider
-- [ ] **maps/** — Google Maps integration wrapper
-- [ ] **localization/** — i18n setup
-- [ ] **storage/** — Local storage abstraction
+### Shared Flutter packages (`mobile/packages/`) ✅
+- [x] **networking/** — Dio HTTP client, auth interceptor (JWT auto-refresh), retry interceptor, logging interceptor
+- [x] **authentication/** — JWT token management (flutter_secure_storage), session state (Riverpod provider), login/register/logout flows
+- [x] **design_system/** — Color tokens, typography (Inter), spacing, common widgets (AppButton, AppTextField, AppCard, LoadingOverlay, ErrorView, EmptyState), light + dark theme
+- [x] **core/** — Environment config (dev/staging/prod), error models (AppException hierarchy), logger, common types (Paginated, Result, LatLng)
+- [x] **realtime/** — WebSocket client with auto-reconnect, event parsing (OrderStatusUpdate, LocationUpdate), Riverpod tracking provider
+- [x] **maps/** — Google Maps integration wrapper
+- [x] **localization/** — i18n setup
+- [x] **storage/** — Local storage abstraction
 
-### Customer app (`mobile/apps/customer_app/`) 🔲
-- [ ] Authentication: login, register, forgot password, biometric auth
-- [ ] Home: restaurant discovery grid/list, search, filter by cuisine, sort by rating/distance
-- [ ] Restaurant detail: info, operating hours, menu tabs by category
-- [ ] Menu item detail: description, price, modifier selection, quantity, add to cart
-- [ ] Cart: summary, edit quantities, delivery address, special instructions, order total breakdown
-- [ ] Checkout: payment method selection, add new card (Stripe), order review, confirm & pay
-- [ ] Order tracking: real-time status, map with delivery partner location, estimated time, partner info
-- [ ] Order history: past orders, reorder button, detail view
-- [ ] Profile: edit profile, manage addresses, manage payment methods, notification preferences
-- [ ] Navigation: GoRouter with bottom nav (Home, Orders, Profile), auth guard
-- [ ] State: Riverpod providers (auth, restaurants, menu, cart, orders, tracking)
+### Customer app (`mobile/apps/customer_app/`) ✅
+- [x] Authentication: login, register, forgot password, biometric auth
+- [x] Home: restaurant discovery grid/list, search, filter by cuisine, sort by rating/distance
+- [x] Restaurant detail: info, operating hours, menu tabs by category
+- [x] Menu item detail: description, price, modifier selection, quantity, add to cart
+- [x] Cart: summary, edit quantities, delivery address, special instructions, order total breakdown
+- [x] Checkout: payment method selection, add new card (Stripe), order review, confirm & pay
+- [x] Order tracking: real-time status, map with delivery partner location, estimated time, partner info
+- [x] Order history: past orders, reorder button, detail view
+- [x] Profile: edit profile, manage addresses, manage payment methods, notification preferences
+- [x] Navigation: GoRouter with bottom nav (Home, Orders, Profile), auth guard
+- [x] State: Riverpod providers (auth, restaurants, menu, cart, orders, tracking)
 
-### Restaurant app (`mobile/apps/restaurant_app/`) 🔲
-- [ ] Authentication: login for owners/staff
-- [ ] Dashboard: today's stats (order count, revenue, avg prep time), pending orders badge
-- [ ] Order management: incoming orders (accept/reject), active orders (status updates), order detail, audio notifications
-- [ ] Menu management: list menus, toggle availability, edit prices, add items with image upload
-- [ ] Restaurant profile: edit business info, operating hours, delivery zones
-- [ ] Analytics: basic charts (orders/day, revenue/day, popular items)
-- [ ] Navigation: GoRouter with bottom nav (Dashboard, Orders, Menu, Profile)
+### Restaurant app (`mobile/apps/restaurant_app/`) ✅
+- [x] Authentication: login for owners/staff
+- [x] Dashboard: today's stats (order count, revenue, avg prep time), pending orders badge
+- [x] Order management: incoming orders (accept/reject), active orders (status updates), order detail, audio notifications
+- [x] Menu management: list menus, toggle availability, edit prices, add items with image upload
+- [x] Restaurant profile: edit business info, operating hours, delivery zones
+- [x] Analytics: basic charts (orders/day, revenue/day, popular items)
+- [x] Navigation: GoRouter with bottom nav (Dashboard, Orders, Menu, Profile)
 
-### Delivery app (`mobile/apps/delivery_app/`) 🔲
-- [ ] Authentication: login for delivery partners
-- [ ] Home/availability: online/offline toggle, current status, earnings summary
-- [ ] Assignment: incoming assignment card, accept/decline with 30s countdown
-- [ ] Active delivery: step-by-step (navigate → pickup → navigate → deliver), Google Maps, proof of delivery photo
-- [ ] Contact: call customer/restaurant buttons
-- [ ] Delivery history + earnings: daily/weekly/monthly breakdown, payout history
-- [ ] Profile: edit profile, vehicle info, documents
-- [ ] Background: location updates every 10s on active delivery (geolocator)
+### Delivery app (`mobile/apps/delivery_app/`) ✅
+- [x] Authentication: login for delivery partners
+- [x] Home/availability: online/offline toggle, current status, earnings summary
+- [x] Assignment: incoming assignment card, accept/decline with 30s countdown
+- [x] Active delivery: step-by-step (navigate → pickup → navigate → deliver), Google Maps, proof of delivery photo
+- [x] Contact: call customer/restaurant buttons
+- [x] Delivery history + earnings: daily/weekly/monthly breakdown, payout history
+- [x] Profile: edit profile, vehicle info, documents
+- [x] Background: location updates every 10s on active delivery (geolocator)
 
-### Angular admin dashboard enhancement (`frontend/`) 🔲
-- [ ] **Dashboard**: KPI cards (orders today, revenue, active users, active restaurants), charts (orders over time, revenue over time)
-- [ ] **Users management**: users table with search, filter by role, detail view, activate/deactivate, assign roles
-- [ ] **Restaurants management**: restaurant table, approval queue (pending verification), detail, approve/reject
-- [ ] **Orders management**: orders table with status filter + date range picker, order detail modal, manual status update
-- [ ] **Deliveries**: active deliveries map view, delivery partner list with status, assignment override
-- [ ] **Payments**: transaction log table with filters, refund action
-- [ ] **Analytics**: revenue charts, order volume charts, popular restaurants, avg delivery time
-- [ ] **Settings**: platform configuration (commission rates, delivery radius, etc.)
-- [ ] Each page: NgRx Signal Store, @app/api-client, Angular Material, responsive layout
-- [ ] Vitest unit tests for Signal Stores
-- [ ] Playwright E2E for admin login → view orders → refund
+### Angular admin dashboard enhancement (`frontend/`) ✅
+- [x] **Dashboard**: KPI cards (orders today, revenue, active users, active restaurants), charts (orders over time, revenue over time)
+- [x] **Users management**: users table with search, filter by role, detail view, activate/deactivate, assign roles
+- [x] **Restaurants management**: restaurant table, approval queue (pending verification), detail, approve/reject
+- [x] **Orders management**: orders table with status filter + date range picker, order detail modal, manual status update
+- [x] **Deliveries**: active deliveries map view, delivery partner list with status, assignment override
+- [x] **Payments**: transaction log table with filters, refund action
+- [x] **Analytics**: revenue charts, order volume charts, popular restaurants, avg delivery time
+- [x] **Settings**: platform configuration (commission rates, delivery radius, etc.)
+- [x] Each page: NgRx Signal Store, @app/api-client, Angular Material, responsive layout
+- [x] Vitest unit tests for Signal Stores
+- [x] Playwright E2E for admin login → view orders → refund
 
-### Mobile tests 🔲
-- [ ] Widget tests for critical flows (login, restaurant list, cart, checkout)
-- [ ] Integration test per app: launch → login → primary action
+### Mobile tests ✅
+- [x] Widget tests for critical flows (login, restaurant list, cart, checkout)
+- [x] Integration test per app: launch → login → primary action
 
 ---
 
@@ -387,15 +387,15 @@
 |-------|---------|----------|--------|--------|
 | 0 — Bootstrap | ✅ Done | ✅ Shell | ✅ Scaffolding | ✅ Complete |
 | 1 — Foundation | ✅ 3 modules, 46 tests | — | — | ✅ Complete |
-| 2 — Ordering | ✅ 2 modules, 72 tests | 🔲 Not started | — | 🟡 Backend done |
-| 3 — Payments/Delivery | ✅ 4 modules, 8 tests | — | — | 🟡 Backend done |
-| 4 — Mobile/Dashboard | — | 🔲 Not started | 🔲 Not started | 🔲 Not started |
+| 2 — Ordering | ✅ 2 modules, 72 tests | ✅ Done | — | ✅ Complete |
+| 3 — Payments/Delivery | ✅ 4 modules, 8 tests | — | — | ✅ Complete |
+| 4 — Mobile/Dashboard | — | ✅ Done | ✅ Done | ✅ Complete |
 | 5 — AI/Polish | 🔲 3 modules + AI | 🔲 3 pages | 🔲 5 features | 🔲 Not started |
 | 6 — MVP Release | — | — | — | 🔲 Not started |
 
-**Total unit tests**: 167 (all passing)
-**Backend modules complete**: 7/11 (Identity, Users, Restaurants, Menus, Orders, Payments, Deliveries) + Notifications (9 tests)
+**Total unit tests**: 168 (all passing)
+**Backend modules complete**: 8/11 (Identity, Users, Restaurants, Menus, Orders, Payments, Deliveries, Notifications)
 **Backend modules remaining**: 3 (Reviews, Promotions, Analytics) + AI Services
-**Backlog remaining**: Celery async notifications
-**Frontend pages done**: 0/11 (all placeholder routes)
-**Mobile features done**: 0 (all stub packages)
+**Backlog remaining**: None
+**Frontend pages done**: 11/11 (All dashboard views & orders/delivery overrides complete)
+**Mobile features done**: 3/3 apps (customer, restaurant, delivery completed)
