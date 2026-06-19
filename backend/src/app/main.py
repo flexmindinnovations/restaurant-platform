@@ -139,11 +139,18 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(deliveries_router, prefix="/api/v1/delivery-assignments", tags=["deliveries"])
     app.include_router(deliveries_partners_router, prefix="/api/v1/partners", tags=["partners"])
     from shared.api.websockets import router as websocket_router
+
     app.include_router(websocket_router)
     app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["notifications"])
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
     app.include_router(analytics_router, prefix="/api/v1/admin/analytics", tags=["analytics"])
+    from modules.analytics.api.ai_routes import ai_router
+
+    app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"])
+    from app.recommendations_routes import recommendations_router
+
+    app.include_router(recommendations_router, prefix="/api/v1/recommendations", tags=["recommendations"])
 
 
 def _wire_event_handlers() -> None:
@@ -151,6 +158,7 @@ def _wire_event_handlers() -> None:
     from modules.notifications.event_handlers import register_event_handlers as register_notifications_events
     from modules.orders.event_handlers import register_event_handlers as register_orders_events
     from modules.payments.event_handlers import register_event_handlers as register_payments_events
+    from modules.reviews.event_handlers import register_event_handlers as register_reviews_events
     from modules.users.event_handlers import register_event_handlers as register_users_events
     from shared.infrastructure.event_bus import get_event_bus
 
@@ -160,3 +168,4 @@ def _wire_event_handlers() -> None:
     register_deliveries_events(event_bus)
     register_orders_events(event_bus)
     register_notifications_events(event_bus)
+    register_reviews_events(event_bus)
