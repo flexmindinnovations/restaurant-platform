@@ -8,6 +8,8 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   min_order_value: 12.00,
   base_delivery_fee: 3.50,
   service_fee: 1.50,
+  ai_provider: 'Gemini',
+  ai_api_key: '',
 };
 
 @Injectable({ providedIn: 'root' })

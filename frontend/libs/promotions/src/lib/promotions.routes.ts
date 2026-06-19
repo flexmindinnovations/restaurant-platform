@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { PromotionsDashboardComponent } from './promotions-dashboard.component';
 
 export const promotionsRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: PromotionsDashboardComponent,
     data: { title: 'Promotions', icon: 'local_offer' },
   },
 ];

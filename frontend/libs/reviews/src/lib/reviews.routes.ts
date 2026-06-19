@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { ReviewsListComponent } from './reviews-list.component';
 
 export const reviewsRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: ReviewsListComponent,
     data: { title: 'Reviews', icon: 'star_rate' },
   },
 ];

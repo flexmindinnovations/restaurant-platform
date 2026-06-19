@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { PageHeader } from '../../../shared/src/lib/page-header';
 import { SettingsStore } from './settings.store';
 import { PlatformSettings } from './settings.model';
@@ -24,6 +25,7 @@ import { PlatformSettings } from './settings.model';
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
+    MatSelectModule,
     PageHeader,
   ],
   template: `
@@ -97,6 +99,25 @@ import { PlatformSettings } from './settings.model';
                   <input matInput type="number" name="min_order_value" 
                     [ngModel]="currentSettings.min_order_value" required min="0" step="0.5" />
                   <span matPrefix>$</span>
+                </mat-form-field>
+              </div>
+
+              <!-- AI Service Section -->
+              <h3 class="section-title mt-4">AI Assistant Settings</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>AI Provider</mat-label>
+                  <mat-select name="ai_provider" [ngModel]="currentSettings.ai_provider" required>
+                    <mat-option value="Gemini">Gemini</mat-option>
+                    <mat-option value="OpenAI">OpenAI</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="col-span-2">
+                  <mat-label>API Key</mat-label>
+                  <input matInput type="password" name="ai_api_key" 
+                    [ngModel]="currentSettings.ai_api_key" />
+                  <mat-icon matSuffix>vpn_key</mat-icon>
                 </mat-form-field>
               </div>
 
@@ -186,6 +207,8 @@ export class SettingsDashboardComponent implements OnInit {
       min_order_value: Number(formValues.min_order_value),
       base_delivery_fee: Number(formValues.base_delivery_fee),
       service_fee: Number(formValues.service_fee),
+      ai_provider: (formValues.ai_provider as 'Gemini' | 'OpenAI') || 'Gemini',
+      ai_api_key: formValues.ai_api_key || '',
     };
     this.store.saveSettings(settingsPayload);
 
