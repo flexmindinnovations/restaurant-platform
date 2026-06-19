@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { AnalyticsDashboardComponent } from './analytics-dashboard.component';
 
 export const analyticsRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
-    data: { title: 'Analytics', icon: 'bar_chart' },
+    component: AnalyticsDashboardComponent,
+    data: { title: 'Analytics', icon: 'analytics' },
   },
 ];

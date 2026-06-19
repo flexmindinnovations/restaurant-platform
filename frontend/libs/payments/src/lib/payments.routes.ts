@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { PaymentsListComponent } from './payments-list.component';
 
 export const paymentsRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
-    data: { title: 'Payments', icon: 'payments' },
+    component: PaymentsListComponent,
+    data: { title: 'Payments', icon: 'payment' },
   },
 ];

@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { DashboardComponent } from './dashboard.component';
 
 export const dashboardRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: DashboardComponent,
     data: { title: 'Dashboard', icon: 'dashboard' },
   },
 ];

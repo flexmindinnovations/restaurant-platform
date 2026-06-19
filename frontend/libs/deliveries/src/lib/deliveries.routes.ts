@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { DeliveriesMapComponent } from './deliveries-map.component';
 
 export const deliveriesRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: DeliveriesMapComponent,
     data: { title: 'Deliveries', icon: 'local_shipping' },
   },
 ];

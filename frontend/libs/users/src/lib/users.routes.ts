@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { UsersList } from './users-list.component';
 
 export const usersRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: UsersList,
     data: { title: 'Users', icon: 'people' },
   },
 ];

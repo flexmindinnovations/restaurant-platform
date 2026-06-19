@@ -1,1 +1,1 @@
-export * from './lib/restaurants.routes';
+export { restaurantsRoutes } from './lib/restaurants.routes';

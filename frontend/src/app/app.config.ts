@@ -3,6 +3,7 @@ import { provideRouter, withComponentInputBinding, withViewTransitions } from '@
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from '@app/api-client';
 
 import { routes } from './app.routes';
 
@@ -12,6 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withFetch(), withInterceptors([])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
   ],
 };

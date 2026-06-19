@@ -1,10 +1,19 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { RestaurantsList } from './restaurants-list';
+import { RestaurantDetail } from './restaurant-detail';
+import { MenusPage } from './menus-page';
 
 export const restaurantsRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
-    data: { title: 'Restaurants', icon: 'storefront' },
+    component: RestaurantsList,
+  },
+  {
+    path: ':id',
+    component: RestaurantDetail,
+  },
+  {
+    path: ':id/menus',
+    component: MenusPage,
   },
 ];

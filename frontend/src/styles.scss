@@ -1,39 +1,37 @@
 @use '@angular/material' as mat;
 
-// --- M3 Theme Definition ---
-// Primary: Warm orange (appetite/food brand, WCAG AA compliant)
-// Tertiary: Teal for accents and secondary actions
+// --- M3 Theme — Emerald primary (matches CSS variable system) ---
 $light-theme: mat.define-theme((
   color: (
     theme-type: light,
-    primary: mat.$orange-palette,
-    tertiary: mat.$cyan-palette,
+    primary: mat.$green-palette,
+    tertiary: mat.$violet-palette,
   ),
   typography: (
     brand-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     plain-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   ),
   density: (
-    scale: 0,
+    scale: -1,
   ),
 ));
 
 $dark-theme: mat.define-theme((
   color: (
     theme-type: dark,
-    primary: mat.$orange-palette,
-    tertiary: mat.$cyan-palette,
+    primary: mat.$green-palette,
+    tertiary: mat.$violet-palette,
   ),
   typography: (
     brand-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     plain-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   ),
   density: (
-    scale: 0,
+    scale: -1,
   ),
 ));
 
-// --- Apply Themes ---
+// --- Apply themes ---
 html {
   color-scheme: light;
   @include mat.all-component-themes($light-theme);
@@ -51,7 +49,7 @@ html.dark {
   }
 }
 
-// --- Global Resets & Accessibility ---
+// --- Global resets ---
 *,
 *::before,
 *::after {
@@ -62,27 +60,28 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-size-adjust: 100%;
+  font-size: 100%;
 }
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+  background-color: var(--color-surface-0);
+  color: var(--color-text-primary);
 }
 
-// WCAG 2.4.7: Focus visible — high-contrast focus ring on all interactive elements
+// --- Accessibility ---
 :focus-visible {
-  outline: 3px solid var(--mat-sys-primary, #e65100);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-// Remove default focus ring for mouse users (keyboard-only focus via :focus-visible)
 :focus:not(:focus-visible) {
   outline: none;
 }
 
-// WCAG 2.3.3: Respect reduced motion preference
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -94,20 +93,14 @@ body {
   }
 }
 
-// WCAG 1.4.4: Text resize — ensure content reflows at 200% zoom
-html {
-  font-size: 100%;
-}
-
-// Skip-to-content link (WCAG 2.4.1)
 .skip-link {
   position: absolute;
   top: -100%;
   left: 16px;
   z-index: 9999;
   padding: 8px 16px;
-  background: var(--mat-sys-primary, #e65100);
-  color: var(--mat-sys-on-primary, #fff);
+  background: var(--color-primary);
+  color: white;
   font-weight: 500;
   text-decoration: none;
   border-radius: 0 0 4px 4px;
@@ -115,4 +108,9 @@ html {
   &:focus {
     top: 0;
   }
+}
+
+// --- Utility classes ---
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
