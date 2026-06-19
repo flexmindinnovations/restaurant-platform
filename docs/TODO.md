@@ -232,32 +232,33 @@
 
 ---
 
-## Phase 5 — AI features & polish (Sprint 5) 🔲
+## Phase 5 — AI features & polish (Sprint 5) 🟡
 
-### Reviews module (backend) 🔲
-- [ ] Domain: Review entity (order_id, customer_id, restaurant_id, rating 1-5, comment, sentiment, is_flagged, reply, images)
-- [ ] Domain: RestaurantReviewSummary (avg rating, distribution, themes)
-- [ ] Business rules: one review per order, only after delivery, editable within 48h
-- [ ] Application: SubmitReview, ReplyToReview, GetReviews, GetReviewSummary
-- [ ] Infrastructure: SQLAlchemy models (reviews.*), repository
-- [ ] API: POST /orders/{id}/reviews, GET /restaurants/{id}/reviews, POST /reviews/{id}/reply, GET /restaurants/{id}/reviews/summary
-- [ ] Migration + unit tests
+### Reviews module (backend) ✅ `c143f95` · 27 tests
+- [x] Domain: Review entity (order_id, customer_id, restaurant_id, rating 1-5, comment, sentiment, is_flagged, reply, images)
+- [x] Domain: ReviewRating VO (1-5 validation), Sentiment enum, ReviewSummary (avg, distribution)
+- [x] Business rules: one review per order, editable within 48h, max 5 images, comment ≤2000 chars
+- [x] Application: SubmitReview, UpdateReview, ReplyToReview, FlagReview commands + GetReview, ListByRestaurant, GetSummary queries
+- [x] Infrastructure: SQLAlchemy model (reviews.*), repository with summary aggregation
+- [x] API: 7 routes under /api/v1/reviews with RBAC (submit, get, update, reply, flag, list, summary)
+- [x] Migration 0008 + unit tests (18 domain + 9 handler)
 
-### Promotions module (backend) 🔲
-- [ ] Domain: Promotion entity (code, type: PERCENTAGE/FIXED_AMOUNT/FREE_DELIVERY/BUY_X_GET_Y, value, min_order, max_discount, validity, usage limits)
-- [ ] Domain: CouponUsage tracking
-- [ ] Business rules: validate expiry, usage limits, min order amount, one coupon per order
-- [ ] Application: CreatePromotion, ApplyPromotion, ValidatePromotion, ListPromotions
-- [ ] Infrastructure: SQLAlchemy models (promotions.*), repository
-- [ ] API: POST /promotions, GET /promotions/available, POST /checkout/apply-coupon, DELETE /checkout/remove-coupon
-- [ ] Integrate coupon validation into PlaceOrder flow
-- [ ] Migration + unit tests
+### Promotions module (backend) ✅ `c143f95` · 28 tests
+- [x] Domain: Promotion entity (PERCENTAGE/FIXED_AMOUNT/FREE_DELIVERY/BUY_X_GET_Y), CouponUsage tracking
+- [x] Business rules: validate expiry, usage limits (total + per-customer), min order amount, percentage ≤100%
+- [x] Application: CreatePromotion, ApplyPromotion (discount calc), DeactivatePromotion, ValidatePromotion, ListPromotions
+- [x] Infrastructure: SQLAlchemy models (promotions.promotions + promotions.coupon_usages), repository
+- [x] API: 5 routes under /api/v1/promotions with RBAC (create, list, validate, apply, deactivate)
+- [x] Migration 0009 + unit tests (22 domain + 6 handler)
 
-### Analytics module (backend) 🔲
-- [ ] Read-only module consuming events from all other modules
-- [ ] Materialized views: daily order counts + revenue per restaurant, popular items, avg delivery time, customer retention, peak hours
-- [ ] API: GET /analytics/restaurant/{id}/dashboard, GET /admin/analytics/platform, GET /admin/analytics/revenue
-- [ ] Migration + unit tests
+### Analytics module (backend) ✅ · 17 tests
+- [x] Domain: analytics snapshot dataclasses (DailyOrderStats, PopularItem, PeakHour, DeliveryStats, CustomerStats, RestaurantDashboard, PlatformDashboard, RevenueBreakdown, TopRestaurant)
+- [x] Domain: TimeRange and MetricType value object enums
+- [x] Application: AnalyticsRepository port (cross-schema read-only queries), 3 query handlers (RestaurantDashboard, PlatformDashboard, RevenueBreakdown)
+- [x] Infrastructure: SqlAlchemyAnalyticsRepository with cross-schema SQL queries (orders.*, deliveries.*, restaurants.*, reviews.*)
+- [x] API: 3 routes under /api/v1/admin/analytics with RBAC (restaurant dashboard, platform overview, revenue breakdown)
+- [x] Migration 0010: analytics schema with 3 materialized views (mv_daily_order_stats, mv_popular_items, mv_peak_hours) + unique indexes
+- [x] Unit tests: 11 domain dataclass + 6 query handler tests
 
 ### AI services module (`ai/`) 🔲
 - [ ] **Semantic menu search**: pgvector embeddings (OpenAI text-embedding-3-small), vector similarity search, fallback to pg_trgm
@@ -367,6 +368,13 @@
 
 | Hash | Message | Date | Phase |
 |------|---------|------|-------|
+| `c143f95` | feat(backend): implement Reviews and Promotions modules — Phase 5 | 2026-06-18 | Phase 5 |
+| `ca6b729` | docs: update TODO with Phase 4 completion status | 2026-06-18 | Phase 4 |
+| `23633d7` | feat(mobile): implement Flutter apps with auth, navigation, and core packages | 2026-06-18 | Phase 4 |
+| `a34a403` | feat(frontend): UI overhaul — elevated minimal design system and feature pages | 2026-06-18 | Phase 4 |
+| `8455531` | feat(backend): add notification event handlers and async task dispatchers | 2026-06-18 | Phase 3 |
+| `01d60cf` | docs: update Phase 2 Menus section with completed backlog items | 2026-06-18 | Phase 2 |
+| `d1e70f4` | feat(backend): clear backlog — notifications tests, SMS/push dispatchers, menu search, modifiers | 2026-06-18 | Phase 2–3 |
 | `42f02b8` | feat(backend): implement Orders, Payments, Deliveries, Notifications | 2026-06-18 | Phase 2–3 |
 | `aa10742` | feat(menus): implement Menus module — Sprint 2 | 2026-06-18 | Phase 2 |
 | `520eeff` | fix(backend): add missing domain events and migration columns | 2026-06-18 | Phase 1 |
@@ -390,12 +398,12 @@
 | 2 — Ordering | ✅ 2 modules, 72 tests | ✅ Done | — | ✅ Complete |
 | 3 — Payments/Delivery | ✅ 4 modules, 8 tests | — | — | ✅ Complete |
 | 4 — Mobile/Dashboard | — | ✅ Done | ✅ Done | ✅ Complete |
-| 5 — AI/Polish | 🔲 3 modules + AI | 🔲 3 pages | 🔲 5 features | 🔲 Not started |
+| 5 — AI/Polish | ✅ 3 modules, 72 tests | 🔲 3 pages | 🔲 5 features | 🟡 In progress |
 | 6 — MVP Release | — | — | — | 🔲 Not started |
 
-**Total unit tests**: 168 (all passing)
-**Backend modules complete**: 8/11 (Identity, Users, Restaurants, Menus, Orders, Payments, Deliveries, Notifications)
-**Backend modules remaining**: 3 (Reviews, Promotions, Analytics) + AI Services
+**Total unit tests**: 240 (all passing)
+**Backend modules complete**: 11/11 (Identity, Users, Restaurants, Menus, Orders, Payments, Deliveries, Notifications, Reviews, Promotions, Analytics)
+**Backend modules remaining**: AI Services only
 **Backlog remaining**: None
 **Frontend pages done**: 11/11 (All dashboard views & orders/delivery overrides complete)
 **Mobile features done**: 3/3 apps (customer, restaurant, delivery completed)

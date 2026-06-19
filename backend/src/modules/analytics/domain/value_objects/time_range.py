@@ -1,0 +1,9 @@
+from enum import StrEnum
+
+
+class TimeRange(StrEnum):
+    TODAY = "TODAY"
+    LAST_7_DAYS = "LAST_7_DAYS"
+    LAST_30_DAYS = "LAST_30_DAYS"
+    LAST_90_DAYS = "LAST_90_DAYS"
+    CUSTOM = "CUSTOM"
