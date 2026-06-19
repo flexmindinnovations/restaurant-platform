@@ -31,18 +31,20 @@ class SqlAlchemyModifierGroupRepository(ModifierGroupRepository):
             updated_at=group.updated_at,
         )
         for m in group.modifiers:
-            model.modifiers.append(ModifierModel(
-                id=m.id,
-                modifier_group_id=group.id,
-                name=m.name,
-                price_adjustment_amount=m.price_adjustment.amount,
-                price_adjustment_currency=m.price_adjustment.currency,
-                is_default=m.is_default,
-                is_available=m.is_available,
-                display_order=m.display_order,
-                created_at=m.created_at,
-                updated_at=m.updated_at,
-            ))
+            model.modifiers.append(
+                ModifierModel(
+                    id=m.id,
+                    modifier_group_id=group.id,
+                    name=m.name,
+                    price_adjustment_amount=m.price_adjustment.amount,
+                    price_adjustment_currency=m.price_adjustment.currency,
+                    is_default=m.is_default,
+                    is_available=m.is_available,
+                    display_order=m.display_order,
+                    created_at=m.created_at,
+                    updated_at=m.updated_at,
+                )
+            )
         self._session.add(model)
 
     async def get_by_id(self, group_id: uuid.UUID) -> ModifierGroup | None:
@@ -96,23 +98,23 @@ class SqlAlchemyModifierGroupRepository(ModifierGroupRepository):
                         mm.updated_at = dm.updated_at
                         break
             else:
-                model.modifiers.append(ModifierModel(
-                    id=dm.id,
-                    modifier_group_id=group.id,
-                    name=dm.name,
-                    price_adjustment_amount=dm.price_adjustment.amount,
-                    price_adjustment_currency=dm.price_adjustment.currency,
-                    is_default=dm.is_default,
-                    is_available=dm.is_available,
-                    display_order=dm.display_order,
-                    created_at=dm.created_at,
-                    updated_at=dm.updated_at,
-                ))
+                model.modifiers.append(
+                    ModifierModel(
+                        id=dm.id,
+                        modifier_group_id=group.id,
+                        name=dm.name,
+                        price_adjustment_amount=dm.price_adjustment.amount,
+                        price_adjustment_currency=dm.price_adjustment.currency,
+                        is_default=dm.is_default,
+                        is_available=dm.is_available,
+                        display_order=dm.display_order,
+                        created_at=dm.created_at,
+                        updated_at=dm.updated_at,
+                    )
+                )
 
     async def delete(self, group_id: uuid.UUID) -> None:
-        result = await self._session.execute(
-            select(ModifierGroupModel).where(ModifierGroupModel.id == group_id)
-        )
+        result = await self._session.execute(select(ModifierGroupModel).where(ModifierGroupModel.id == group_id))
         model = result.scalar_one_or_none()
         if model:
             await self._session.delete(model)

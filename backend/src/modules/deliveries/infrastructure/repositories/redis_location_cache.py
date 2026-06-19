@@ -15,10 +15,7 @@ class RedisLocationCache(LocationCache):
     async def update_location(self, partner_id: uuid.UUID, location: GeoLocation) -> None:
         key = "delivery_partners:locations"
         # Redis GEOADD expects: key, (longitude, latitude, member)
-        await self._redis.geoadd(
-            key,
-            (float(location.longitude), float(location.latitude), str(partner_id))
-        )
+        await self._redis.geoadd(key, (float(location.longitude), float(location.latitude), str(partner_id)))
 
     async def get_location(self, partner_id: uuid.UUID) -> GeoLocation | None:
         key = "delivery_partners:locations"

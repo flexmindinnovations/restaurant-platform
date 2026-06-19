@@ -45,17 +45,20 @@ class SqlAlchemyCartRepository(CartRepository):
 
     def _deserialize(self, data_bytes: bytes) -> Cart:
         data = orjson.loads(data_bytes)
-        items = [CartItem(
-                    id=uuid.UUID(item_data["id"]),
-                    menu_item_id=uuid.UUID(item_data["menu_item_id"]),
-                    name=item_data["name"],
-                    unit_price=Money(
-                        amount=Decimal(item_data["unit_price_amount"]),
-                        currency=item_data["unit_price_currency"],
-                    ),
-                    quantity=item_data["quantity"],
-                    special_instructions=item_data["special_instructions"],
-                ) for item_data in data["items"]]
+        items = [
+            CartItem(
+                id=uuid.UUID(item_data["id"]),
+                menu_item_id=uuid.UUID(item_data["menu_item_id"]),
+                name=item_data["name"],
+                unit_price=Money(
+                    amount=Decimal(item_data["unit_price_amount"]),
+                    currency=item_data["unit_price_currency"],
+                ),
+                quantity=item_data["quantity"],
+                special_instructions=item_data["special_instructions"],
+            )
+            for item_data in data["items"]
+        ]
         restaurant_id = uuid.UUID(data["restaurant_id"]) if data["restaurant_id"] else None
         return Cart(
             id=uuid.UUID(data["id"]),

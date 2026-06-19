@@ -49,11 +49,7 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
             await self._session.delete(model)
 
     async def list_by_menu(self, menu_id: uuid.UUID) -> list[Category]:
-        query = (
-            select(CategoryModel)
-            .where(CategoryModel.menu_id == menu_id)
-            .order_by(CategoryModel.display_order)
-        )
+        query = select(CategoryModel).where(CategoryModel.menu_id == menu_id).order_by(CategoryModel.display_order)
         result = await self._session.execute(query)
         return [self._to_domain(m) for m in result.scalars().all()]
 

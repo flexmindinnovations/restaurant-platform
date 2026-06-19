@@ -141,9 +141,7 @@ class Order(AggregateRoot):
     def transition_to(self, new_status: OrderStatus) -> None:
         allowed = _VALID_TRANSITIONS.get(self.status, set())
         if new_status not in allowed:
-            raise ValidationException(
-                f"Cannot transition from {self.status} to {new_status}"
-            )
+            raise ValidationException(f"Cannot transition from {self.status} to {new_status}")
 
         now = datetime.now(UTC)
         self.status = new_status
@@ -187,14 +185,10 @@ class Order(AggregateRoot):
 
     def cancel(self, reason: str = "") -> None:
         if not self.status.is_cancellable:
-            raise ValidationException(
-                f"Cannot cancel order in {self.status} status"
-            )
+            raise ValidationException(f"Cannot cancel order in {self.status} status")
         now = datetime.now(UTC)
         self.status = OrderStatus.CANCELLED
         self.cancellation_reason = reason
         self.cancelled_at = now
         self.updated_at = now
-        self.register_event(
-            OrderCancelled(aggregate_id=self.id, reason=reason)
-        )
+        self.register_event(OrderCancelled(aggregate_id=self.id, reason=reason))

@@ -97,9 +97,7 @@ async def list_promotions(
     _current_user: dict[str, Any] = Depends(get_current_user),
     handler: ListPromotionsHandler = Depends(get_list_promotions_handler),
 ) -> ResponseEnvelope[PromotionListResponse]:
-    promos, total = await handler.handle(
-        ListPromotionsQuery(available_only=available_only, skip=skip, limit=limit)
-    )
+    promos, total = await handler.handle(ListPromotionsQuery(available_only=available_only, skip=skip, limit=limit))
     items = [_promo_to_response(p) for p in promos]
     return ResponseEnvelope(data=PromotionListResponse(items=items, total=total))
 

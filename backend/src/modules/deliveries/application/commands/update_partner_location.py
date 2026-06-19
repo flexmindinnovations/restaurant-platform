@@ -37,5 +37,5 @@ class UpdatePartnerLocationHandler:
                     "latitude": float(command.location.latitude),
                     "longitude": float(command.location.longitude),
                     "status": delivery.status,
-                }
+                },
             )

@@ -67,9 +67,7 @@ class Payment(AggregateRoot):
     def transition_to(self, new_status: PaymentStatus) -> None:
         allowed = _VALID_TRANSITIONS.get(self.status, set())
         if new_status not in allowed:
-            raise ValidationException(
-                f"Cannot transition payment from {self.status} to {new_status}"
-            )
+            raise ValidationException(f"Cannot transition payment from {self.status} to {new_status}")
         self.status = new_status
         self.updated_at = datetime.now(UTC)
 

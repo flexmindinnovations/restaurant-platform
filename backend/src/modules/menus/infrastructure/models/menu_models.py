@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import UserDefinedType
 
 from shared.infrastructure.database import Base
 
@@ -77,6 +78,9 @@ class MenuItemModel(Base):
     menu = relationship("MenuModel", back_populates="items")
     category = relationship("CategoryModel")
     modifier_groups = relationship("ModifierGroupModel", back_populates="menu_item", cascade="all, delete-orphan")
+    embedding = relationship(
+        "MenuItemEmbeddingModel", back_populates="menu_item", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class ModifierGroupModel(Base):
@@ -126,3 +130,27 @@ class ModifierModel(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False)
 
     modifier_group = relationship("ModifierGroupModel", back_populates="modifiers")
+
+
+class Vector(UserDefinedType):
+    def __init__(self, dim: int):
+        self.dim = dim
+
+    def get_col_spec(self, **_kw):
+        return f"vector({self.dim})"
+
+
+class MenuItemEmbeddingModel(Base):
+    __tablename__ = "menu_item_embeddings"
+    __table_args__ = {"schema": "menus"}
+
+    menu_item_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("menus.menu_items.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    embedding = Column(Vector(768), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    updated_at = Column(DateTime(timezone=True), nullable=False)
+
+    menu_item = relationship("MenuItemModel", back_populates="embedding")

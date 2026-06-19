@@ -160,9 +160,7 @@ async def test_send_notification_success(mock_notification_repo, mock_dispatcher
 @patch("workers.tasks.notification_tasks.get_session_factory")
 @patch("workers.tasks.notification_tasks.SqlAlchemyNotificationRepository")
 @patch("workers.tasks.notification_tasks.CompositeNotificationDispatcher")
-async def test_send_notification_task_success(
-    mock_dispatcher_class, mock_repo_class, mock_session_factory
-):
+async def test_send_notification_task_success(mock_dispatcher_class, mock_repo_class, mock_session_factory):
     # Setup database & session mocks
     mock_session = AsyncMock()
     mock_session.__aenter__.return_value = mock_session
@@ -311,7 +309,7 @@ async def test_handle_partner_assigned(mock_session_factory, mock_handler_class)
 
     # Note: handle_partner_assigned dispatches two notifications (one to customer, one to partner)
     assert mock_handler_instance.handle.call_count == 2
-    
+
     first_cmd = mock_handler_instance.handle.call_args_list[0][0][0]
     assert first_cmd.recipient_id == customer_id
     assert first_cmd.channel == NotificationChannel.EMAIL

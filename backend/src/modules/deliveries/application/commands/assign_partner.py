@@ -45,11 +45,7 @@ class AssignPartnerHandler:
             partner = None
 
             while radius <= command.max_radius_km:
-                partners = await self._partner_repo.find_nearest_available(
-                    location=origin,
-                    radius_km=radius,
-                    limit=5
-                )
+                partners = await self._partner_repo.find_nearest_available(location=origin, radius_km=radius, limit=5)
                 if partners:
                     partner = partners[0]
                     break

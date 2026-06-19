@@ -98,16 +98,12 @@ class SqlAlchemyOrderRepository(OrderRepository):
             model.cancelled_at = order.cancelled_at
             model.updated_at = order.updated_at
 
-    async def list_by_customer(
-        self, customer_id: uuid.UUID, skip: int = 0, limit: int = 10
-    ) -> tuple[list[Order], int]:
+    async def list_by_customer(self, customer_id: uuid.UUID, skip: int = 0, limit: int = 10) -> tuple[list[Order], int]:
         base_query = select(OrderModel).where(OrderModel.customer_id == customer_id)
         count_query = select(func.count()).select_from(base_query.subquery())
         total = await self._session.scalar(count_query) or 0
 
-        result = await self._session.execute(
-            base_query.order_by(OrderModel.placed_at.desc()).offset(skip).limit(limit)
-        )
+        result = await self._session.execute(base_query.order_by(OrderModel.placed_at.desc()).offset(skip).limit(limit))
         models = result.scalars().all()
         return [self._to_domain(m) for m in models], total
 
@@ -125,9 +121,7 @@ class SqlAlchemyOrderRepository(OrderRepository):
         count_query = select(func.count()).select_from(base_query.subquery())
         total = await self._session.scalar(count_query) or 0
 
-        result = await self._session.execute(
-            base_query.order_by(OrderModel.placed_at.desc()).offset(skip).limit(limit)
-        )
+        result = await self._session.execute(base_query.order_by(OrderModel.placed_at.desc()).offset(skip).limit(limit))
         models = result.scalars().all()
         return [self._to_domain(m) for m in models], total
 

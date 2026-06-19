@@ -46,9 +46,9 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
             account_id=partner.account_id,
             name=partner.name,
             phone=partner.phone,
-            vehicle_type=partner.vehicle_type.value if hasattr(partner.vehicle_type, "value") else str(
-                partner.vehicle_type
-            ),
+            vehicle_type=partner.vehicle_type.value
+            if hasattr(partner.vehicle_type, "value")
+            else str(partner.vehicle_type),
             is_online=partner.is_online,
             is_available=partner.is_available,
             rating_avg=float(partner.rating_avg) if partner.rating_avg is not None else 5.0,
@@ -58,16 +58,12 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
         )
         if partner.current_location:
             loc = partner.current_location
-            model.current_location = text(
-                f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-            )
+            model.current_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
 
         self._session.add(model)
 
     async def update(self, partner: DeliveryPartner) -> None:
-        result = await self._session.execute(
-            select(DeliveryPartnerModel).where(DeliveryPartnerModel.id == partner.id)
-        )
+        result = await self._session.execute(select(DeliveryPartnerModel).where(DeliveryPartnerModel.id == partner.id))
         model = result.scalar_one_or_none()
         if model:
             model.name = partner.name
@@ -80,9 +76,7 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
 
             if partner.current_location:
                 loc = partner.current_location
-                model.current_location = text(
-                    f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-                )
+                model.current_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
             else:
                 model.current_location = None
 
@@ -123,19 +117,18 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
                 DeliveryPartnerModel,
                 text("ST_X(current_location::geometry)"),
                 text("ST_Y(current_location::geometry)"),
-            ).where(
+            )
+            .where(
                 DeliveryPartnerModel.is_online.is_(True),
                 DeliveryPartnerModel.is_available.is_(True),
                 text(
                     f"ST_DWithin(current_location, "
                     f"ST_SetSRID(ST_MakePoint({lon}, {lat}), 4326)::geography, "
                     f"{radius_meters})"
-                )
-            ).order_by(
-                text(
-                    f"ST_Distance(current_location, ST_SetSRID(ST_MakePoint({lon}, {lat}), 4326)::geography)"
-                )
-            ).limit(limit)
+                ),
+            )
+            .order_by(text(f"ST_Distance(current_location, ST_SetSRID(ST_MakePoint({lon}, {lat}), 4326)::geography)"))
+            .limit(limit)
         )
         rows = result.all()
         return [self._row_to_entity(r) for r in rows]

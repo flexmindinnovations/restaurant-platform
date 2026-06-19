@@ -43,9 +43,7 @@ class SqlAlchemyNotificationRepository(NotificationRepository):
         self._session.add(model)
 
     async def update(self, notification: Notification) -> None:
-        result = await self._session.execute(
-            select(NotificationModel).where(NotificationModel.id == notification.id)
-        )
+        result = await self._session.execute(select(NotificationModel).where(NotificationModel.id == notification.id))
         model = result.scalar_one_or_none()
         if model:
             status = notification.status
@@ -55,8 +53,6 @@ class SqlAlchemyNotificationRepository(NotificationRepository):
             model.updated_at = notification.updated_at
 
     async def get_by_id(self, notification_id: uuid.UUID) -> Notification | None:
-        result = await self._session.execute(
-            select(NotificationModel).where(NotificationModel.id == notification_id)
-        )
+        result = await self._session.execute(select(NotificationModel).where(NotificationModel.id == notification_id))
         model = result.scalar_one_or_none()
         return self._to_entity(model) if model else None

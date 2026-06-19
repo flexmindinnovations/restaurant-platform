@@ -74,6 +74,7 @@ partners_router = APIRouter()
 
 # --- Partner Operations ---
 
+
 @partners_router.post("/register", response_model=ResponseEnvelope[uuid.UUID], status_code=status.HTTP_201_CREATED)
 async def register_partner(
     request: RegisterPartnerRequest,
@@ -158,6 +159,7 @@ async def list_partner_deliveries(
 
 # --- Delivery Operations ---
 
+
 @router.get("/{delivery_id}", response_model=ResponseEnvelope[DeliveryResponse])
 async def get_delivery(
     delivery_id: uuid.UUID,
@@ -187,6 +189,7 @@ async def accept_delivery(
 ) -> ResponseEnvelope[dict]:
     # Lookup partner by current user account id
     from modules.deliveries.infrastructure.repositories.sqlalchemy_partner_repository import SqlAlchemyPartnerRepository
+
     partner_repo = SqlAlchemyPartnerRepository(session)
     account_id = uuid.UUID(_current_user["sub"])
     partner = await partner_repo.get_by_account_id(account_id)
@@ -207,6 +210,7 @@ async def update_delivery_status(
 ) -> ResponseEnvelope[dict]:
     # Lookup partner by current user account id
     from modules.deliveries.infrastructure.repositories.sqlalchemy_partner_repository import SqlAlchemyPartnerRepository
+
     partner_repo = SqlAlchemyPartnerRepository(session)
     account_id = uuid.UUID(_current_user["sub"])
     partner = await partner_repo.get_by_account_id(account_id)

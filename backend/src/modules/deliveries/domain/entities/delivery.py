@@ -19,7 +19,9 @@ _VALID_TRANSITIONS: dict[DeliveryStatus, set[DeliveryStatus]] = {
     DeliveryStatus.PENDING_ASSIGNMENT: {DeliveryStatus.ASSIGNED, DeliveryStatus.NO_PARTNER_AVAILABLE},
     DeliveryStatus.ASSIGNED: {DeliveryStatus.PARTNER_EN_ROUTE_TO_PICKUP, DeliveryStatus.REASSIGNED},
     DeliveryStatus.REASSIGNED: {
-        DeliveryStatus.ASSIGNED, DeliveryStatus.NO_PARTNER_AVAILABLE, DeliveryStatus.PENDING_ASSIGNMENT,
+        DeliveryStatus.ASSIGNED,
+        DeliveryStatus.NO_PARTNER_AVAILABLE,
+        DeliveryStatus.PENDING_ASSIGNMENT,
     },
     DeliveryStatus.PARTNER_EN_ROUTE_TO_PICKUP: {DeliveryStatus.AT_PICKUP, DeliveryStatus.REASSIGNED},
     DeliveryStatus.AT_PICKUP: {DeliveryStatus.EN_ROUTE_TO_DELIVERY, DeliveryStatus.REASSIGNED},
@@ -85,9 +87,7 @@ class Delivery(AggregateRoot):
     def transition_to(self, new_status: DeliveryStatus) -> None:
         allowed = _VALID_TRANSITIONS.get(self.status, set())
         if new_status not in allowed:
-            raise ValidationException(
-                f"Cannot transition delivery from {self.status} to {new_status}"
-            )
+            raise ValidationException(f"Cannot transition delivery from {self.status} to {new_status}")
         self.status = new_status
         self.updated_at = datetime.now(UTC)
 

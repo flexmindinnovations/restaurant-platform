@@ -25,9 +25,6 @@ class PartnerRepository(ABC):
 
     @abstractmethod
     async def find_nearest_available(
-        self,
-        location: GeoLocation,
-        radius_km: Decimal,
-        limit: int = 5
+        self, location: GeoLocation, radius_km: Decimal, limit: int = 5
     ) -> list[DeliveryPartner]:
         pass

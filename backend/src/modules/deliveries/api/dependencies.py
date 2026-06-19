@@ -48,6 +48,7 @@ def _uow(session: AsyncSession = Depends(get_db_session)) -> AbstractUnitOfWork:
 
 # --- Command Handlers ---
 
+
 def get_create_delivery_handler(
     delivery_repo: DeliveryRepository = Depends(_delivery_repo),
     uow: AbstractUnitOfWork = Depends(_uow),
@@ -106,6 +107,7 @@ def get_register_partner_handler(
 
 
 # --- Query Handlers ---
+
 
 def get_delivery_query_handler(
     delivery_repo: DeliveryRepository = Depends(_delivery_repo),

@@ -1,8 +1,10 @@
+import pathlib
 import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, status
 
+from app.dependencies import get_db_session
 from modules.menus.api.dependencies import (
     get_add_category_handler,
     get_add_modifier_handler,
@@ -105,6 +107,109 @@ async def search_menu_items(
     result = await handler.handle(query)
     items = [MenuItemResponse.model_validate(i) for i in result.items]
     return ResponseEnvelope(data=MenuItemListResponse(items=items, total=result.total))
+
+
+@router.get("/search/semantic", response_model=ResponseEnvelope[MenuItemListResponse])
+async def semantic_search_menu_items(
+    restaurant_id: uuid.UUID = Query(...),
+    q: str = Query(..., min_length=1, max_length=200),
+    available_only: bool = Query(True),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    session: Any = Depends(get_db_session),
+    search_handler: SearchMenuItemsHandler = Depends(get_search_items_handler),
+) -> ResponseEnvelope[MenuItemListResponse]:
+    import sys
+
+    import structlog
+
+    ai_path = str((pathlib.Path(__file__).parent / "../../../../../ai/src").resolve())
+    if ai_path not in sys.path:
+        sys.path.append(ai_path)
+
+    from gateway.client import GeminiClient
+
+    try:
+        client = GeminiClient()
+        query_vector = await client.embed_content(q)
+    except Exception as e:
+        structlog.get_logger().warning("Failed to generate embedding for query, falling back to pg_trgm", error=str(e))
+        return await search_menu_items(
+            restaurant_id=restaurant_id,
+            q=q,
+            available_only=available_only,
+            skip=skip,
+            limit=limit,
+            handler=search_handler,
+        )
+
+    from sqlalchemy import func, select
+
+    from modules.menus.infrastructure.models.menu_models import MenuItemEmbeddingModel, MenuItemModel
+
+    stmt = (
+        select(MenuItemModel)
+        .join(MenuItemEmbeddingModel, MenuItemModel.id == MenuItemEmbeddingModel.menu_item_id)
+        .where(MenuItemModel.restaurant_id == restaurant_id)
+    )
+    if available_only:
+        stmt = stmt.where(MenuItemModel.is_available.is_(True))
+
+    distance_expr = MenuItemEmbeddingModel.embedding.op("<=>")(query_vector)
+    stmt = stmt.order_by(distance_expr).offset(skip).limit(limit)
+
+    try:
+        result = await session.execute(stmt)
+        items = result.scalars().all()
+    except Exception as db_err:
+        structlog.get_logger().warning(
+            "Semantic search database query failed, falling back to pg_trgm", error=str(db_err)
+        )
+        return await search_menu_items(
+            restaurant_id=restaurant_id,
+            q=q,
+            available_only=available_only,
+            skip=skip,
+            limit=limit,
+            handler=search_handler,
+        )
+
+    if not items:
+        return await search_menu_items(
+            restaurant_id=restaurant_id,
+            q=q,
+            available_only=available_only,
+            skip=skip,
+            limit=limit,
+            handler=search_handler,
+        )
+
+    count_stmt = (
+        select(func.count(MenuItemModel.id))
+        .join(MenuItemEmbeddingModel, MenuItemModel.id == MenuItemEmbeddingModel.menu_item_id)
+        .where(MenuItemModel.restaurant_id == restaurant_id)
+    )
+    if available_only:
+        count_stmt = count_stmt.where(MenuItemModel.is_available.is_(True))
+
+    try:
+        count_result = await session.execute(count_stmt)
+        total = count_result.scalar_one()
+    except Exception as db_err:
+        structlog.get_logger().warning(
+            "Semantic search database count query failed, falling back to pg_trgm", error=str(db_err)
+        )
+        return await search_menu_items(
+            restaurant_id=restaurant_id,
+            q=q,
+            available_only=available_only,
+            skip=skip,
+            limit=limit,
+            handler=search_handler,
+        )
+
+    dtos = [MenuItemResponse.model_validate(item) for item in items]
+    return ResponseEnvelope(data=MenuItemListResponse(items=dtos, total=total))
 
 
 # ---------------------------------------------------------------------------

@@ -1,19 +1,22 @@
 import asyncio
 import uuid
-from celery import shared_task
+
 import structlog
-from modules.notifications.infrastructure.repositories.sqlalchemy_notification_repository import (
-    SqlAlchemyNotificationRepository,
-)
+from celery import shared_task
+
 from modules.notifications.infrastructure.adapters.composite_notification_dispatcher import (
     CompositeNotificationDispatcher,
 )
 from modules.notifications.infrastructure.adapters.push_notification_dispatcher import PushNotificationDispatcher
 from modules.notifications.infrastructure.adapters.sms_notification_dispatcher import SmsNotificationDispatcher
 from modules.notifications.infrastructure.adapters.smtp_notification_dispatcher import SmtpNotificationDispatcher
+from modules.notifications.infrastructure.repositories.sqlalchemy_notification_repository import (
+    SqlAlchemyNotificationRepository,
+)
 from shared.infrastructure.database import get_session_factory
 
 logger = structlog.get_logger()
+
 
 async def send_notification_async(notification_id: str) -> None:
     session_factory = get_session_factory()
@@ -29,14 +32,16 @@ async def send_notification_async(notification_id: str) -> None:
             sms=SmsNotificationDispatcher(),
             push=PushNotificationDispatcher(),
         )
-        
+
         try:
             await dispatcher.dispatch(notification)
             notification.mark_sent()
         except Exception as e:
-            logger.error("Failed to dispatch notification in background", notification_id=notification_id, error=str(e))
+            logger.exception(
+                "Failed to dispatch notification in background", notification_id=notification_id, error=str(e)
+            )
             notification.mark_failed(str(e))
-        
+
         await repo.update(notification)
         await session.commit()
 

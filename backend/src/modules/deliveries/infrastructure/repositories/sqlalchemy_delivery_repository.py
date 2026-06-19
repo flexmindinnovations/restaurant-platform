@@ -71,21 +71,15 @@ class SqlAlchemyDeliveryRepository(DeliveryRepository):
         )
         if delivery.pickup_location:
             loc = delivery.pickup_location
-            model.pickup_location = text(
-                f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-            )
+            model.pickup_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
         if delivery.current_location:
             loc = delivery.current_location
-            model.current_location = text(
-                f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-            )
+            model.current_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
 
         self._session.add(model)
 
     async def update(self, delivery: Delivery) -> None:
-        result = await self._session.execute(
-            select(DeliveryModel).where(DeliveryModel.id == delivery.id)
-        )
+        result = await self._session.execute(select(DeliveryModel).where(DeliveryModel.id == delivery.id))
         model = result.scalar_one_or_none()
         if model:
             model.partner_id = delivery.partner_id
@@ -99,17 +93,13 @@ class SqlAlchemyDeliveryRepository(DeliveryRepository):
 
             if delivery.pickup_location:
                 loc = delivery.pickup_location
-                model.pickup_location = text(
-                    f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-                )
+                model.pickup_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
             else:
                 model.pickup_location = None
 
             if delivery.current_location:
                 loc = delivery.current_location
-                model.current_location = text(
-                    f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')"
-                )
+                model.current_location = text(f"ST_GeogFromText('SRID=4326;POINT({loc.longitude} {loc.latitude})')")
             else:
                 model.current_location = None
 
@@ -150,7 +140,7 @@ class SqlAlchemyDeliveryRepository(DeliveryRepository):
                 text("ST_Y(pickup_location::geometry)"),
             ).where(
                 DeliveryModel.partner_id == partner_id,
-                DeliveryModel.status.notin_(["DELIVERED", "NO_PARTNER_AVAILABLE"])
+                DeliveryModel.status.notin_(["DELIVERED", "NO_PARTNER_AVAILABLE"]),
             )
         )
         row = result.first()

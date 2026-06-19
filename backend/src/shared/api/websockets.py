@@ -50,7 +50,10 @@ async def websocket_tracking(
             if message["type"] != "message":
                 continue
             last_sent_time = await _process_message(
-                message, websocket, last_sent_time, throttle_interval,
+                message,
+                websocket,
+                last_sent_time,
+                throttle_interval,
             )
     except WebSocketDisconnect:
         logger.info("WebSocket tracking client disconnected", order_id=str(order_id))

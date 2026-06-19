@@ -47,6 +47,7 @@ class SendNotificationHandler:
 
         # Delegate sending asynchronously to Celery
         from workers.tasks.notification_tasks import send_notification_task
+
         send_notification_task.delay(str(notification.id))
 
         return notification.id

@@ -23,9 +23,7 @@ class OrderRepository(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def list_by_customer(
-        self, customer_id: uuid.UUID, skip: int = 0, limit: int = 10
-    ) -> tuple[list[Order], int]:
+    async def list_by_customer(self, customer_id: uuid.UUID, skip: int = 0, limit: int = 10) -> tuple[list[Order], int]:
         pass
 
     @abc.abstractmethod

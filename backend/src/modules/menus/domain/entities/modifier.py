@@ -147,10 +147,6 @@ class ModifierGroup(AggregateRoot):
 
         count = len(selected_modifier_ids)
         if self.is_required and count < self.min_selections:
-            raise ValidationException(
-                f"Group '{self.name}' requires at least {self.min_selections} selection(s)"
-            )
+            raise ValidationException(f"Group '{self.name}' requires at least {self.min_selections} selection(s)")
         if count > self.max_selections:
-            raise ValidationException(
-                f"Group '{self.name}' allows at most {self.max_selections} selection(s)"
-            )
+            raise ValidationException(f"Group '{self.name}' allows at most {self.max_selections} selection(s)")

@@ -23,9 +23,7 @@ class ListCustomerOrdersHandler:
         self._order_repo = order_repo
 
     async def handle(self, query: ListCustomerOrdersQuery) -> CustomerOrdersListDTO:
-        orders, total = await self._order_repo.list_by_customer(
-            query.customer_id, skip=query.skip, limit=query.limit
-        )
+        orders, total = await self._order_repo.list_by_customer(query.customer_id, skip=query.skip, limit=query.limit)
 
         dtos = []
         for order in orders:

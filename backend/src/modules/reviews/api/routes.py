@@ -119,9 +119,7 @@ async def update_review(
 async def reply_to_review(
     review_id: uuid.UUID,
     request: ReplyToReviewRequest,
-    current_user: dict[str, Any] = Depends(
-        require_roles("RESTAURANT_OWNER", "RESTAURANT_STAFF", "SUPER_ADMIN")
-    ),
+    current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "RESTAURANT_STAFF", "SUPER_ADMIN")),
     handler: ReplyToReviewHandler = Depends(get_reply_to_review_handler),
     query_handler: GetReviewHandler = Depends(get_review_query_handler),
     session: AsyncSession = Depends(get_db_session),

@@ -33,7 +33,12 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
 
     owner_reg_resp = await client.post(
         "/api/v1/auth/register",
-        json={"email": owner_email, "password": password, "phone_number": "+12345678901", "roles": ["RESTAURANT_OWNER"]},
+        json={
+            "email": owner_email,
+            "password": password,
+            "phone_number": "+12345678901",
+            "roles": ["RESTAURANT_OWNER"],
+        },
     )
     assert owner_reg_resp.status_code == 201
     owner_id = uuid.UUID(owner_reg_resp.json()["data"]["id"])
@@ -123,7 +128,7 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
         "roles": ["RESTAURANT_OWNER"],
         "restaurant_id": str(restaurant_id),
         "type": "access",
-        "exp": 9999999999
+        "exp": 9999999999,
     }
     owner_token = jwt.encode(owner_payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
     owner_headers = {"Authorization": f"Bearer {owner_token}"}
@@ -144,8 +149,8 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
             "name": "Fettuccine Alfredo",
             "description": "Rich creamy white sauce pasta",
             "price_amount": "16.50",
-            "price_currency": "USD"
-        }
+            "price_currency": "USD",
+        },
     )
     assert item_resp.status_code == 201
     item_id = uuid.UUID(item_resp.json()["data"]["id"])
@@ -155,7 +160,7 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
     add_cart_resp = await client.post(
         "/api/v1/checkout/cart/items",
         headers=cust_headers,
-        json={"menu_item_id": str(item_id), "quantity": 1, "special_instructions": "Extra cheese"}
+        json={"menu_item_id": str(item_id), "quantity": 1, "special_instructions": "Extra cheese"},
     )
     assert add_cart_resp.status_code == 201
     cart_data = add_cart_resp.json()["data"]
@@ -171,9 +176,7 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
 
     # Update item quantity
     patch_cart_resp = await client.patch(
-        f"/api/v1/checkout/cart/items/{item_id}",
-        headers=cust_headers,
-        json={"quantity": 2}
+        f"/api/v1/checkout/cart/items/{item_id}", headers=cust_headers, json={"quantity": 2}
     )
     assert patch_cart_resp.status_code == 200
     assert patch_cart_resp.json()["data"]["items"][0]["quantity"] == 2
@@ -189,8 +192,8 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
             "delivery_address_postal_code": "98101",
             "delivery_address_country": "US",
             "tip_amount": "3.50",
-            "delivery_notes": "Call upon arrival"
-        }
+            "delivery_notes": "Call upon arrival",
+        },
     )
     assert place_order_resp.status_code == 201
     order_id = uuid.UUID(place_order_resp.json()["data"]["order_id"])
@@ -225,27 +228,21 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
 
     # 11. Owner updates status to PREPARING
     status_resp = await client.post(
-        f"/api/v1/orders/{order_id}/status",
-        headers=owner_headers,
-        json={"status": "PREPARING"}
+        f"/api/v1/orders/{order_id}/status", headers=owner_headers, json={"status": "PREPARING"}
     )
     assert status_resp.status_code == 200
 
     # Customer tries to cancel PREPARING order - should fail
     cancel_fail_resp = await client.post(
-        f"/api/v1/orders/{order_id}/cancel",
-        headers=cust_headers,
-        json={"reason": "Changed my mind"}
+        f"/api/v1/orders/{order_id}/cancel", headers=cust_headers, json={"reason": "Changed my mind"}
     )
-    assert cancel_fail_resp.status_code == 400 or cancel_fail_resp.status_code == 422
+    assert cancel_fail_resp.status_code in {400, 422}
     # In standard domain validation, it raises ValidationException, which maps to 400 Bad Request
 
     # 12. Customer places a second order and cancels it while PENDING
     # Add to cart
     await client.post(
-        "/api/v1/checkout/cart/items",
-        headers=cust_headers,
-        json={"menu_item_id": str(item_id), "quantity": 1}
+        "/api/v1/checkout/cart/items", headers=cust_headers, json={"menu_item_id": str(item_id), "quantity": 1}
     )
     # Place order
     place_order_2_resp = await client.post(
@@ -258,15 +255,13 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
             "delivery_address_postal_code": "98101",
             "delivery_address_country": "US",
             "tip_amount": "1.00",
-        }
+        },
     )
     order_id_2 = uuid.UUID(place_order_2_resp.json()["data"]["order_id"])
 
     # Cancel order
     cancel_success_resp = await client.post(
-        f"/api/v1/orders/{order_id_2}/cancel",
-        headers=cust_headers,
-        json={"reason": "Decided to cook instead"}
+        f"/api/v1/orders/{order_id_2}/cancel", headers=cust_headers, json={"reason": "Decided to cook instead"}
     )
     assert cancel_success_resp.status_code == 200
 

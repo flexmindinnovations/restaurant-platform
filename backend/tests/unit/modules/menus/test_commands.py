@@ -112,9 +112,7 @@ class TestCreateMenuHandler:
         uow = _mock_uow()
 
         handler = CreateMenuHandler(repo, uow)
-        result = await handler.handle(
-            CreateMenuCommand(restaurant_id=uuid.uuid4(), name="Dinner")
-        )
+        result = await handler.handle(CreateMenuCommand(restaurant_id=uuid.uuid4(), name="Dinner"))
 
         assert isinstance(result, uuid.UUID)
         repo.add.assert_awaited_once()
@@ -197,9 +195,7 @@ class TestAddCategoryHandler:
         uow = _mock_uow()
 
         handler = AddCategoryHandler(menu_repo, category_repo, uow)
-        result = await handler.handle(
-            AddCategoryCommand(menu_id=menu.id, name="Desserts")
-        )
+        result = await handler.handle(AddCategoryCommand(menu_id=menu.id, name="Desserts"))
 
         assert isinstance(result, uuid.UUID)
         category_repo.add.assert_awaited_once()
@@ -225,9 +221,7 @@ class TestUpdateCategoryHandler:
         uow = _mock_uow()
 
         handler = UpdateCategoryHandler(repo, uow)
-        await handler.handle(
-            UpdateCategoryCommand(category_id=category.id, name="Mains")
-        )
+        await handler.handle(UpdateCategoryCommand(category_id=category.id, name="Mains"))
 
         assert category.name == "Mains"
         repo.update.assert_awaited_once()
@@ -302,9 +296,7 @@ class TestUpdateMenuItemHandler:
         uow = _mock_uow()
 
         handler = UpdateMenuItemHandler(repo, uow)
-        await handler.handle(
-            UpdateMenuItemCommand(item_id=item.id, name="Deluxe Burger")
-        )
+        await handler.handle(UpdateMenuItemCommand(item_id=item.id, name="Deluxe Burger"))
 
         assert item.name == "Deluxe Burger"
         repo.update.assert_awaited_once()
@@ -317,9 +309,7 @@ class TestUpdateMenuItemHandler:
 
         handler = UpdateMenuItemHandler(repo, uow)
         with pytest.raises(NotFoundException, match="Menu item not found"):
-            await handler.handle(
-                UpdateMenuItemCommand(item_id=uuid.uuid4(), name="X")
-            )
+            await handler.handle(UpdateMenuItemCommand(item_id=uuid.uuid4(), name="X"))
 
     @pytest.mark.asyncio
     async def test_update_item_price(self):
@@ -329,9 +319,7 @@ class TestUpdateMenuItemHandler:
         uow = _mock_uow()
 
         handler = UpdateMenuItemHandler(repo, uow)
-        await handler.handle(
-            UpdateMenuItemCommand(item_id=item.id, price_amount=Decimal("15.50"))
-        )
+        await handler.handle(UpdateMenuItemCommand(item_id=item.id, price_amount=Decimal("15.50")))
 
         assert item.price.amount == Decimal("15.50")
 
@@ -390,9 +378,7 @@ class TestListMenusHandler:
         repo.count_by_restaurant.return_value = 2
 
         handler = ListMenusHandler(repo)
-        result = await handler.handle(
-            ListMenusQuery(restaurant_id=uuid.uuid4())
-        )
+        result = await handler.handle(ListMenusQuery(restaurant_id=uuid.uuid4()))
 
         assert result.total == 2
         assert len(result.items) == 2
@@ -404,9 +390,7 @@ class TestListMenusHandler:
         repo.count_by_restaurant.return_value = 0
 
         handler = ListMenusHandler(repo)
-        result = await handler.handle(
-            ListMenusQuery(restaurant_id=uuid.uuid4())
-        )
+        result = await handler.handle(ListMenusQuery(restaurant_id=uuid.uuid4()))
 
         assert result.total == 0
         assert result.items == []
@@ -444,9 +428,7 @@ class TestListMenuItemsHandler:
         repo.count_by_menu.return_value = 2
 
         handler = ListMenuItemsHandler(repo)
-        result = await handler.handle(
-            ListMenuItemsQuery(menu_id=uuid.uuid4())
-        )
+        result = await handler.handle(ListMenuItemsQuery(menu_id=uuid.uuid4()))
 
         assert result.total == 2
         assert len(result.items) == 2
@@ -462,9 +444,7 @@ class TestSearchMenuItemsHandler:
         repo.search_count.return_value = 1
 
         handler = SearchMenuItemsHandler(repo)
-        result = await handler.handle(
-            SearchMenuItemsQuery(restaurant_id=restaurant_id, query="chicken")
-        )
+        result = await handler.handle(SearchMenuItemsQuery(restaurant_id=restaurant_id, query="chicken"))
 
         assert result.total == 1
         assert result.items[0].name == "Chicken Burger"
@@ -483,9 +463,7 @@ class TestSearchMenuItemsHandler:
         repo.search_count.return_value = 0
 
         handler = SearchMenuItemsHandler(repo)
-        result = await handler.handle(
-            SearchMenuItemsQuery(restaurant_id=uuid.uuid4(), query="nonexistent")
-        )
+        result = await handler.handle(SearchMenuItemsQuery(restaurant_id=uuid.uuid4(), query="nonexistent"))
 
         assert result.total == 0
         assert result.items == []
