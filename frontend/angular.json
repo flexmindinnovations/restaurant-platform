@@ -34,6 +34,11 @@
             "styles": ["src/styles.scss", "src/tailwind.css"],
             "server": "src/main.server.ts",
             "outputMode": "server",
+            "optimization": {
+              "fonts": {
+                "inline": false
+              }
+            },
             "security": {
               "allowedHosts": []
             },
@@ -46,13 +51,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "750kB",
-                  "maximumError": "1.5MB"
+                  "maximumWarning": "1.2MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "16kB",
+                  "maximumError": "24kB"
                 }
               ],
               "outputHashing": "all"

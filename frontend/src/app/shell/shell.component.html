@@ -1,0 +1,325 @@
+<div
+  class="shell"
+  [class.sidebar-collapsed]="sidebarCollapsed"
+  [class.mobile-sidebar-open]="mobileSidebarOpen"
+>
+  <!-- Mobile Sidebar Backdrop -->
+  @if (mobileSidebarOpen) {
+    <div
+      class="mobile-sidebar-backdrop"
+      (click)="mobileSidebarOpen = false"
+      (keydown.escape)="mobileSidebarOpen = false"
+      tabindex="-1"
+      role="presentation"
+    ></div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="sidebar" aria-label="Main Navigation Sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-mark">
+          @if (settingsStore.settings()?.logo_url) {
+            <img
+              [src]="settingsStore.settings()?.logo_url"
+              alt="Restaurant Logo"
+              class="custom-logo"
+            />
+          } @else {
+            <svg lucideUtensilsCrossed size="18" class="logo-icon"></svg>
+          }
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">{{ settingsStore.settings()?.brand_name || 'QuickBite' }}</span>
+          <span class="logo-label">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-section" aria-label="Primary Navigation">
+      @for (item of mainNavItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="nav-item"
+          [matTooltip]="item.label"
+          [matTooltipDisabled]="!sidebarCollapsed"
+          matTooltipPosition="right"
+          [matTooltipShowDelay]="300"
+        >
+          <svg [lucideIcon]="item.icon" class="nav-icon"></svg>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="nav-divider"></div>
+
+    <nav class="nav-section" aria-label="Secondary Navigation">
+      @for (item of secondaryNavItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="nav-item"
+          [matTooltip]="item.label"
+          [matTooltipDisabled]="!sidebarCollapsed"
+          matTooltipPosition="right"
+          [matTooltipShowDelay]="300"
+        >
+          <svg [lucideIcon]="item.icon" class="nav-icon"></svg>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button
+        class="sidebar-collapse-btn"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        [matTooltip]="sidebarCollapsed ? 'Expand' : 'Collapse'"
+        [matTooltipDisabled]="!sidebarCollapsed"
+        matTooltipPosition="right"
+      >
+        @if (sidebarCollapsed) {
+          <svg lucidePanelLeftOpen class="collapse-icon"></svg>
+        } @else {
+          <svg lucidePanelLeftClose class="collapse-icon"></svg>
+        }
+        <span class="collapse-label">Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main area -->
+  <div class="main-area">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          class="mobile-menu-btn"
+          (click)="mobileSidebarOpen = !mobileSidebarOpen"
+          aria-label="Toggle menu"
+          [attr.aria-expanded]="mobileSidebarOpen"
+        >
+          <svg lucideMenu class="menu-icon"></svg>
+        </button>
+        <div class="header-titles">
+          <span class="topbar-title">{{ headerService.title() }}</span>
+          @if (headerService.subtitle(); as sub) {
+            <span class="topbar-subtitle">{{ sub }}</span>
+          }
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button
+          mat-icon-button
+          class="topbar-btn"
+          aria-label="Notifications"
+          id="notifications-btn"
+          [matMenuTriggerFor]="notifMenu"
+        >
+          <svg lucideBell class="topbar-icon"></svg>
+          @if (unreadNotificationsCount > 0) {
+            <span class="notif-dot">{{ unreadNotificationsCount }}</span>
+          }
+        </button>
+
+        <button
+          class="user-chip"
+          type="button"
+          [matMenuTriggerFor]="userMenu"
+          id="user-menu-trigger"
+          aria-label="User profile menu"
+        >
+          <div class="user-avatar">
+            <svg lucideUser class="avatar-icon"></svg>
+          </div>
+          <div class="user-info">
+            <span class="user-email">{{ userEmail }}</span>
+            <span class="user-role">{{ userRole }}</span>
+          </div>
+          <svg lucideChevronDown class="chevron-icon"></svg>
+        </button>
+      </div>
+      @if (isNavigating || headerService.loading()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Page loading"></mat-progress-bar>
+      }
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<!-- User Menu -->
+<mat-menu #userMenu="matMenu" class="user-dropdown">
+  <div class="menu-header" aria-hidden="true">
+    <div class="menu-user-avatar">
+      <svg lucideUser class="menu-avatar-icon"></svg>
+    </div>
+    <div class="menu-user-info">
+      <span class="menu-user-name">{{ userEmail }}</span>
+      <span class="menu-user-role">{{ userRole }}</span>
+    </div>
+  </div>
+  <mat-divider />
+  <button mat-menu-item id="profile-menu-item">
+    <svg lucideUser class="menu-item-icon"></svg>
+    <span>My Profile</span>
+  </button>
+  <button mat-menu-item [routerLink]="'/settings'" id="settings-menu-item">
+    <svg lucideSettings class="menu-item-icon"></svg>
+    <span>Settings</span>
+  </button>
+  <mat-divider />
+  <div
+    class="menu-theme-section"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.stopPropagation()"
+    tabindex="-1"
+  >
+    <span class="theme-label">Appearance</span>
+    <div class="theme-btn-group" role="group" aria-label="Appearance Options">
+      <button
+        class="theme-btn"
+        [class.active]="themeService.theme$() === 'light'"
+        (click)="setTheme('light')"
+        aria-label="Light mode"
+        [attr.aria-pressed]="themeService.theme$() === 'light'"
+        matTooltip="Light"
+        matTooltipPosition="above"
+      >
+        <svg lucideSun class="theme-btn-icon"></svg>
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="themeService.theme$() === 'dark'"
+        (click)="setTheme('dark')"
+        aria-label="Dark mode"
+        [attr.aria-pressed]="themeService.theme$() === 'dark'"
+        matTooltip="Dark"
+        matTooltipPosition="above"
+      >
+        <svg lucideMoon class="theme-btn-icon"></svg>
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="themeService.theme$() === 'system'"
+        (click)="setTheme('system')"
+        aria-label="System theme"
+        [attr.aria-pressed]="themeService.theme$() === 'system'"
+        matTooltip="System"
+        matTooltipPosition="above"
+      >
+        <svg lucideMonitor class="theme-btn-icon"></svg>
+      </button>
+    </div>
+  </div>
+  <mat-divider />
+  <button mat-menu-item (click)="logout()" id="logout-menu-item" class="logout-item">
+    <svg lucideLogOut class="menu-item-icon"></svg>
+    <span>Sign Out</span>
+  </button>
+</mat-menu>
+
+<!-- Session Expired Dialog -->
+@if (showSessionExpired) {
+  <div class="session-overlay">
+    <div
+      class="session-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="session-dialog-title"
+    >
+      <div class="session-icon" aria-hidden="true">
+        <svg lucideShieldAlert class="session-lucide-icon"></svg>
+      </div>
+      <h2 id="session-dialog-title" class="session-title">Session Expired</h2>
+      <p class="session-message">
+        Your session has expired due to inactivity. Please log in again to continue.
+      </p>
+      <button
+        type="button"
+        matButton="filled"
+        color="primary"
+        (click)="goToLogin()"
+        id="session-login-btn"
+        class="session-btn"
+      >
+        <svg lucideLogIn class="session-btn-icon"></svg>
+        Log In Again
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Notifications Dropdown -->
+<mat-menu #notifMenu="matMenu" class="notif-dropdown">
+  <div
+    class="notif-header"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.stopPropagation()"
+    tabindex="-1"
+  >
+    <div class="notif-header-left">
+      <span class="notif-title">Notifications</span>
+      @if (unreadNotificationsCount > 0) {
+        <span class="notif-badge">{{ unreadNotificationsCount }}</span>
+      }
+    </div>
+    @if (unreadNotificationsCount > 0) {
+      <button class="mark-read-link" (click)="markAllAsRead($event)">Mark all as read</button>
+    }
+  </div>
+  <div class="notif-list-container">
+    @if (notifications.length === 0) {
+      <div
+        class="notif-empty"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+        tabindex="-1"
+      >
+        <svg lucideBell class="empty-icon"></svg>
+        <p>All caught up!</p>
+        <span class="empty-sub">No new notifications</span>
+      </div>
+    } @else {
+      @for (item of notifications; track item.id) {
+        <button
+          class="notif-item"
+          [class.notif-unread]="item.unread"
+          (click)="onNotificationClick(item)"
+          [attr.aria-label]="
+            item.title + ': ' + item.body + ' (' + item.time + ')' + (item.unread ? ', Unread' : '')
+          "
+        >
+          <div
+            class="notif-item-icon"
+            [style.background-color]="item.color + '15'"
+            [style.color]="item.color"
+          >
+            <svg [lucideIcon]="item.icon" class="notif-lucide-icon"></svg>
+          </div>
+          <div class="notif-item-content">
+            <span class="notif-item-title">{{ item.title }}</span>
+            <span class="notif-item-body">{{ item.body }}</span>
+            <span class="notif-item-time">{{ item.time }}</span>
+          </div>
+          @if (item.unread) {
+            <span class="notif-unread-dot" aria-hidden="true"></span>
+          }
+        </button>
+      }
+    }
+  </div>
+  @if (notifications.length > 0) {
+    <div class="notif-footer">
+      <button class="notif-view-all" routerLink="/orders">View all activity</button>
+    </div>
+  }
+</mat-menu>

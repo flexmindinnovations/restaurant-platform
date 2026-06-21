@@ -1,19 +1,21 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import {
+  LucideDynamicIcon,
+  LucideSun,
+  LucideMoon,
+  LucideMonitor,
+  provideLucideIcons,
+} from '@lucide/angular';
 import { ThemeService, type Theme } from '../services/theme.service';
 
-/**
- * Theme Toggle Component
- * Displays current theme and allows user to switch between light/dark/system
- * Uses Material menu for clean UI
- */
 @Component({
   selector: 'app-theme-toggle',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [CommonModule, MatButtonModule, MatMenuModule, LucideDynamicIcon],
+  providers: [provideLucideIcons(LucideSun, LucideMoon, LucideMonitor)],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
@@ -22,9 +24,7 @@ import { ThemeService, type Theme } from '../services/theme.service';
       [attr.aria-label]="'Switch theme'"
       class="theme-toggle"
     >
-      <mat-icon>
-        {{ currentThemeIcon() }}
-      </mat-icon>
+      <svg [lucideIcon]="currentThemeIcon()" class="toggle-icon"></svg>
     </button>
 
     <mat-menu #themeMenu="matMenu" class="theme-menu">
@@ -34,7 +34,7 @@ import { ThemeService, type Theme } from '../services/theme.service';
           (click)="setTheme(option.value)"
           [class.active]="themeService.theme$() === option.value"
         >
-          <mat-icon>{{ option.icon }}</mat-icon>
+          <svg [lucideIcon]="option.icon" class="menu-icon"></svg>
           <span>{{ option.label }}</span>
         </button>
       }
@@ -43,10 +43,16 @@ import { ThemeService, type Theme } from '../services/theme.service';
   styles: `
     .theme-toggle {
       transition: var(--duration-base) ease-out;
-      
+
       &:hover {
         background-color: var(--color-bg-secondary);
       }
+    }
+
+    .toggle-icon,
+    .menu-icon {
+      width: 20px;
+      height: 20px;
     }
 
     .theme-menu {
@@ -63,19 +69,19 @@ export class ThemeToggleComponent {
   themeService = inject(ThemeService);
 
   themeOptions = [
-    { value: 'light' as Theme, label: 'Light', icon: 'light_mode' },
-    { value: 'dark' as Theme, label: 'Dark', icon: 'dark_mode' },
-    { value: 'system' as Theme, label: 'System', icon: 'brightness_auto' },
+    { value: 'light' as Theme, label: 'Light', icon: 'sun' },
+    { value: 'dark' as Theme, label: 'Dark', icon: 'moon' },
+    { value: 'system' as Theme, label: 'System', icon: 'monitor' },
   ];
 
   currentThemeIcon() {
     const theme = this.themeService.theme$();
     const computed = this.themeService.getComputedTheme();
-    
+
     if (theme === 'system') {
-      return 'brightness_auto';
+      return 'monitor';
     }
-    return computed === 'dark' ? 'dark_mode' : 'light_mode';
+    return computed === 'dark' ? 'moon' : 'sun';
   }
 
   setTheme(theme: Theme): void {

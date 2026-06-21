@@ -34,7 +34,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                 COUNT(*) AS order_count,
                 COALESCE(SUM(o.total_amount), 0) AS revenue,
                 COALESCE(AVG(o.total_amount), 0) AS avg_order_value,
-                COALESCE(MAX(o.total_currency), 'USD') AS currency
+                COALESCE(MAX(o.total_currency), 'INR') AS currency
             FROM orders.orders o
             WHERE o.status NOT IN ('CANCELLED')
                 AND DATE(o.placed_at) BETWEEN :start_date AND :end_date
@@ -67,7 +67,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                     oi.name,
                     SUM(oi.quantity) AS order_count,
                     SUM(oi.price_amount * oi.quantity) AS total_revenue,
-                    COALESCE(MAX(oi.price_currency), 'USD') AS currency
+                    COALESCE(MAX(oi.price_currency), 'INR') AS currency
                 FROM orders.order_items oi
                 JOIN orders.orders o ON o.id = oi.order_id
                 WHERE o.restaurant_id = :restaurant_id
@@ -102,7 +102,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                     EXTRACT(HOUR FROM o.placed_at) AS hour,
                     COUNT(*) AS order_count,
                     COALESCE(AVG(o.total_amount), 0) AS avg_revenue,
-                    COALESCE(MAX(o.total_currency), 'USD') AS currency
+                    COALESCE(MAX(o.total_currency), 'INR') AS currency
                 FROM orders.orders o
                 WHERE o.restaurant_id = :restaurant_id
                     AND o.status NOT IN ('CANCELLED')
@@ -182,7 +182,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                 total AS (
                     SELECT COUNT(*) AS total_customers FROM period_customers
                 ),
-                returning AS (
+                returning_cust AS (
                     SELECT COUNT(*) AS returning_customers
                     FROM period_customers pc
                     WHERE EXISTS (SELECT 1 FROM prior_customers pr WHERE pr.customer_id = pc.customer_id)
@@ -194,7 +194,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                     CASE WHEN t.total_customers > 0
                         THEN r.returning_customers * 100.0 / t.total_customers
                         ELSE 0 END AS retention_rate
-                FROM total t, returning r
+                FROM total t, returning_cust r
             """),
             {"start_date": start_date, "end_date": end_date},
         )
@@ -217,7 +217,7 @@ class SqlAlchemyAnalyticsRepository(AnalyticsRepository):
                     COUNT(*) AS order_count,
                     COALESCE(SUM(o.total_amount), 0) AS revenue,
                     COALESCE(AVG(rv.rating), 0) AS avg_rating,
-                    COALESCE(MAX(o.total_currency), 'USD') AS currency
+                    COALESCE(MAX(o.total_currency), 'INR') AS currency
                 FROM orders.orders o
                 JOIN restaurants.restaurants r ON r.id = o.restaurant_id
                 LEFT JOIN reviews.reviews rv ON rv.restaurant_id = o.restaurant_id

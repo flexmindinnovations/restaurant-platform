@@ -29,15 +29,11 @@ export class OrdersService {
     if (params?.skip !== undefined) httpParams = httpParams.set('skip', params.skip);
     if (params?.limit !== undefined) httpParams = httpParams.set('limit', params.limit);
 
-    return this.http
-      .get<ListApiResponse>(BASE, { params: httpParams })
-      .pipe(map((r) => r.data));
+    return this.http.get<ListApiResponse>(BASE, { params: httpParams }).pipe(map((r) => r.data));
   }
 
   get(id: string): Observable<Order> {
-    return this.http
-      .get<ApiResponse<Order>>(`${BASE}/${id}`)
-      .pipe(map((r) => r.data));
+    return this.http.get<ApiResponse<Order>>(`${BASE}/${id}`).pipe(map((r) => r.data));
   }
 
   confirm(id: string): Observable<void> {

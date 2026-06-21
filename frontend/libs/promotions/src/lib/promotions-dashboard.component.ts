@@ -1,16 +1,36 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  effect,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import {
+  LucidePlus,
+  LucideTag,
+  LucideCircleCheck,
+  LucideGift,
+  LucideIndianRupee,
+  LucidePencil,
+  LucideTrash2,
+  LucideX,
+} from '@lucide/angular';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageHeader } from '../../../shared/src/lib/page-header';
+import { HeaderService } from '@app/shared';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
 import { PromotionsStore } from './promotions.store';
 import { Promotion } from './promotions.model';
@@ -24,33 +44,39 @@ import { Promotion } from './promotions.model';
     FormsModule,
     MatCardModule,
     MatTableModule,
-    MatIconModule,
     MatButtonModule,
-    MatProgressBarModule,
+    LucidePlus,
+    LucideTag,
+    LucideCircleCheck,
+    LucideGift,
+    LucideIndianRupee,
+    LucidePencil,
+    LucideTrash2,
+    LucideX,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatChipsModule,
+    MatTooltipModule,
     PageHeader,
     EmptyState,
   ],
   template: `
-    <app-page-header title="Promotions & Coupons" subtitle="Manage discount coupons, platform campaigns, and view usage metrics">
+    <app-page-header
+      title="Promotions & Coupons"
+      subtitle="Manage discount coupons, platform campaigns, and view usage metrics"
+    >
       <button mat-flat-button color="primary" (click)="onOpenCreateModal()">
-        <mat-icon>add</mat-icon> Generate Coupon
+        <svg lucidePlus [size]="18"></svg> Generate Coupon
       </button>
     </app-page-header>
-
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" class="mb-4" />
-    }
 
     <!-- Statistics Dashboard -->
     <div class="stats-grid mb-6">
       <mat-card appearance="outlined" class="stat-card">
         <mat-card-header>
           <div class="stat-icon bg-blue-100 text-blue-700">
-            <mat-icon>local_offer</mat-icon>
+            <svg lucideTag [size]="24"></svg>
           </div>
           <div class="stat-info">
             <p class="stat-label">Total Coupons</p>
@@ -62,7 +88,7 @@ import { Promotion } from './promotions.model';
       <mat-card appearance="outlined" class="stat-card">
         <mat-card-header>
           <div class="stat-icon bg-green-100 text-green-700">
-            <mat-icon>check_circle</mat-icon>
+            <svg lucideCircleCheck [size]="24"></svg>
           </div>
           <div class="stat-info">
             <p class="stat-label">Active Campaigns</p>
@@ -74,7 +100,7 @@ import { Promotion } from './promotions.model';
       <mat-card appearance="outlined" class="stat-card">
         <mat-card-header>
           <div class="stat-icon bg-purple-100 text-purple-700">
-            <mat-icon>redeem</mat-icon>
+            <svg lucideGift [size]="24"></svg>
           </div>
           <div class="stat-info">
             <p class="stat-label">Total Redeemed</p>
@@ -86,11 +112,11 @@ import { Promotion } from './promotions.model';
       <mat-card appearance="outlined" class="stat-card">
         <mat-card-header>
           <div class="stat-icon bg-amber-100 text-amber-700">
-            <mat-icon>monetization_on</mat-icon>
+            <svg lucideIndianRupee [size]="24"></svg>
           </div>
           <div class="stat-info">
             <p class="stat-label">Total Saved by Users</p>
-            <p class="stat-value">{{ totalSavings() | currency }}</p>
+            <p class="stat-value">{{ totalSavings() | currency: 'INR' : 'symbol' : '1.0-0' }}</p>
           </div>
         </mat-card-header>
       </mat-card>
@@ -99,14 +125,19 @@ import { Promotion } from './promotions.model';
     <!-- Main Section -->
     <div class="table-container mat-elevation-z1">
       @if (store.promotions().length === 0) {
-        <app-empty-state icon="local_offer" title="No promotions found"
-          message="Create your first discount campaign to boost user engagement." />
+        <app-empty-state
+          icon="tag"
+          title="No promotions found"
+          message="Create your first discount campaign to boost user engagement."
+        />
       } @else {
         <table mat-table [dataSource]="store.promotions()" class="full-width">
           <!-- Code -->
           <ng-container matColumnDef="code">
             <th mat-header-cell *matHeaderCellDef>Code</th>
-            <td mat-cell *matCellDef="let promo" class="font-mono font-bold text-blue-700">{{ promo.code }}</td>
+            <td mat-cell *matCellDef="let promo" class="font-mono font-bold text-blue-700">
+              {{ promo.code }}
+            </td>
           </ng-container>
 
           <!-- Type & Value -->
@@ -116,7 +147,7 @@ import { Promotion } from './promotions.model';
               @if (promo.discount_type === 'PERCENTAGE') {
                 {{ promo.discount_value }}% OFF
               } @else {
-                {{ promo.discount_value | currency }} OFF
+                {{ promo.discount_value | currency: 'INR' : 'symbol' : '1.0-0' }} OFF
               }
             </td>
           </ng-container>
@@ -124,14 +155,16 @@ import { Promotion } from './promotions.model';
           <!-- Scope -->
           <ng-container matColumnDef="scope">
             <th mat-header-cell *matHeaderCellDef>Scope</th>
-            <td mat-cell *matCellDef="let promo" class="text-sm opacity-90">{{ promo.restaurant_name }}</td>
+            <td mat-cell *matCellDef="let promo" class="text-sm opacity-90">
+              {{ promo.restaurant_name }}
+            </td>
           </ng-container>
 
           <!-- Min Order -->
           <ng-container matColumnDef="min_order">
             <th mat-header-cell *matHeaderCellDef>Min Order</th>
             <td mat-cell *matCellDef="let promo" class="text-sm">
-              {{ promo.min_order_value | currency }}
+              {{ promo.min_order_value | currency: 'INR' : 'symbol' : '1.0-0' }}
             </td>
           </ng-container>
 
@@ -139,7 +172,7 @@ import { Promotion } from './promotions.model';
           <ng-container matColumnDef="usage">
             <th mat-header-cell *matHeaderCellDef>Usage Limit</th>
             <td mat-cell *matCellDef="let promo" class="text-sm">
-              <span class="font-semibold">{{ promo.usage_count }}</span> / 
+              <span class="font-semibold">{{ promo.usage_count }}</span> /
               <span>{{ promo.max_usages || '∞' }}</span>
               <div class="usage-progress-bar mt-1">
                 <div class="usage-progress-fill" [style.width.%]="getUsagePercentage(promo)"></div>
@@ -167,14 +200,18 @@ import { Promotion } from './promotions.model';
 
           <!-- Actions -->
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let promo">
               <div class="actions-cell">
-                <button mat-icon-button (click)="onOpenEditModal(promo); $event.stopPropagation()">
-                  <mat-icon>edit</mat-icon>
+                <button mat-icon-button (click)="onOpenEditModal(promo); $event.stopPropagation()" matTooltip="Edit coupon">
+                  <svg lucidePencil [size]="16" style="color: var(--color-info)"></svg>
                 </button>
-                <button mat-icon-button color="warn" (click)="onDelete(promo.id); $event.stopPropagation()">
-                  <mat-icon>delete</mat-icon>
+                <button
+                  mat-icon-button
+                  (click)="onDelete(promo.id); $event.stopPropagation()"
+                  matTooltip="Delete coupon"
+                >
+                  <svg lucideTrash2 [size]="16" style="color: var(--color-error)"></svg>
                 </button>
               </div>
             </td>
@@ -193,16 +230,22 @@ import { Promotion } from './promotions.model';
           <div class="modal-header">
             <h3>{{ editingPromo() ? 'Edit Campaign' : 'Generate New Coupon' }}</h3>
             <button mat-icon-button (click)="onCloseModal()">
-              <mat-icon>close</mat-icon>
+              <svg lucideX [size]="18"></svg>
             </button>
           </div>
-          
+
           <form #promoForm="ngForm" (ngSubmit)="onSubmit(promoForm.value)" class="modal-form">
             <div class="modal-body">
               <div class="form-grid">
                 <mat-form-field appearance="outline">
                   <mat-label>Coupon Code</mat-label>
-                  <input matInput name="code" [ngModel]="formData().code" required placeholder="e.g. SUMMER25" />
+                  <input
+                    matInput
+                    name="code"
+                    [ngModel]="formData().code"
+                    required
+                    placeholder="e.g. SUMMER25"
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -215,32 +258,70 @@ import { Promotion } from './promotions.model';
 
                 <mat-form-field appearance="outline">
                   <mat-label>Discount Value</mat-label>
-                  <input matInput type="number" name="discount_value" [ngModel]="formData().discount_value" required min="0" />
+                  <input
+                    matInput
+                    type="number"
+                    name="discount_value"
+                    [ngModel]="formData().discount_value"
+                    required
+                    min="0"
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Min Order Value ($)</mat-label>
-                  <input matInput type="number" name="min_order_value" [ngModel]="formData().min_order_value" min="0" step="0.5" />
+                  <input
+                    matInput
+                    type="number"
+                    name="min_order_value"
+                    [ngModel]="formData().min_order_value"
+                    min="0"
+                    step="0.5"
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Max Usages (Limit)</mat-label>
-                  <input matInput type="number" name="max_usages" [ngModel]="formData().max_usages" min="1" placeholder="Unlimited if empty" />
+                  <input
+                    matInput
+                    type="number"
+                    name="max_usages"
+                    [ngModel]="formData().max_usages"
+                    min="1"
+                    placeholder="Unlimited if empty"
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Scope (Restaurant ID)</mat-label>
-                  <input matInput name="restaurant_id" [ngModel]="formData().restaurant_id" placeholder="Leave empty for Platform-wide" />
+                  <input
+                    matInput
+                    name="restaurant_id"
+                    [ngModel]="formData().restaurant_id"
+                    placeholder="Leave empty for Platform-wide"
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Start Date</mat-label>
-                  <input matInput type="date" name="start_date" [ngModel]="formData().start_date" required />
+                  <input
+                    matInput
+                    type="date"
+                    name="start_date"
+                    [ngModel]="formData().start_date"
+                    required
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>End Date</mat-label>
-                  <input matInput type="date" name="end_date" [ngModel]="formData().end_date" required />
+                  <input
+                    matInput
+                    type="date"
+                    name="end_date"
+                    [ngModel]="formData().end_date"
+                    required
+                  />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="col-span-2">
@@ -272,7 +353,7 @@ import { Promotion } from './promotions.model';
       gap: 16px;
     }
     .stat-card {
-      border-radius: 12px;
+      border-radius: 0;
     }
     .stat-card mat-card-header {
       display: flex;
@@ -283,13 +364,12 @@ import { Promotion } from './promotions.model';
     .stat-icon {
       width: 48px;
       height: 48px;
-      border-radius: 12px;
+      border-radius: 0;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    .stat-icon mat-icon {
-      font-size: 24px;
+    .stat-icon svg {
       width: 24px;
       height: 24px;
     }
@@ -299,7 +379,7 @@ import { Promotion } from './promotions.model';
     }
     .stat-label {
       font-size: 0.8rem;
-      color: #757575;
+      color: var(--color-text-tertiary);
       margin: 0;
       text-transform: uppercase;
       font-weight: 500;
@@ -308,40 +388,53 @@ import { Promotion } from './promotions.model';
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0;
-      color: #333;
+      color: var(--color-text-primary);
     }
 
     .table-container {
-      border-radius: 8px;
+      border-radius: 0;
       overflow: hidden;
-      background: var(--mat-sys-surface, #fff);
+      background: var(--color-surface-1);
     }
-    .full-width { width: 100%; }
-    .table-row:hover { background: var(--mat-sys-surface-variant, #f5f5f5); }
+    .full-width {
+      width: 100%;
+    }
+    .table-row:hover {
+      background: var(--color-surface-2);
+    }
 
     .custom-badge {
       font-size: 0.72rem;
       font-weight: 600;
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 0;
       text-transform: uppercase;
       display: inline-block;
     }
-    .badge-status--active { background: #e8f5e9; color: #2e7d32; }
-    .badge-status--paused { background: #fff3e0; color: #e65100; }
-    .badge-status--expired { background: #ffebee; color: #c62828; }
+    .badge-status--active {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+    }
+    .badge-status--paused {
+      background: var(--color-orange-bg);
+      color: var(--color-orange-text);
+    }
+    .badge-status--expired {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+    }
 
     .usage-progress-bar {
       width: 100%;
       height: 6px;
-      background: #eee;
-      border-radius: 3px;
+      background: var(--color-surface-2);
+      border-radius: 0;
       overflow: hidden;
     }
     .usage-progress-fill {
       height: 100%;
-      background: #4caf50;
-      border-radius: 3px;
+      background: var(--color-success);
+      border-radius: 0;
     }
 
     .actions-cell {
@@ -363,14 +456,15 @@ import { Promotion } from './promotions.model';
       z-index: 1000;
     }
     .modal-card {
-      background: #fff;
-      border-radius: 12px;
+      background: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: 0;
       width: 90%;
       max-width: 600px;
       display: flex;
       flex-direction: column;
       max-height: 90vh;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       overflow: hidden;
     }
     .modal-header {
@@ -378,7 +472,7 @@ import { Promotion } from './promotions.model';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--color-border);
     }
     .modal-header h3 {
       margin: 0;
@@ -401,8 +495,8 @@ import { Promotion } from './promotions.model';
     }
     .modal-footer {
       padding: 16px 20px;
-      border-top: 1px solid #f0f0f0;
-      background: #fafafa;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface-2);
       display: flex;
       gap: 12px;
     }
@@ -412,13 +506,26 @@ import { Promotion } from './promotions.model';
     .col-span-2 {
       grid-column: span 2;
     }
-    .mb-4 { margin-bottom: 16px; }
-    .mb-6 { margin-bottom: 24px; }
-    .mt-1 { margin-top: 4px; }
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+    .mb-6 {
+      margin-bottom: 24px;
+    }
+    .mt-1 {
+      margin-top: 4px;
+    }
   `,
 })
-export class PromotionsDashboardComponent implements OnInit {
+export class PromotionsDashboardComponent implements OnInit, OnDestroy {
   protected readonly store = inject(PromotionsStore);
+  private readonly headerService = inject(HeaderService);
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
   protected readonly displayedColumns = [
     'code',
     'discount',
@@ -436,12 +543,22 @@ export class PromotionsDashboardComponent implements OnInit {
 
   // Computed statistics
   protected readonly totalCoupons = computed(() => this.store.promotions().length);
-  protected readonly activeCoupons = computed(() => this.store.promotions().filter((p) => p.status === 'ACTIVE').length);
-  protected readonly totalRedeemed = computed(() => this.store.promotions().reduce((sum, p) => sum + p.usage_count, 0));
-  protected readonly totalSavings = computed(() => this.store.promotions().reduce((sum, p) => sum + p.total_discount_amount, 0));
+  protected readonly activeCoupons = computed(
+    () => this.store.promotions().filter((p) => p.status === 'ACTIVE').length,
+  );
+  protected readonly totalRedeemed = computed(() =>
+    this.store.promotions().reduce((sum, p) => sum + p.usage_count, 0),
+  );
+  protected readonly totalSavings = computed(() =>
+    this.store.promotions().reduce((sum, p) => sum + p.total_discount_amount, 0),
+  );
 
   ngOnInit(): void {
     this.store.loadAll();
+  }
+
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
   }
 
   getUsagePercentage(promo: Promotion): number {

@@ -42,7 +42,7 @@ class CartItemModel(Base):
     menu_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     price_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    price_currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
+    price_currency: Mapped[str] = mapped_column(String(3), default="INR", nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     special_instructions: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

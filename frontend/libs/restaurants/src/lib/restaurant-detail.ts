@@ -1,15 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideUtensilsCrossed, LucideBadgeCheck, LucideMapPin } from '@lucide/angular';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
@@ -27,7 +21,9 @@ import { MenusStore } from './menus.store';
     DecimalPipe,
     MatCardModule,
     MatButtonModule,
-    MatIconModule,
+    LucideUtensilsCrossed,
+    LucideBadgeCheck,
+    LucideMapPin,
     MatDividerModule,
     MatProgressSpinnerModule,
     MatChipsModule,
@@ -43,11 +39,11 @@ import { MenusStore } from './menus.store';
       @if (store.selectedRestaurant(); as r) {
         <app-page-header [title]="r.name" [subtitle]="r.address_city + ', ' + r.address_state">
           <button mat-stroked-button [routerLink]="['menus']">
-            <mat-icon>restaurant_menu</mat-icon> Manage Menus
+            <svg lucideUtensilsCrossed [size]="18"></svg> Manage Menus
           </button>
           @if (!r.is_verified) {
             <button mat-flat-button color="primary" (click)="store.verifyRestaurant(r.id)">
-              <mat-icon>verified</mat-icon> Verify
+              <svg lucideBadgeCheck [size]="18"></svg> Verify
             </button>
           }
         </app-page-header>
@@ -95,7 +91,7 @@ import { MenusStore } from './menus.store';
               </address>
               @if (r.address_latitude && r.address_longitude) {
                 <p class="coords">
-                  <mat-icon class="coords-icon">location_on</mat-icon>
+                  <svg lucideMapPin class="coords-icon" [size]="16"></svg>
                   {{ r.address_latitude | number: '1.4-6' }},
                   {{ r.address_longitude | number: '1.4-6' }}
                 </p>
@@ -116,7 +112,7 @@ import { MenusStore } from './menus.store';
                   @for (m of menusStore.menus(); track m.id) {
                     <li>
                       <span class="menu-name">{{ m.name }}</span>
-                      <app-status-badge [status]="m.is_published ? 'ACTIVE' : 'INACTIVE'" />
+                      <app-status-badge [status]="m.is_active ? 'ACTIVE' : 'INACTIVE'" />
                     </li>
                   }
                 </ul>
@@ -126,7 +122,7 @@ import { MenusStore } from './menus.store';
             </mat-card-content>
             <mat-card-actions>
               <button mat-stroked-button [routerLink]="['menus']">
-                <mat-icon>restaurant_menu</mat-icon>
+                <svg lucideUtensilsCrossed [size]="18"></svg>
                 Manage all menus
               </button>
             </mat-card-actions>
@@ -138,25 +134,120 @@ import { MenusStore } from './menus.store';
     }
   `,
   styles: `
-    .center-spinner { display: flex; justify-content: center; padding: 64px; }
+    .center-spinner {
+      display: flex;
+      justify-content: center;
+      padding: 64px;
+    }
     .detail-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 16px;
     }
-    .menus-card { grid-column: 1 / -1; }
-    .info-list { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; margin: 0; }
-    dt { font-weight: 500; color: var(--mat-sys-on-surface-variant, #666); align-self: center; }
-    dd { margin: 0; align-self: center; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-    .cuisine-chip { font-size: 0.75rem !important; height: 22px !important; }
-    address { font-style: normal; line-height: 1.8; }
-    .coords { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; opacity: 0.7; margin-top: 8px; }
-    .coords-icon { font-size: 16px; width: 16px; height: 16px; }
-    .menu-preview-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-    .menu-preview-list li { display: flex; align-items: center; justify-content: space-between; }
-    .menu-name { font-weight: 500; }
-    .no-menus { color: var(--mat-sys-on-surface-variant, #888); }
-    .error-text { color: red; }
+    .menus-card {
+      grid-column: 1 / -1;
+    }
+
+    ::ng-deep .mat-mdc-card-header {
+      padding: 16px 20px 0 !important;
+    }
+
+    ::ng-deep .mat-mdc-card-title {
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      color: var(--color-text-primary) !important;
+      margin-bottom: 0 !important;
+    }
+
+    ::ng-deep .mat-mdc-card-content {
+      padding: 16px 20px !important;
+    }
+
+    ::ng-deep .mat-mdc-card-actions {
+      padding: 0 20px 16px !important;
+    }
+
+    .info-list {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px 20px;
+      margin: 0;
+    }
+    dt {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      align-self: center;
+    }
+    dd {
+      margin: 0;
+      align-self: center;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+    .cuisine-chip {
+      font-size: 0.75rem !important;
+      height: 22px !important;
+    }
+    address {
+      font-style: normal;
+      line-height: 1.8;
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+    .coords {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-border-light);
+    }
+    .coords-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+    svg[class*='lucide'] {
+      vertical-align: middle;
+    }
+    .menu-preview-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .menu-preview-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .menu-preview-list li:last-child {
+      border-bottom: none;
+    }
+    .menu-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .no-menus {
+      color: var(--color-text-tertiary);
+      font-size: 13px;
+    }
+    .error-text {
+      color: var(--color-error);
+    }
   `,
 })
 export class RestaurantDetail implements OnInit {

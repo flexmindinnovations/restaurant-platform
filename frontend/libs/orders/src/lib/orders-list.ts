@@ -3,34 +3,37 @@ import {
   Component,
   inject,
   OnInit,
+  OnDestroy,
+  effect,
 } from '@angular/core';
 import { DatePipe, SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideCircleCheck, LucideBan } from '@lucide/angular';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { PageHeader } from '../../../shared/src/lib/page-header';
+import { HeaderService } from '@app/shared';
 import { StatusBadge } from '../../../shared/src/lib/status-badge';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
 import { OrderStatus } from '@app/api-client';
+import { DatatableComponent, DatatableCellDirective, DatatableColumn } from '@app/design-system';
 import { OrdersStore } from './orders.store';
 import { OrderDetail } from './order-detail';
 
 const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
-  { label: 'Pending',      value: 'PENDING' },
-  { label: 'Confirmed',    value: 'CONFIRMED' },
-  { label: 'Preparing',    value: 'PREPARING' },
-  { label: 'Ready',        value: 'READY' },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Confirmed', value: 'CONFIRMED' },
+  { label: 'Preparing', value: 'PREPARING' },
+  { label: 'Ready', value: 'READY' },
   { label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY' },
-  { label: 'Delivered',    value: 'DELIVERED' },
-  { label: 'Completed',    value: 'COMPLETED' },
-  { label: 'Cancelled',    value: 'CANCELLED' },
+  { label: 'Delivered', value: 'DELIVERED' },
+  { label: 'Completed', value: 'COMPLETED' },
+  { label: 'Cancelled', value: 'CANCELLED' },
 ];
 
 @Component({
@@ -38,118 +41,108 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    // RouterLink,
     DatePipe,
-    // CurrencyPipe,
     SlicePipe,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
-    MatIconModule,
     MatChipsModule,
-    MatProgressBarModule,
     MatTooltipModule,
     MatBadgeModule,
+    LucideCircleCheck,
+    LucideBan,
     PageHeader,
     StatusBadge,
     EmptyState,
     OrderDetail,
+    DatatableComponent,
+    DatatableCellDirective,
   ],
   template: `
     <app-page-header title="Orders" subtitle="View and manage all customer orders">
     </app-page-header>
 
     <!-- Status filter tabs -->
-    <mat-chip-listbox [ngModel]="store.statusFilter()" (ngModelChange)="onStatusFilter($event)"
-      class="status-tabs" aria-label="Filter orders by status">
+    <mat-chip-listbox
+      [ngModel]="store.statusFilter()"
+      (ngModelChange)="onStatusFilter($event)"
+      class="status-tabs"
+      aria-label="Filter orders by status"
+    >
       @for (tab of statusTabs; track tab.value) {
         <mat-chip-option [value]="tab.value" class="status-tab">{{ tab.label }}</mat-chip-option>
       }
     </mat-chip-listbox>
 
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" style="margin-top:8px" />
-    }
-
     <div class="layout-wrapper" [class.with-panel]="store.selectedOrder()">
       <!-- Table -->
-      <div class="table-container mat-elevation-z1">
+      <div class="table-wrapper-container">
         @if (!store.loading() && !store.hasResults()) {
-          <app-empty-state icon="receipt_long" title="No orders found"
-            message="There are no orders matching this filter." />
+          <app-empty-state
+            icon="receipt"
+            title="No orders found"
+            message="There are no orders matching this filter."
+          />
         } @else {
-          <table mat-table [dataSource]="store.orders()" class="full-width">
+          <app-datatable
+            [dataSource]="store.orders()"
+            [columns]="columns"
+            [total]="store.total()"
+            [pageSize]="10"
+            [selectedRowId]="store.selectedOrder()?.id"
+            selectedRowClass="selected-row"
+            (pageChange)="onPage($event)"
+            (rowClick)="onRowClick($event)"
+            paginatorAriaLabel="Orders pagination"
+          >
             <!-- Order # -->
-            <ng-container matColumnDef="order_number">
-              <th mat-header-cell *matHeaderCellDef>Order #</th>
-              <td mat-cell *matCellDef="let o">
-                <span class="order-number">{{ o.order_number }}</span>
-              </td>
-            </ng-container>
+            <ng-template appDatatableCell="order_number" let-row>
+              <span class="order-number">{{ row.order_number }}</span>
+            </ng-template>
 
             <!-- Status -->
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let o">
-                <app-status-badge [status]="o.status" />
-              </td>
-            </ng-container>
+            <ng-template appDatatableCell="status" let-row>
+              <app-status-badge [status]="row.status" />
+            </ng-template>
 
             <!-- Restaurant -->
-            <ng-container matColumnDef="restaurant">
-              <th mat-header-cell *matHeaderCellDef>Restaurant</th>
-              <td mat-cell *matCellDef="let o">{{ o.restaurant_id | slice:0:8 }}…</td>
-            </ng-container>
+            <ng-template appDatatableCell="restaurant" let-row>
+              {{ row.restaurant_id | slice: 0 : 8 }}…
+            </ng-template>
 
             <!-- Total -->
-            <ng-container matColumnDef="total">
-              <th mat-header-cell *matHeaderCellDef>Total</th>
-              <td mat-cell *matCellDef="let o">
-                <strong>{{ o.total_currency }} {{ o.total_amount }}</strong>
-              </td>
-            </ng-container>
+            <ng-template appDatatableCell="total" let-row>
+              <strong>{{ row.total_currency }} {{ row.total_amount }}</strong>
+            </ng-template>
 
             <!-- Date -->
-            <ng-container matColumnDef="placed_at">
-              <th mat-header-cell *matHeaderCellDef>Placed</th>
-              <td mat-cell *matCellDef="let o">{{ o.placed_at | date:'short' }}</td>
-            </ng-container>
+            <ng-template appDatatableCell="placed_at" let-row>
+              {{ row.placed_at | date: 'short' }}
+            </ng-template>
 
             <!-- Actions -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let o" (click)="$event.stopPropagation()">
-                @if (o.status === 'PENDING') {
-                  <button mat-icon-button color="primary"
-                    (click)="onConfirm(o.id)" matTooltip="Confirm order">
-                    <mat-icon>check_circle</mat-icon>
-                  </button>
-                }
-                @if (o.status !== 'CANCELLED' && o.status !== 'COMPLETED') {
-                  <button mat-icon-button color="warn"
-                    (click)="onCancel(o.id)" matTooltip="Cancel order">
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                }
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"
-              class="table-row"
-              [class.selected-row]="store.selectedOrder()?.id === row.id"
-              (click)="onRowClick(row.id)">
-            </tr>
-          </table>
-
-          <mat-paginator
-            [length]="store.total()"
-            [pageSize]="20"
-            [pageSizeOptions]="[10, 20, 50]"
-            (page)="onPage($event)"
-            aria-label="Orders pagination">
-          </mat-paginator>
+            <ng-template appDatatableCell="actions" let-row>
+              @if (row.status === 'PENDING') {
+                <button
+                  mat-icon-button
+                  (click)="onConfirm(row.id)"
+                  matTooltip="Confirm order"
+                  aria-label="Confirm order"
+                >
+                  <svg lucideCircleCheck [size]="16" style="color: var(--color-success)"></svg>
+                </button>
+              }
+              @if (row.status !== 'CANCELLED' && row.status !== 'COMPLETED') {
+                <button
+                  mat-icon-button
+                  (click)="onCancel(row.id)"
+                  matTooltip="Cancel order"
+                  aria-label="Cancel order"
+                >
+                  <svg lucideBan [size]="16" style="color: var(--color-error)"></svg>
+                </button>
+              }
+            </ng-template>
+          </app-datatable>
         }
       </div>
 
@@ -177,19 +170,20 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
     .layout-wrapper.with-panel {
       grid-template-columns: 1fr 400px;
     }
-    .table-container {
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--mat-sys-surface, #fff);
+    .table-wrapper-container {
+      flex: 1;
+      min-width: 0;
     }
-    .full-width { width: 100%; }
-    .table-row { cursor: pointer; transition: background 0.15s; }
-    .table-row:hover { background: var(--mat-sys-surface-variant, #f5f5f5); }
-    .selected-row { background: var(--mat-sys-primary-container, #fff3e0) !important; }
-    .order-number { font-family: monospace; font-weight: 600; }
+    .selected-row {
+      background: var(--color-orange-bg) !important;
+    }
+    .order-number {
+      font-family: monospace;
+      font-weight: 600;
+    }
     .detail-panel {
-      border-radius: 8px;
-      background: var(--mat-sys-surface, #fff);
+      border-radius: 0;
+      background: var(--color-surface-1);
       height: fit-content;
       max-height: calc(100vh - 160px);
       overflow-y: auto;
@@ -198,13 +192,32 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
     }
   `,
 })
-export class OrdersList implements OnInit {
+export class OrdersList implements OnInit, OnDestroy {
   protected readonly store = inject(OrdersStore);
+  private readonly headerService = inject(HeaderService);
   protected readonly statusTabs = STATUS_TABS;
-  protected readonly displayedColumns = ['order_number', 'status', 'restaurant', 'total', 'placed_at', 'actions'];
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
+
+  protected readonly columns: DatatableColumn[] = [
+    { key: 'order_number', label: 'Order #' },
+    { key: 'status', label: 'Status' },
+    { key: 'restaurant', label: 'Restaurant' },
+    { key: 'total', label: 'Total' },
+    { key: 'placed_at', label: 'Placed' },
+    { key: 'actions', label: 'Actions' },
+  ];
 
   ngOnInit(): void {
     this.store.loadOrders();
+  }
+
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
   }
 
   onStatusFilter(status: OrderStatus | 'ALL'): void {
@@ -217,7 +230,8 @@ export class OrdersList implements OnInit {
     this.store.loadOrders();
   }
 
-  onRowClick(id: string): void {
+  onRowClick(row: unknown): void {
+    const id = (row as { id: string }).id;
     if (this.store.selectedOrder()?.id === id) {
       this.store.selectOrder(null);
     } else {
@@ -236,3 +250,4 @@ export class OrdersList implements OnInit {
     }
   }
 }
+

@@ -1,0 +1,128 @@
+<app-page-header
+  title="Reviews & Moderation"
+  subtitle="Monitor customer feedback, moderate flagged reviews, and manage owner replies"
+>
+</app-page-header>
+
+<!-- Filters -->
+<div class="filters-row">
+  <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+    <mat-label>Search reviews</mat-label>
+    <svg lucideSearch [size]="18" matIconPrefix></svg>
+    <input
+      matInput
+      [ngModel]="searchValue()"
+      (ngModelChange)="searchValue.set($event)"
+      placeholder="Search by restaurant, customer or comment..."
+    />
+  </mat-form-field>
+
+  <mat-chip-listbox
+    [ngModel]="statusFilter()"
+    (ngModelChange)="statusFilter.set($event)"
+    class="filter-chips"
+    aria-label="Status filter"
+  >
+    <mat-chip-option value="ALL">All Reviews</mat-chip-option>
+    <mat-chip-option value="FLAGGED">Moderation Queue (Flagged)</mat-chip-option>
+    <mat-chip-option value="APPROVED">Approved</mat-chip-option>
+    <mat-chip-option value="PENDING">Pending</mat-chip-option>
+  </mat-chip-listbox>
+</div>
+
+<!-- Table -->
+@if (filteredReviews().length === 0) {
+  <app-empty-state
+    icon="star"
+    title="No reviews found"
+    message="No reviews match your selected filters."
+  />
+} @else {
+  <app-datatable
+    [dataSource]="filteredReviews()"
+    [columns]="columns"
+    [showPaginator]="true"
+    [pageSize]="10"
+    (rowClick)="onRowClick($event)"
+  >
+    <!-- Restaurant Column Template -->
+    <ng-template appDatatableCell="restaurant" let-row="row">
+      <span class="font-semibold">{{ row.restaurant_name }}</span>
+    </ng-template>
+
+    <!-- Customer Column Template -->
+    <ng-template appDatatableCell="customer" let-row="row">
+      <span>{{ row.customer_name }}</span>
+    </ng-template>
+
+    <!-- Rating Column Template -->
+    <ng-template appDatatableCell="rating" let-row="row">
+      <div class="rating-stars">
+        @for (star of [1, 2, 3, 4, 5]; track star) {
+          <svg
+            lucideStar
+            class="star-icon"
+            [class.star-filled]="star <= row.rating"
+            [size]="18"
+          ></svg>
+        }
+      </div>
+    </ng-template>
+
+    <!-- Sentiment Column Template -->
+    <ng-template appDatatableCell="sentiment" let-row="row">
+      <span
+        class="custom-badge"
+        [class]="'badge-sentiment--' + row.sentiment.toLowerCase()"
+      >
+        {{ row.sentiment }}
+      </span>
+    </ng-template>
+
+    <!-- Status Column Template -->
+    <ng-template appDatatableCell="status" let-row="row">
+      <span class="custom-badge" [class]="'badge-status--' + row.status.toLowerCase()">
+        {{ row.status }}
+      </span>
+    </ng-template>
+
+    <!-- Created At Column Template -->
+    <ng-template appDatatableCell="created_at" let-row="row">
+      <span class="text-sm opacity-85">
+        {{ row.created_at | date: 'shortDate' }}
+      </span>
+    </ng-template>
+
+    <!-- Actions Column Template -->
+    <ng-template appDatatableCell="actions" let-row="row">
+      <div class="actions-cell">
+        <button
+          mat-icon-button
+          matTooltip="View Details"
+          aria-label="View review details"
+          (click)="onViewDetails(row); $event.stopPropagation()"
+        >
+          <svg lucideEye [size]="16" style="color: var(--color-text-secondary)"></svg>
+        </button>
+        @if (row.status === 'FLAGGED') {
+          <button
+            mat-icon-button
+            matTooltip="Approve Review"
+            aria-label="Approve review"
+            (click)="onApprove(row.id); $event.stopPropagation()"
+          >
+            <svg lucideCircleCheck [size]="16" style="color: var(--color-success)"></svg>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Reject Review"
+            aria-label="Reject review"
+            (click)="onReject(row.id); $event.stopPropagation()"
+          >
+            <svg lucideBan [size]="16" style="color: var(--color-error)"></svg>
+          </button>
+        }
+      </div>
+    </ng-template>
+  </app-datatable>
+}

@@ -43,7 +43,7 @@ class GetCartHandler:
                 restaurant_id=None,
                 items=[],
                 total_amount=Decimal("0.00"),
-                currency="USD",
+                currency="INR",
             )
 
         item_dtos = [
@@ -60,7 +60,7 @@ class GetCartHandler:
             for item in cart.items
         ]
 
-        currency = cart.items[0].unit_price.currency if cart.items else "USD"
+        currency = cart.items[0].unit_price.currency if cart.items else "INR"
         return CartDTO(
             customer_id=cart.id,
             restaurant_id=cart.restaurant_id,

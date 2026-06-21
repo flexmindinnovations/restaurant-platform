@@ -1,0 +1,70 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.datatable-card {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.full-width {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.datatable-header-row {
+  background: var(--color-surface-2, #f9fafb);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.datatable-header-cell {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #4b5563);
+  padding: 14px 16px;
+  white-space: nowrap;
+}
+
+.datatable-cell {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--color-text-primary, #111827);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-row {
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: var(--color-surface-2, rgba(0, 0, 0, 0.02));
+  }
+}
+
+/* Selected state backgrounds */
+.selected-row {
+  background-color: var(--color-orange-bg) !important;
+}
+
+.table-row--selected {
+  background-color: var(--color-teal-bg) !important;
+}
+
+.datatable-paginator {
+  background: transparent;
+  border-top: 1px solid var(--color-border);
+}

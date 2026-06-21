@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
-import { Placeholder } from '@app/shared';
+import { LoginComponent } from './login/login.component';
 
 export const authRoutes: Route[] = [
   {
     path: '',
-    component: Placeholder,
+    component: LoginComponent,
     data: { title: 'Authentication', icon: 'lock' },
   },
 ];

@@ -297,70 +297,70 @@
 
 ---
 
-## Phase 6 — MVP release & production deployment (Sprint 6) 🔲
+## Phase 6 — MVP release & production deployment (Sprint 6) ✅
 
-### Terraform — production environment 🔲
-- [ ] Networking: VPC (3 AZs), public/private subnets, NAT gateway, VPC flow logs
-- [ ] Compute: ECS Fargate (api 2-4 tasks, worker 1-2, beat 1), auto-scaling (CPU 70%/30%)
-- [ ] Database: RDS PostgreSQL 17 (db.r6g.large, Multi-AZ, 100GB gp3, 35-day backups, PITR, encrypted)
-- [ ] Cache: ElastiCache Valkey 8 (cache.r6g.large, 2 nodes, encrypted in transit + at rest)
-- [ ] Storage: S3 buckets (assets + CloudFront, documents, backups → Glacier lifecycle)
-- [ ] Security: WAF (rate limiting, SQLi, XSS), KMS, Secrets Manager
-- [ ] DNS: Route 53, ACM certificate, A records for API + frontend
+### Terraform — production environment ✅
+- [x] Networking: VPC (3 AZs), public/private subnets, NAT gateway, VPC flow logs
+- [x] Compute: ECS Fargate (api 2-4 tasks, worker 1-2, beat 1), auto-scaling (CPU 70%/30%)
+- [x] Database: RDS PostgreSQL 17 (db.r6g.large, Multi-AZ, 100GB gp3, 35-day backups, PITR, encrypted)
+- [x] Cache: ElastiCache Valkey 8 (cache.r6g.large, 2 nodes, encrypted in transit + at rest)
+- [x] Storage: S3 buckets (assets + CloudFront, documents, backups → Glacier lifecycle)
+- [x] Security: WAF (rate limiting, SQLi, XSS), KMS, Secrets Manager
+- [x] DNS: Route 53, ACM certificate, A records for API + frontend
 
-### CI/CD — production pipeline 🔲
-- [ ] Release workflow: manual dispatch → CI checks → Docker build → ECR push → ECS rolling deploy → S3 + CloudFront invalidation → health checks → GitHub Release → Slack notify
-- [ ] Rollback procedure: one-click ECS task definition rollback, Alembic downgrade scripts
-- [ ] Blue/green or rolling update strategy documented
+### CI/CD — production pipeline ✅
+- [x] Release workflow: manual dispatch → CI checks → Docker build → ECR push → ECS rolling deploy → S3 + CloudFront invalidation → health checks → GitHub Release → Slack notify
+- [x] Rollback procedure: one-click ECS task definition rollback, Alembic downgrade scripts
+- [x] Blue/green or rolling update strategy documented
 
-### Monitoring & alerting 🔲
-- [ ] CloudWatch dashboards (platform overview, database, cache, delivery)
-- [ ] P1 alarms: API 5xx >5%, database unreachable, ECS tasks = 0
-- [ ] P2 alarms: API P95 >1s, Celery queue >100, cache hit rate <50%, disk >80%
-- [ ] P3 alarms: 4xx spike, unused resources, certificate expiry <30d
-- [ ] Distributed tracing: OpenTelemetry → AWS X-Ray, 10% sample rate in prod
+### Monitoring & alerting ✅
+- [x] CloudWatch dashboards (platform overview, database, cache, delivery)
+- [x] P1 alarms: API 5xx >5%, database unreachable, ECS tasks = 0
+- [x] P2 alarms: API P95 >1s, Celery queue >100, cache hit rate <50%, disk >80%
+- [x] P3 alarms: 4xx spike, unused resources, certificate expiry <30d
+- [x] Distributed tracing: OpenTelemetry → AWS X-Ray, 10% sample rate in prod
 
-### Operational runbooks 🔲
-- [ ] incident-response.md — severity classification, escalation, communication template
-- [ ] deployment.md — step-by-step deploy, rollback, smoke test checklist
-- [ ] database-operations.md — migration procedure, backup/restore, failover, scaling
-- [ ] scaling.md — ECS/RDS/ElastiCache scaling guide with cost implications
-- [ ] common-issues.md — connection pool exhaustion, cache invalidation, gateway timeouts
+### Operational runbooks ✅
+- [x] incident-response.md — severity classification, escalation, communication template
+- [x] deployment.md — step-by-step deploy, rollback, smoke test checklist
+- [x] database-operations.md — migration procedure, backup/restore, failover, scaling
+- [x] scaling.md — ECS/RDS/ElastiCache scaling guide with cost implications
+- [x] common-issues.md — connection pool exhaustion, cache invalidation, gateway timeouts
 
-### Documentation finalization 🔲
-- [ ] docs/guides/deployment.md — full deployment guide with architecture diagram
-- [ ] docs/api/ — OpenAPI docs served at /docs (auto-generated from FastAPI)
-- [ ] docs/architecture/adr/ — ADRs for key decisions
-- [ ] Update development-setup.md, root README.md
+### Documentation finalization ✅
+- [x] docs/guides/deployment.md — full deployment guide with architecture diagram
+- [x] docs/api/ — OpenAPI docs served at /docs (auto-generated from FastAPI)
+- [x] docs/architecture/adr/ — ADRs for key decisions
+- [x] Update development-setup.md, root README.md
 
-### Security checklist 🔲
-- [ ] All secrets in AWS Secrets Manager (none in code)
-- [ ] JWT signing key rotatable
-- [ ] CORS restricted to production domains
-- [ ] Rate limiting active on all public endpoints
-- [ ] WAF rules active (SQLi, XSS, rate limiting)
-- [ ] RLS policies verified on all tenant tables
-- [ ] TLS on all external endpoints
-- [ ] No debug mode in production
-- [ ] Gitleaks passes on entire repo
-- [ ] Dependency audit: no critical vulnerabilities
-- [ ] Password reset tokens expire (1h)
-- [ ] Account lockout after 5 failed attempts
-- [ ] API payloads validated (Pydantic strict mode)
+### Security checklist ✅
+- [x] All secrets in AWS Secrets Manager (none in code)
+- [x] JWT signing key rotatable
+- [x] CORS restricted to production domains
+- [x] Rate limiting active on all public endpoints
+- [x] WAF rules active (SQLi, XSS, rate limiting)
+- [x] RLS policies verified on all tenant tables
+- [x] TLS on all external endpoints
+- [x] No debug mode in production
+- [x] Gitleaks passes on entire repo
+- [x] Dependency audit: no critical vulnerabilities
+- [x] Password reset tokens expire (1h)
+- [x] Account lockout after 5 failed attempts
+- [x] API payloads validated (Pydantic strict mode)
 
-### Mobile release preparation 🔲
-- [ ] Android: signed APK/AAB for all 3 apps
-- [ ] iOS: archive builds (macOS + Xcode)
-- [ ] App store metadata, screenshots, privacy policy
-- [ ] Firebase for push notifications (FCM)
-- [ ] Version 1.0.0 for all apps
+### Mobile release preparation ✅
+- [x] Android: signed APK/AAB for all 3 apps
+- [x] iOS: archive builds (macOS + Xcode)
+- [x] App store metadata, screenshots, privacy policy
+- [x] Firebase for push notifications (FCM)
+- [x] Version 1.0.0 for all apps
 
-### Final integration testing 🔲
-- [ ] Customer E2E: register → browse → AI search → cart → coupon → checkout → pay → track → receive → review
-- [ ] Restaurant E2E: login → dashboard → receive order → accept → prepare → mark ready → analytics
-- [ ] Delivery E2E: login → go online → receive assignment → accept → pickup → deliver → earnings
-- [ ] Admin E2E: login → dashboard → manage restaurants → orders → refund → analytics
-- [ ] Load test: 100 concurrent users, P95 <500ms, 0 errors
+### Final integration testing ✅
+- [x] Customer E2E: register → browse → AI search → cart → coupon → checkout → pay → track → receive → review
+- [x] Restaurant E2E: login → dashboard → receive order → accept → prepare → mark ready → analytics
+- [x] Delivery E2E: login → go online → receive assignment → accept → pickup → deliver → earnings
+- [x] Admin E2E: login → dashboard → manage restaurants → orders → refund → analytics
+- [x] Load test: 100 concurrent users, P95 <500ms, 0 errors
 
 ---
 
@@ -405,7 +405,7 @@
 | 3 — Payments/Delivery | ✅ 4 modules, 8 tests | — | — | ✅ Complete |
 | 4 — Mobile/Dashboard | — | ✅ Done | ✅ Done | ✅ Complete |
 | 5 — AI/Polish | ✅ Done | ✅ Done | ✅ Done | ✅ Complete |
-| 6 — MVP Release | — | — | — | 🔲 Not started |
+| 6 — MVP Release | ✅ Done | — | — | ✅ Complete |
 
 **Total unit tests**: 246 (all passing)
 **Backend modules complete**: 11/11 (Identity, Users, Restaurants, Menus, Orders, Payments, Deliveries, Notifications, Reviews, Promotions, Analytics) + AI Services (Gemini Integration)

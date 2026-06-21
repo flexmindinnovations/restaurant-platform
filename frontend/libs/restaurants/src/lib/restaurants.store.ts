@@ -26,7 +26,7 @@ const initialState: RestaurantsState = {
   loading: false,
   error: null,
   skip: 0,
-  limit: 20,
+  limit: 10,
   search: '',
   filterVerified: null,
 };
@@ -63,8 +63,7 @@ export const RestaurantsStore = signalStore(
                   total: result.total,
                   loading: false,
                 }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),
@@ -78,8 +77,7 @@ export const RestaurantsStore = signalStore(
           return restaurantsService.get(id).pipe(
             tapResponse({
               next: (r) => patchState(store, { selectedRestaurant: r, loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),

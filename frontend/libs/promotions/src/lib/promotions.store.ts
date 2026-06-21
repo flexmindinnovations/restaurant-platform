@@ -62,7 +62,10 @@ export const PromotionsStore = signalStore(
                 const updatedSelected = promotions.find((p) => p.id === id) || null;
                 patchState(store, {
                   promotions,
-                  selectedPromotion: store.selectedPromotion()?.id === id ? updatedSelected : store.selectedPromotion(),
+                  selectedPromotion:
+                    store.selectedPromotion()?.id === id
+                      ? updatedSelected
+                      : store.selectedPromotion(),
                   loading: false,
                 });
               },

@@ -3,18 +3,18 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 type StatusVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral';
 
 const STATUS_MAP: Record<string, { label: string; variant: StatusVariant }> = {
-  PENDING:          { label: 'Pending',          variant: 'warning' },
-  CONFIRMED:        { label: 'Confirmed',        variant: 'info'    },
-  PREPARING:        { label: 'Preparing',        variant: 'info'    },
-  READY:            { label: 'Ready',            variant: 'success' },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', variant: 'info'    },
-  DELIVERED:        { label: 'Delivered',        variant: 'success' },
-  COMPLETED:        { label: 'Completed',        variant: 'success' },
-  CANCELLED:        { label: 'Cancelled',        variant: 'error'   },
-  VERIFIED:         { label: 'Verified',         variant: 'success' },
-  UNVERIFIED:       { label: 'Unverified',       variant: 'warning' },
-  ACTIVE:           { label: 'Active',           variant: 'success' },
-  INACTIVE:         { label: 'Inactive',         variant: 'neutral' },
+  PENDING: { label: 'Pending', variant: 'warning' },
+  CONFIRMED: { label: 'Confirmed', variant: 'info' },
+  PREPARING: { label: 'Preparing', variant: 'info' },
+  READY: { label: 'Ready', variant: 'success' },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery', variant: 'info' },
+  DELIVERED: { label: 'Delivered', variant: 'success' },
+  COMPLETED: { label: 'Completed', variant: 'success' },
+  CANCELLED: { label: 'Cancelled', variant: 'error' },
+  VERIFIED: { label: 'Verified', variant: 'success' },
+  UNVERIFIED: { label: 'Unverified', variant: 'warning' },
+  ACTIVE: { label: 'Active', variant: 'success' },
+  INACTIVE: { label: 'Inactive', variant: 'neutral' },
 };
 
 @Component({
@@ -31,7 +31,7 @@ const STATUS_MAP: Record<string, { label: string; variant: StatusVariant }> = {
       display: inline-flex;
       align-items: center;
       padding: 2px 10px;
-      border-radius: 9999px;
+      border-radius: 0;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;

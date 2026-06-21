@@ -11,7 +11,7 @@ class ValueObject:
 @dataclass(frozen=True)
 class Money(ValueObject):
     amount: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
     def __post_init__(self) -> None:
         if self.amount < 0:

@@ -41,8 +41,7 @@ export const DeliveriesStore = signalStore(
                   deliveries: result.deliveries,
                   loading: false,
                 }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),
@@ -60,7 +59,10 @@ export const DeliveriesStore = signalStore(
                 patchState(store, {
                   partners: result.partners,
                   deliveries: result.deliveries,
-                  selectedDelivery: store.selectedDelivery()?.id === deliveryId ? updatedSel : store.selectedDelivery(),
+                  selectedDelivery:
+                    store.selectedDelivery()?.id === deliveryId
+                      ? updatedSel
+                      : store.selectedDelivery(),
                   loading: false,
                 });
               },

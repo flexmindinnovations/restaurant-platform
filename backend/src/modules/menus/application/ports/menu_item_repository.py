@@ -52,3 +52,6 @@ class MenuItemRepository(ABC):
         query: str,
         available_only: bool = True,
     ) -> int: ...
+
+    @abstractmethod
+    async def exists_by_name(self, menu_id: uuid.UUID, name: str, category_id: uuid.UUID | None = None) -> bool: ...

@@ -1,7 +1,9 @@
 import { inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
+import { HttpErrorResponse } from '@angular/common/http';
 import { pipe, switchMap } from 'rxjs';
 import {
   Category,
@@ -13,6 +15,15 @@ import {
   UpdateMenuRequest,
 } from '@app/api-client';
 import { MenusService } from '@app/api-client';
+
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof HttpErrorResponse) {
+    const body = err.error;
+    if (body?.error?.message) return body.error.message;
+    if (body?.detail) return typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+  }
+  return 'An unexpected error occurred';
+}
 
 export interface MenusState {
   menus: Menu[];
@@ -36,17 +47,25 @@ export const MenusStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
 
-  withMethods((store, menusService = inject(MenusService)) => ({
+  withMethods((store, menusService = inject(MenusService), snackBar = inject(MatSnackBar)) => ({
     loadMenus: rxMethod<string>(
       pipe(
         switchMap((restaurantId) => {
           patchState(store, { loading: true, error: null, restaurantId });
           return menusService.list({ restaurant_id: restaurantId }).pipe(
             tapResponse({
-              next: (r) =>
-                patchState(store, { menus: r.items, total: r.total, loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              next: (r) => {
+                const menus = r.items.map((m) => ({
+                  ...m,
+                  categories: m.categories.map((c) => ({ ...c, items: c.items ?? [] })),
+                }));
+                patchState(store, { menus, total: r.total, loading: false });
+              },
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg, loading: false });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -59,9 +78,18 @@ export const MenusStore = signalStore(
           patchState(store, { loading: true, error: null });
           return menusService.get(menuId).pipe(
             tapResponse({
-              next: (m) => patchState(store, { selectedMenu: m, loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              next: (m) => {
+                const menu = {
+                  ...m,
+                  categories: m.categories.map((c) => ({ ...c, items: c.items ?? [] })),
+                };
+                patchState(store, { selectedMenu: menu, loading: false });
+              },
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg, loading: false });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -72,12 +100,18 @@ export const MenusStore = signalStore(
       pipe(
         switchMap((body) => {
           patchState(store, { loading: true, error: null });
-          return menusService.create(body).pipe(
+          const requestBody: CreateMenuRequest = {
+            ...body,
+            restaurant_id: body.restaurant_id || store.restaurantId() || undefined,
+          };
+          return menusService.create(requestBody).pipe(
             tapResponse({
-              next: (m) =>
-                patchState(store, { menus: [...store.menus(), m], loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              next: (m) => patchState(store, { menus: [...store.menus(), m], loading: false }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg, loading: false });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -90,16 +124,17 @@ export const MenusStore = signalStore(
           return menusService.update(id, body).pipe(
             tapResponse({
               next: (updated) => {
-                const menus = store
-                  .menus()
-                  .map((m) => (m.id === id ? updated : m));
+                const menus = store.menus().map((m) => (m.id === id ? updated : m));
                 patchState(store, {
                   menus,
-                  selectedMenu:
-                    store.selectedMenu()?.id === id ? updated : store.selectedMenu(),
+                  selectedMenu: store.selectedMenu()?.id === id ? updated : store.selectedMenu(),
                 });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -115,39 +150,51 @@ export const MenusStore = signalStore(
                 patchState(store, {
                   menus: store.menus().filter((m) => m.id !== id),
                 }),
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
       ),
     ),
 
-    publishMenu: rxMethod<string>(
+    activateMenu: rxMethod<string>(
       pipe(
         switchMap((id) => {
-          return menusService.publish(id).pipe(
+          return menusService.activate(id).pipe(
             tapResponse({
-              next: (updated) => {
-                const menus = store.menus().map((m) => (m.id === id ? updated : m));
+              next: () => {
+                const menus = store.menus().map((m) => (m.id === id ? { ...m, is_active: true } : m));
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
       ),
     ),
 
-    unpublishMenu: rxMethod<string>(
+    deactivateMenu: rxMethod<string>(
       pipe(
         switchMap((id) => {
-          return menusService.unpublish(id).pipe(
+          return menusService.deactivate(id).pipe(
             tapResponse({
-              next: (updated) => {
-                const menus = store.menus().map((m) => (m.id === id ? updated : m));
+              next: () => {
+                const menus = store.menus().map((m) => (m.id === id ? { ...m, is_active: false } : m));
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -170,7 +217,11 @@ export const MenusStore = signalStore(
                   );
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -192,7 +243,11 @@ export const MenusStore = signalStore(
                   );
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -215,7 +270,11 @@ export const MenusStore = signalStore(
                 });
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),
@@ -239,7 +298,11 @@ export const MenusStore = signalStore(
                 });
                 patchState(store, { menus });
               },
-              error: (err: unknown) => patchState(store, { error: String(err) }),
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+              },
             }),
           );
         }),

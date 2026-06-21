@@ -111,7 +111,6 @@ ignore = [
     "PLW0108", # Lambda in mock side_effect is fine
     "E731",    # Lambda assignment for test helpers is fine
     "RUF069",  # Float equality in test assertions is intentional
-    "RUF076",  # autouse=True in fixtures is fine
     "PLR0915", # Long integration tests are acceptable
     "PLR0914", # Many local variables in integration tests
     "PLC2701", # Private name imports in tests are fine

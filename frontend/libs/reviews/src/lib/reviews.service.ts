@@ -23,7 +23,8 @@ const MOCK_REVIEWS: Review[] = [
     restaurant_name: 'Pizza Suprema',
     customer_name: 'Jane Smith',
     rating: 2,
-    comment: 'Pizza was extremely cold when it arrived. The crust was soggy and toppings were sparse.',
+    comment:
+      'Pizza was extremely cold when it arrived. The crust was soggy and toppings were sparse.',
     created_at: '2026-06-18T18:15:00Z',
     flagged: true,
     status: 'FLAGGED',
@@ -37,7 +38,8 @@ const MOCK_REVIEWS: Review[] = [
     restaurant_name: 'Burger Palace',
     customer_name: 'Mike Johnson',
     rating: 4,
-    comment: 'Great double cheeseburger! Onion rings could have been crispier, but overall very good.',
+    comment:
+      'Great double cheeseburger! Onion rings could have been crispier, but overall very good.',
     created_at: '2026-06-17T12:00:00Z',
     flagged: false,
     status: 'APPROVED',

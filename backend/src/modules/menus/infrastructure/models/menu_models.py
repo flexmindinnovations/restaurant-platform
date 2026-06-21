@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import UserDefinedType
@@ -10,7 +10,10 @@ from shared.infrastructure.database import Base
 
 class MenuModel(Base):
     __tablename__ = "menus"
-    __table_args__ = {"schema": "menus"}
+    __table_args__ = (
+        UniqueConstraint("restaurant_id", "name", name="uq_menus_restaurant_name"),
+        {"schema": "menus"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     restaurant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
@@ -26,7 +29,10 @@ class MenuModel(Base):
 
 class CategoryModel(Base):
     __tablename__ = "categories"
-    __table_args__ = {"schema": "menus"}
+    __table_args__ = (
+        UniqueConstraint("menu_id", "name", name="uq_categories_menu_name"),
+        {"schema": "menus"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     menu_id = Column(
@@ -47,7 +53,10 @@ class CategoryModel(Base):
 
 class MenuItemModel(Base):
     __tablename__ = "menu_items"
-    __table_args__ = {"schema": "menus"}
+    __table_args__ = (
+        UniqueConstraint("menu_id", "category_id", "name", name="uq_menu_items_menu_category_name"),
+        {"schema": "menus"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     menu_id = Column(
@@ -66,7 +75,7 @@ class MenuItemModel(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     price_amount = Column(Numeric(precision=10, scale=2), nullable=False)
-    price_currency = Column(String(3), default="USD", nullable=False)
+    price_currency = Column(String(3), default="INR", nullable=False)
     image_url = Column(String(500), nullable=True)
     display_order = Column(Integer, default=0, nullable=False)
     is_available = Column(Boolean, default=True, nullable=False)
@@ -122,7 +131,7 @@ class ModifierModel(Base):
     )
     name = Column(String(255), nullable=False)
     price_adjustment_amount = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
-    price_adjustment_currency = Column(String(3), default="USD", nullable=False)
+    price_adjustment_currency = Column(String(3), default="INR", nullable=False)
     is_default = Column(Boolean, default=False, nullable=False)
     is_available = Column(Boolean, default=True, nullable=False)
     display_order = Column(Integer, default=0, nullable=False)

@@ -3,23 +3,24 @@ import {
   Component,
   inject,
   OnInit,
+  OnDestroy,
+  effect,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { LucideSearch, LucideChevronRight, LucideCircleCheck, LucideBan } from '@lucide/angular';
+import { MatChipListbox, MatChipOption } from '@angular/material/chips';
+
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PageHeader } from '../../../shared/src/lib/page-header';
+import { HeaderService } from '@app/shared';
 import { StatusBadge } from '../../../shared/src/lib/status-badge';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
+import { DatatableComponent, DatatableCellDirective, DatatableColumn } from '@app/design-system';
 import { RestaurantsStore } from './restaurants.store';
 
 @Component({
@@ -29,124 +30,121 @@ import { RestaurantsStore } from './restaurants.store';
   imports: [
     RouterLink,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressBarModule,
+    LucideSearch,
+    LucideChevronRight,
+    LucideCircleCheck,
+    LucideBan,
+    MatChipListbox,
+    MatChipOption,
     MatTooltipModule,
-    PageHeader,
     StatusBadge,
     EmptyState,
+    DatatableComponent,
+    DatatableCellDirective,
   ],
   template: `
-    <app-page-header title="Restaurants" subtitle="Manage restaurant registrations and verification">
-    </app-page-header>
-
     <!-- Filters -->
     <div class="filters-row">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
         <mat-label>Search restaurants</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [ngModel]="searchValue()" (ngModelChange)="onSearch($event)"
-          placeholder="Name, city…" id="restaurant-search" />
+        <svg lucideSearch [size]="18" matIconPrefix></svg>
+        <input
+          matInput
+          [ngModel]="searchValue()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Name, city…"
+          id="restaurant-search"
+        />
       </mat-form-field>
 
-      <mat-chip-listbox [ngModel]="verifiedFilter()" (ngModelChange)="onVerifiedFilter($event)"
-        class="filter-chips" aria-label="Verification filter">
+      <mat-chip-listbox
+        [ngModel]="verifiedFilter()"
+        (ngModelChange)="onVerifiedFilter($event)"
+        class="filter-chips"
+        aria-label="Verification filter"
+      >
         <mat-chip-option value="all">All</mat-chip-option>
         <mat-chip-option value="verified">Verified</mat-chip-option>
         <mat-chip-option value="unverified">Unverified</mat-chip-option>
       </mat-chip-listbox>
     </div>
 
-    <!-- Loading bar -->
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
     <!-- Table -->
-    <div class="table-container mat-elevation-z1">
+    <div class="table-wrapper-container">
       @if (!store.loading() && !store.hasResults()) {
-        <app-empty-state icon="storefront" title="No restaurants found"
-          message="Try adjusting your search or filters." />
+        <app-empty-state
+          icon="store"
+          title="No restaurants found"
+          message="Try adjusting your search or filters."
+        />
       } @else {
-        <table mat-table [dataSource]="store.restaurants()" class="full-width">
+        <app-datatable
+          [dataSource]="store.restaurants()"
+          [columns]="columns"
+          [total]="store.total()"
+          [pageSize]="10"
+          (pageChange)="onPage($event)"
+          (rowClick)="onRowClick($event)"
+          paginatorAriaLabel="Restaurants pagination"
+        >
           <!-- Name -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let r">
-              <a [routerLink]="[r.id]" class="restaurant-link">{{ r.name }}</a>
-            </td>
-          </ng-container>
+          <ng-template appDatatableCell="name" let-row>
+            <a [routerLink]="[row.id]" class="restaurant-link">{{ row.name }}</a>
+          </ng-template>
 
           <!-- City -->
-          <ng-container matColumnDef="city">
-            <th mat-header-cell *matHeaderCellDef>City</th>
-            <td mat-cell *matCellDef="let r">{{ r.address_city }}, {{ r.address_state }}</td>
-          </ng-container>
+          <ng-template appDatatableCell="city" let-row>
+            {{ row.address_city }}, {{ row.address_state }}
+          </ng-template>
 
           <!-- Cuisine -->
-          <ng-container matColumnDef="cuisine">
-            <th mat-header-cell *matHeaderCellDef>Cuisine</th>
-            <td mat-cell *matCellDef="let r">{{ r.cuisine_types.join(', ') }}</td>
-          </ng-container>
+          <ng-template appDatatableCell="cuisine" let-row>
+            {{ row.cuisine_types.join(', ') }}
+          </ng-template>
 
           <!-- Status -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let r">
-              <app-status-badge [status]="r.is_active ? 'ACTIVE' : 'INACTIVE'" />
-            </td>
-          </ng-container>
+          <ng-template appDatatableCell="status" let-row>
+            <app-status-badge [status]="row.is_active ? 'ACTIVE' : 'INACTIVE'" />
+          </ng-template>
 
           <!-- Verified -->
-          <ng-container matColumnDef="verified">
-            <th mat-header-cell *matHeaderCellDef>Verified</th>
-            <td mat-cell *matCellDef="let r">
-              <app-status-badge [status]="r.is_verified ? 'VERIFIED' : 'UNVERIFIED'" />
-            </td>
-          </ng-container>
+          <ng-template appDatatableCell="verified" let-row>
+            <app-status-badge [status]="row.is_verified ? 'VERIFIED' : 'UNVERIFIED'" />
+          </ng-template>
 
           <!-- Actions -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let r">
-              <button mat-icon-button [routerLink]="[r.id]"
-                matTooltip="View detail" aria-label="View restaurant detail">
-                <mat-icon>chevron_right</mat-icon>
+          <ng-template appDatatableCell="actions" let-row>
+            <button
+              mat-icon-button
+              [routerLink]="[row.id]"
+              matTooltip="View detail"
+              aria-label="View restaurant detail"
+            >
+              <svg lucideChevronRight [size]="16" style="color: var(--color-text-secondary)"></svg>
+            </button>
+            @if (!row.is_verified) {
+              <button
+                mat-icon-button
+                (click)="onVerify(row.id, $event)"
+                matTooltip="Approve registration"
+                aria-label="Approve registration"
+              >
+                <svg lucideCircleCheck [size]="16" style="color: var(--color-success)"></svg>
               </button>
-              @if (!r.is_verified) {
-                <button mat-icon-button color="primary"
-                  (click)="onVerify(r.id, $event)"
-                  matTooltip="Approve registration" aria-label="Approve registration">
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-                <button mat-icon-button color="warn"
-                  (click)="onReject(r.id, $event)"
-                  matTooltip="Reject registration" aria-label="Reject registration">
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              }
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"
-            class="table-row" [routerLink]="[row.id]"></tr>
-        </table>
-
-        <mat-paginator
-          [length]="store.total()"
-          [pageSize]="20"
-          [pageSizeOptions]="[10, 20, 50]"
-          (page)="onPage($event)"
-          aria-label="Restaurants pagination">
-        </mat-paginator>
+              <button
+                mat-icon-button
+                (click)="onReject(row.id, $event)"
+                matTooltip="Reject registration"
+                aria-label="Reject registration"
+              >
+                <svg lucideBan [size]="16" style="color: var(--color-error)"></svg>
+              </button>
+            }
+          </ng-template>
+        </app-datatable>
       }
     </div>
   `,
@@ -159,32 +157,59 @@ import { RestaurantsStore } from './restaurants.store';
       flex-wrap: wrap;
     }
     .search-field { flex: 1; min-width: 240px; }
-    .filter-chips { display: flex; gap: 8px; }
-    .table-container {
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--mat-sys-surface, #fff);
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      &::ng-deep .mat-mdc-chip {
+        height: 40px;
+        font-size: 13px;
+      }
     }
-    .full-width { width: 100%; }
-    .table-row { cursor: pointer; }
-    .table-row:hover { background: var(--mat-sys-surface-variant, #f5f5f5); }
+    .table-wrapper-container {
+      width: 100%;
+    }
     .restaurant-link {
-      color: var(--mat-sys-primary, #e65100);
+      color: var(--color-primary);
       text-decoration: none;
       font-weight: 500;
     }
-    .restaurant-link:hover { text-decoration: underline; }
+    .restaurant-link:hover {
+      text-decoration: underline;
+    }
   `,
 })
-export class RestaurantsList implements OnInit {
+export class RestaurantsList implements OnInit, OnDestroy {
   protected readonly store = inject(RestaurantsStore);
-  protected readonly displayedColumns = ['name', 'city', 'cuisine', 'status', 'verified', 'actions'];
+  private readonly headerService = inject(HeaderService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
+
+  protected readonly columns: DatatableColumn[] = [
+    { key: 'name', label: 'Name' },
+    { key: 'city', label: 'City' },
+    { key: 'cuisine', label: 'Cuisine' },
+    { key: 'status', label: 'Status' },
+    { key: 'verified', label: 'Verified' },
+    { key: 'actions', label: 'Actions' },
+  ];
 
   protected readonly searchValue = signal('');
   protected readonly verifiedFilter = signal<'all' | 'verified' | 'unverified'>('all');
 
   ngOnInit(): void {
     this.store.loadRestaurants();
+  }
+
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
   }
 
   onSearch(value: string): void {
@@ -205,6 +230,11 @@ export class RestaurantsList implements OnInit {
     this.store.loadRestaurants();
   }
 
+  onRowClick(row: unknown): void {
+    const id = (row as { id: string }).id;
+    this.router.navigate([id], { relativeTo: this.route });
+  }
+
   onVerify(id: string, event: Event): void {
     event.stopPropagation();
     this.store.verifyRestaurant(id);
@@ -217,3 +247,4 @@ export class RestaurantsList implements OnInit {
     }
   }
 }
+

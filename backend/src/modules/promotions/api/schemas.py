@@ -14,7 +14,7 @@ class CreatePromotionRequest(BaseModel):
     valid_until: datetime
     min_order_amount: Decimal | None = Field(None, ge=0)
     max_discount_amount: Decimal | None = Field(None, ge=0)
-    currency: str = Field("USD", max_length=3)
+    currency: str = Field("INR", max_length=3)
     max_total_uses: int | None = Field(None, ge=1)
     max_uses_per_customer: int = Field(1, ge=1)
     restaurant_id: uuid.UUID | None = None
@@ -23,13 +23,13 @@ class CreatePromotionRequest(BaseModel):
 class ApplyPromotionRequest(BaseModel):
     code: str = Field(..., min_length=1, max_length=50)
     order_amount: Decimal = Field(..., gt=0)
-    currency: str = Field("USD", max_length=3)
+    currency: str = Field("INR", max_length=3)
 
 
 class ValidatePromotionRequest(BaseModel):
     code: str = Field(..., min_length=1, max_length=50)
     order_amount: Decimal = Field(..., gt=0)
-    currency: str = Field("USD", max_length=3)
+    currency: str = Field("INR", max_length=3)
 
 
 class PromotionResponse(BaseModel):

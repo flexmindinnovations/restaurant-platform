@@ -10,7 +10,7 @@ class DailyOrderStats:
     order_count: int
     revenue: Decimal
     average_order_value: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -19,7 +19,7 @@ class PopularItem:
     name: str
     order_count: int
     total_revenue: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -27,7 +27,7 @@ class PeakHour:
     hour: int
     order_count: int
     average_revenue: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ class RestaurantDashboard:
     total_orders: int = 0
     total_revenue: Decimal = Decimal("0")
     average_rating: Decimal = Decimal("0")
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -68,7 +68,7 @@ class PlatformDashboard:
     customer_stats: CustomerStats | None = None
     delivery_stats: DeliveryStats | None = None
     top_restaurants: list["TopRestaurant"] = field(default_factory=list)
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -78,7 +78,7 @@ class TopRestaurant:
     order_count: int
     revenue: Decimal
     average_rating: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -88,4 +88,4 @@ class RevenueBreakdown:
     delivery_revenue: Decimal
     daily_revenue: list[DailyOrderStats] = field(default_factory=list)
     top_restaurants: list[TopRestaurant] = field(default_factory=list)
-    currency: str = "USD"
+    currency: str = "INR"

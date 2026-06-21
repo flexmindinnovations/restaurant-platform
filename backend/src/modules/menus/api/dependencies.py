@@ -75,14 +75,17 @@ def get_delete_menu_handler(
 def get_menu_query_handler(
     menu_repo: SqlAlchemyMenuRepository = Depends(_menu_repo),
     category_repo: SqlAlchemyCategoryRepository = Depends(_category_repo),
+    item_repo: SqlAlchemyMenuItemRepository = Depends(_item_repo),
 ) -> GetMenuHandler:
-    return GetMenuHandler(menu_repo, category_repo)
+    return GetMenuHandler(menu_repo, category_repo, item_repo)
 
 
 def get_list_menus_handler(
     menu_repo: SqlAlchemyMenuRepository = Depends(_menu_repo),
+    category_repo: SqlAlchemyCategoryRepository = Depends(_category_repo),
+    item_repo: SqlAlchemyMenuItemRepository = Depends(_item_repo),
 ) -> ListMenusHandler:
-    return ListMenusHandler(menu_repo)
+    return ListMenusHandler(menu_repo, category_repo, item_repo)
 
 
 def get_add_category_handler(

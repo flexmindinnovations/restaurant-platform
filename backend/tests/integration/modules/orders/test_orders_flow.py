@@ -149,7 +149,7 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
             "name": "Fettuccine Alfredo",
             "description": "Rich creamy white sauce pasta",
             "price_amount": "16.50",
-            "price_currency": "USD",
+            "price_currency": "INR",
         },
     )
     assert item_resp.status_code == 201
@@ -181,6 +181,20 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
     assert patch_cart_resp.status_code == 200
     assert patch_cart_resp.json()["data"]["items"][0]["quantity"] == 2
 
+    # Add payment method for customer
+    add_pm_resp = await client.post(
+        "/api/v1/payments/methods",
+        headers=cust_headers,
+        json={
+            "type": "card",
+            "last_four": "4242",
+            "brand": "visa",
+            "is_default": True,
+            "token": "tok_visa",
+        },
+    )
+    assert add_pm_resp.status_code == 201
+
     # 8. Customer Places Order
     place_order_resp = await client.post(
         "/api/v1/checkout/place-order",
@@ -195,6 +209,8 @@ async def test_full_checkout_and_order_lifecycle(client: AsyncClient, db_session
             "delivery_notes": "Call upon arrival",
         },
     )
+    if place_order_resp.status_code != 201:
+        print("PLACE ORDER FAIL:", place_order_resp.status_code, place_order_resp.json())
     assert place_order_resp.status_code == 201
     order_id = uuid.UUID(place_order_resp.json()["data"]["order_id"])
 

@@ -1,0 +1,192 @@
+<app-page-header
+  title="Delivery Detail"
+  [subtitle]="'Order: ' + (deliveryId() || '')"
+>
+  <button mat-stroked-button (click)="goBack()">
+    <svg lucideArrowLeft [size]="18" aria-hidden="true"></svg>
+    <span>Back to List</span>
+  </button>
+  <button mat-flat-button (click)="store.loadAll()">
+    <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+    <span>Refresh</span>
+  </button>
+</app-page-header>
+
+@if (currentDelivery(); as delivery) {
+  <div class="deliveries-layout">
+    <!-- Interactive Map Panel -->
+    <mat-card class="map-card mat-elevation-z1">
+      <mat-card-header class="map-header">
+        <mat-card-title id="map-title">San Francisco Live Delivery Map</mat-card-title>
+        <div class="map-legend" role="presentation">
+          <span class="legend-item"><span class="dot dot--online" aria-hidden="true"></span> Online</span>
+          <span class="legend-item"><span class="dot dot--busy" aria-hidden="true"></span> Busy</span>
+          <span class="legend-item"><span class="dot dot--offline" aria-hidden="true"></span> Offline</span>
+        </div>
+      </mat-card-header>
+      <mat-card-content class="map-content">
+        <svg viewBox="0 0 600 400" class="live-map-svg" aria-labelledby="map-title">
+          <!-- Grid Background Lines / Representation of SF Streets -->
+          <rect width="600" height="400" fill="#f8fafc" rx="8" aria-hidden="true" />
+
+          <!-- Roads/Grid representation -->
+          <g class="map-roads" stroke="#ffffff" stroke-width="4" aria-hidden="true">
+            <line x1="50" y1="0" x2="50" y2="400" />
+            <line x1="150" y1="0" x2="150" y2="400" />
+            <line x1="250" y1="0" x2="250" y2="400" />
+            <line x1="350" y1="0" x2="350" y2="400" />
+            <line x1="450" y1="0" x2="450" y2="400" />
+            <line x1="550" y1="0" x2="550" y2="400" />
+
+            <line x1="0" y1="50" x2="600" y2="50" />
+            <line x1="0" y1="130" x2="600" y2="130" />
+            <line x1="0" y1="210" x2="600" y2="210" />
+            <line x1="0" y1="290" x2="600" y2="290" />
+            <line x1="0" y1="370" x2="600" y2="370" />
+          </g>
+
+          <!-- Active Delivery Route Lines -->
+          @if (delivery.status !== 'DELIVERED') {
+            <g
+              class="route-group route-group--selected"
+              tabindex="0"
+              role="presentation"
+            >
+              <!-- Dashed line from restaurant to customer -->
+              <line
+                [attr.x1]="lngToX(delivery.restaurant_location.lng)"
+                [attr.y1]="latToY(delivery.restaurant_location.lat)"
+                [attr.x2]="lngToX(delivery.customer_location.lng)"
+                [attr.y2]="latToY(delivery.customer_location.lat)"
+                class="route-line"
+              />
+            </g>
+          }
+
+          <!-- Restaurant Pin -->
+          @if (delivery.status !== 'DELIVERED') {
+            <g
+              class="marker"
+              [attr.transform]="getTransform(delivery.restaurant_location.lat, delivery.restaurant_location.lng)"
+              [matTooltip]="'Restaurant: ' + delivery.restaurant_name"
+              tabindex="0"
+              role="img"
+              [attr.aria-label]="'Restaurant: ' + delivery.restaurant_name"
+            >
+              <circle r="9" fill="#e65100" stroke="#ffffff" stroke-width="2" />
+              <text y="3" class="marker-label" text-anchor="middle" fill="#ffffff">R</text>
+            </g>
+          }
+
+          <!-- Customer Pin -->
+          @if (delivery.status !== 'DELIVERED') {
+            <g
+              class="marker"
+              [attr.transform]="getTransform(delivery.customer_location.lat, delivery.customer_location.lng)"
+              [matTooltip]="'Delivery for Order ' + delivery.id"
+              tabindex="0"
+              role="img"
+              [attr.aria-label]="'Customer delivery address for order ' + delivery.id"
+            >
+              <circle r="9" fill="#1565c0" stroke="#ffffff" stroke-width="2" />
+              <text y="3" class="marker-label" text-anchor="middle" fill="#ffffff">C</text>
+            </g>
+          }
+
+          <!-- Partner Pins -->
+          @for (pt of store.partners(); track pt.id) {
+            <g
+              class="marker marker--partner"
+              [attr.transform]="getTransform(pt.current_location.lat, pt.current_location.lng)"
+              [matTooltip]="pt.name + ' (' + pt.status + ' - ' + pt.vehicle_type + ')'"
+              role="img"
+              [attr.aria-label]="pt.name + ' status ' + pt.status + ' using ' + pt.vehicle_type"
+            >
+              <circle
+                r="10"
+                [attr.fill]="getPartnerColor(pt.status)"
+                stroke="#ffffff"
+                stroke-width="2"
+              />
+              <path d="M-4,-4 L4,0 L-4,4 Z" fill="#ffffff" transform="translate(1,0)" />
+            </g>
+          }
+        </svg>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Sidebar Controls Panel -->
+    <div class="controls-panel">
+      <!-- Delivery Details Card -->
+      <mat-card appearance="outlined" class="deliveries-card">
+        <mat-card-header>
+          <mat-card-title>Delivery Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="delivery-detail-content">
+          <div class="detail-info-block">
+            <span class="detail-info-label">Order ID</span>
+            <span class="detail-info-value font-mono font-bold">{{ delivery.id }}</span>
+          </div>
+
+          <div class="detail-info-block">
+            <span class="detail-info-label">Status</span>
+            <span class="detail-info-value">
+              <app-status-badge [status]="delivery.status" />
+            </span>
+          </div>
+
+          <div class="detail-info-block">
+            <span class="detail-info-label">Restaurant</span>
+            <span class="detail-info-value font-semibold">{{ delivery.restaurant_name }}</span>
+          </div>
+
+          <div class="detail-info-block">
+            <span class="detail-info-label">Destination Address</span>
+            <span class="detail-info-value">{{ delivery.customer_address }}</span>
+          </div>
+
+          <div class="detail-info-block">
+            <span class="detail-info-label">Assigned Courier</span>
+            <span class="detail-info-value">{{ delivery.partner_name || 'Unassigned ⚠️' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Assignment Override Panel -->
+      <mat-card appearance="outlined" class="override-card">
+        <mat-card-header>
+          <mat-card-title>Assignment Override</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="override-content">
+          <p class="mb-4 text-sm">
+            Assign or override the courier for order <strong>{{ delivery.id }}</strong>:
+          </p>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Select Delivery Partner</mat-label>
+            <mat-select
+              [value]="delivery.partner_id"
+              (selectionChange)="onOverride(delivery.id, $event.value)"
+            >
+              <mat-option [value]="null">-- Unassigned --</mat-option>
+              @for (p of availablePartners(); track p.id) {
+                <mat-option [value]="p.id">
+                  {{ p.name }} ({{ p.vehicle_type }}) - {{ p.status }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+} @else {
+  <div class="no-delivery-container">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <p>Delivery detail for <strong>{{ deliveryId() }}</strong> could not be found, or is loading.</p>
+        <button mat-flat-button color="primary" (click)="goBack()">Back to Deliveries List</button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

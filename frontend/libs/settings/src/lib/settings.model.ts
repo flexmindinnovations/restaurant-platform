@@ -6,5 +6,6 @@ export interface PlatformSettings {
   service_fee: number;
   ai_provider: 'Gemini' | 'OpenAI';
   ai_api_key: string;
+  logo_url?: string;
+  brand_name?: string;
 }
-

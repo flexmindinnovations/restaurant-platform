@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from redis.asyncio import Redis
@@ -5,6 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.config import get_settings
 from app.main import create_app
+from workers.tasks.notification_tasks import send_notification_task
+
+# Mock celery task during tests to prevent connection or event loop issues
+send_notification_task.delay = MagicMock()
 
 
 @pytest.fixture

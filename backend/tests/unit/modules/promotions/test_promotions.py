@@ -129,15 +129,15 @@ def test_promotion_is_not_valid_when_max_uses_reached():
 
 @pytest.mark.unit
 def test_promotion_validate_for_order():
-    promo = _make_promotion(min_order_amount=Money(amount=Decimal("50"), currency="USD"))
-    order = Money(amount=Decimal("100"), currency="USD")
+    promo = _make_promotion(min_order_amount=Money(amount=Decimal("50"), currency="INR"))
+    order = Money(amount=Decimal("100"), currency="INR")
     promo.validate_for_order(order, customer_usage_count=0)
 
 
 @pytest.mark.unit
 def test_promotion_validate_min_order_fail():
-    promo = _make_promotion(min_order_amount=Money(amount=Decimal("50"), currency="USD"))
-    order = Money(amount=Decimal("30"), currency="USD")
+    promo = _make_promotion(min_order_amount=Money(amount=Decimal("50"), currency="INR"))
+    order = Money(amount=Decimal("30"), currency="INR")
     with pytest.raises(ValidationException, match="Minimum order"):
         promo.validate_for_order(order, customer_usage_count=0)
 
@@ -145,7 +145,7 @@ def test_promotion_validate_min_order_fail():
 @pytest.mark.unit
 def test_promotion_validate_max_customer_usage():
     promo = _make_promotion(max_uses_per_customer=1)
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     with pytest.raises(ValidationException, match="maximum number"):
         promo.validate_for_order(order, customer_usage_count=1)
 
@@ -153,19 +153,19 @@ def test_promotion_validate_max_customer_usage():
 @pytest.mark.unit
 def test_promotion_calculate_discount_percentage():
     promo = _make_promotion(value=Decimal("20"))
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     discount = promo.calculate_discount(order)
     assert discount.amount == Decimal("20.00")
-    assert discount.currency == "USD"
+    assert discount.currency == "INR"
 
 
 @pytest.mark.unit
 def test_promotion_calculate_discount_with_max():
     promo = _make_promotion(
         value=Decimal("50"),
-        max_discount=Money(amount=Decimal("10"), currency="USD"),
+        max_discount=Money(amount=Decimal("10"), currency="INR"),
     )
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     discount = promo.calculate_discount(order)
     assert discount.amount == Decimal("10")
 
@@ -173,7 +173,7 @@ def test_promotion_calculate_discount_with_max():
 @pytest.mark.unit
 def test_promotion_calculate_discount_fixed_amount():
     promo = _make_promotion(promotion_type=PromotionType.FIXED_AMOUNT, value=Decimal("15"))
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     discount = promo.calculate_discount(order)
     assert discount.amount == Decimal("15")
 
@@ -181,7 +181,7 @@ def test_promotion_calculate_discount_fixed_amount():
 @pytest.mark.unit
 def test_promotion_calculate_discount_fixed_exceeds_order():
     promo = _make_promotion(promotion_type=PromotionType.FIXED_AMOUNT, value=Decimal("150"))
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     discount = promo.calculate_discount(order)
     assert discount.amount == Decimal("100")
 
@@ -189,7 +189,7 @@ def test_promotion_calculate_discount_fixed_exceeds_order():
 @pytest.mark.unit
 def test_promotion_calculate_discount_free_delivery():
     promo = _make_promotion(promotion_type=PromotionType.FREE_DELIVERY, value=Decimal("1"))
-    order = Money(amount=Decimal("100"), currency="USD")
+    order = Money(amount=Decimal("100"), currency="INR")
     discount = promo.calculate_discount(order)
     assert discount.amount == Decimal("0")
 
@@ -228,10 +228,10 @@ def test_coupon_usage_record():
         order_id=uuid.uuid4(),
         customer_id=uuid.uuid4(),
         discount_amount=Decimal("15.50"),
-        discount_currency="USD",
+        discount_currency="INR",
     )
     assert usage.discount_amount == Decimal("15.50")
-    assert usage.discount_currency == "USD"
+    assert usage.discount_currency == "INR"
     assert usage.id is not None
 
 
@@ -312,7 +312,7 @@ async def test_apply_promotion_handler_success():
 
     result = await handler.handle(command)
     assert result.discount_amount == Decimal("20.00")
-    assert result.discount_currency == "USD"
+    assert result.discount_currency == "INR"
     promo_repo.update.assert_called_once()
     promo_repo.add_usage.assert_called_once()
     uow.commit.assert_called_once()

@@ -39,7 +39,7 @@ async def handle_order_placed(event: Any) -> None:
             order_id=event.aggregate_id,
             customer_id=event.customer_id,
             restaurant_id=event.restaurant_id,
-            amount=Money(event.total_amount, "USD"),
+            amount=Money(event.total_amount, "INR"),
         )
         await handler.handle(command)
 

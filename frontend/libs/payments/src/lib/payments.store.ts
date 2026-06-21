@@ -61,8 +61,7 @@ export const PaymentsStore = signalStore(
                   total: result.total,
                   loading: false,
                 }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),

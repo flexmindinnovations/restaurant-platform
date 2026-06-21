@@ -6,7 +6,7 @@ from modules.menus.application.ports.menu_item_repository import MenuItemReposit
 from modules.menus.application.ports.menu_repository import MenuRepository
 from modules.menus.domain.entities.menu_item import MenuItem
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
-from shared.domain.exceptions import NotFoundException
+from shared.domain.exceptions import BusinessRuleViolationError, NotFoundException
 from shared.domain.value_objects import Money
 
 
@@ -16,7 +16,7 @@ class CreateMenuItemCommand:
     restaurant_id: uuid.UUID
     name: str
     price_amount: Decimal
-    price_currency: str = "USD"
+    price_currency: str = "INR"
     category_id: uuid.UUID | None = None
     description: str | None = None
     image_url: str | None = None
@@ -41,6 +41,9 @@ class CreateMenuItemHandler:
             menu = await self._menu_repo.get_by_id(command.menu_id)
             if not menu:
                 raise NotFoundException("Menu not found")
+
+            if await self._item_repo.exists_by_name(command.menu_id, command.name, command.category_id):
+                raise BusinessRuleViolationError(f'A menu item named "{command.name}" already exists in this category')
 
             price = Money(amount=command.price_amount, currency=command.price_currency)
             item = MenuItem.create(

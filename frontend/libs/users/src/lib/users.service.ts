@@ -126,7 +126,7 @@ export class UsersService {
         (u) =>
           u.display_name.toLowerCase().includes(q) ||
           u.email.toLowerCase().includes(q) ||
-          u.phone_number.includes(q)
+          u.phone_number.includes(q),
       );
     }
 

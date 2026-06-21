@@ -1,52 +1,154 @@
 @use '@angular/material' as mat;
 
-// --- M3 Theme — Emerald primary (matches CSS variable system) ---
-$light-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$green-palette,
-    tertiary: mat.$violet-palette,
-  ),
-  typography: (
-    brand-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    plain-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  ),
-  density: (
-    scale: -1,
-  ),
-));
-
-$dark-theme: mat.define-theme((
-  color: (
-    theme-type: dark,
-    primary: mat.$green-palette,
-    tertiary: mat.$violet-palette,
-  ),
-  typography: (
-    brand-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    plain-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  ),
-  density: (
-    scale: -1,
-  ),
-));
-
-// --- Apply themes ---
+// --- Apply themes using modern unified syntax ---
 html {
   color-scheme: light;
-  @include mat.all-component-themes($light-theme);
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$green-palette,
+      tertiary: mat.$violet-palette,
+    ),
+    typography: (
+      brand-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      plain-family: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    ),
+    density: -2,
+  ));
+
+  // Override Material theme primary to match our unified shade of green
+  --mat-sys-primary: var(--color-primary) !important;
 }
 
 html.dark {
   color-scheme: dark;
-  @include mat.all-component-colors($dark-theme);
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$green-palette,
+      tertiary: mat.$violet-palette,
+    ),
+  ));
 }
 
 @media (prefers-color-scheme: dark) {
   html:not(.light) {
     color-scheme: dark;
-    @include mat.all-component-colors($dark-theme);
+    @include mat.theme((
+      color: (
+        theme-type: dark,
+        primary: mat.$green-palette,
+        tertiary: mat.$violet-palette,
+      ),
+    ));
   }
+}
+
+// --- Sharp rectangular corners — override ALL Material shape tokens ---
+html {
+  // Buttons
+  --mdc-filled-button-container-shape: 0;
+  --mdc-outlined-button-container-shape: 0;
+  --mdc-text-button-container-shape: 0;
+  --mdc-protected-button-container-shape: 0;
+  --mdc-icon-button-state-layer-size: 32px;
+
+  // Form fields
+  --mdc-outlined-text-field-container-shape: 0;
+  --mdc-filled-text-field-container-shape: 0;
+
+  // Select
+  --mat-select-container-shape: 0;
+
+  // Chips
+  --mdc-chip-container-shape-radius: 0;
+  --mat-chip-container-shape-radius: 0;
+
+  // Cards
+  --mdc-elevated-card-container-shape: 0;
+  --mdc-outlined-card-container-shape: 0;
+
+  // Dialog
+  --mdc-dialog-container-shape: 0;
+
+  // Menu
+  --mat-menu-container-shape: 0;
+
+  // Snackbar
+  --mdc-snackbar-container-shape: 0;
+
+  // Autocomplete
+  --mat-autocomplete-container-shape: 0;
+
+  // Checkbox
+  --mdc-checkbox-state-layer-size: 32px;
+
+  // Expansion panel
+  --mat-expansion-container-shape: 0;
+
+  // Tab
+  --mdc-secondary-navigation-tab-container-height: 48px;
+  --mat-tab-header-active-focus-indicator-shape: 0;
+
+  // Tooltip
+  --mdc-plain-tooltip-container-shape: 0;
+
+  // Paginator
+  --mat-paginator-container-shape: 0;
+
+  // Slider
+  --mdc-slider-handle-shape: 0;
+
+  // FAB
+  --mdc-fab-container-shape: 0;
+  --mdc-fab-small-container-shape: 0;
+
+  // Progress bar
+  --mdc-linear-progress-track-shape: 0;
+
+  // Badge
+  --mat-badge-container-shape: 0;
+}
+
+// --- Catch-all sharp corners for Material components ---
+.mdc-button,
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button,
+.mat-mdc-icon-button,
+.mat-mdc-fab,
+.mat-mdc-mini-fab,
+.mat-mdc-chip,
+.mdc-evolution-chip,
+.mat-mdc-standard-chip,
+.mat-mdc-select,
+.mat-mdc-option,
+.mdc-text-field--outlined,
+.mat-mdc-text-field-wrapper,
+.mat-mdc-form-field,
+.mat-mdc-autocomplete-panel,
+.mat-mdc-select-panel,
+.mat-mdc-dialog-surface,
+.mdc-dialog__surface,
+.mat-mdc-snack-bar-container,
+.mat-mdc-tab,
+.mat-mdc-tab-group,
+.mat-mdc-slide-toggle .mdc-switch__track,
+.mat-mdc-progress-bar .mdc-linear-progress__bar-inner,
+.mat-mdc-progress-bar .mdc-linear-progress__buffer-bar,
+.mat-expansion-panel,
+.mat-mdc-card,
+.mat-mdc-menu-panel,
+.mat-mdc-paginator,
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  border-radius: 0 !important;
+}
+
+.mdc-notched-outline .mdc-notched-outline__leading,
+.mdc-notched-outline .mdc-notched-outline__trailing,
+.mdc-notched-outline .mdc-notched-outline__notch {
+  border-radius: 0 !important;
 }
 
 // --- Global resets ---
@@ -60,6 +162,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
   font-size: 100%;
 }
 
@@ -75,7 +178,6 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 2px;
 }
 
 :focus:not(:focus-visible) {
@@ -103,7 +205,7 @@ body {
   color: white;
   font-weight: 500;
   text-decoration: none;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0;
 
   &:focus {
     top: 0;
@@ -113,4 +215,350 @@ body {
 // --- Utility classes ---
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+// --- Compact/Condensed Table Rows & Theme-Aware Background ---
+// --- Unified Table Card Container ---
+.table-container {
+  display: block;
+  width: 100%;
+  background-color: var(--color-surface-1) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.mat-mdc-table {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  .mat-mdc-header-row {
+    height: 40px !important;
+    background-color: var(--color-surface-2) !important;
+  }
+
+  .mat-mdc-row {
+    height: 44px !important;
+    background-color: var(--color-surface-1) !important;
+    transition: background-color var(--duration-fast) ease-in-out, transform 100ms ease;
+
+    &:hover {
+      background-color: var(--color-surface-2) !important;
+      cursor: pointer;
+    }
+  }
+
+  .mat-mdc-header-cell {
+    background-color: transparent !important;
+    color: var(--color-text-secondary) !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+
+  .mat-mdc-cell {
+    background-color: transparent !important;
+    color: var(--color-text-primary) !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    font-size: 13px !important;
+    border-bottom: 1px solid var(--color-border) !important;
+
+    .mat-mdc-icon-button {
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      line-height: 32px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      .mat-mdc-button-touch-target {
+        width: 32px !important;
+        height: 32px !important;
+      }
+
+      svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+    }
+  }
+}
+
+// Theme-aware Paginator
+.mat-mdc-paginator {
+  background-color: var(--color-surface-1) !important;
+  color: var(--color-text-secondary) !important;
+  border: none !important;
+  border-top: 1px solid var(--color-border) !important;
+  border-radius: 0 !important;
+
+  .mat-mdc-select-value {
+    color: var(--color-text-primary) !important;
+  }
+
+  .mat-mdc-icon-button {
+    color: var(--color-text-secondary) !important;
+
+    &:hover {
+      background-color: var(--color-surface-2) !important;
+    }
+  }
+}
+
+// --- Modern Compact Form & Input Field Overrides ---
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: 0px;
+  --mdc-outlined-text-field-outline-color: var(--color-border);
+  --mdc-outlined-text-field-focus-outline-color: var(--color-primary);
+  --mdc-outlined-text-field-hover-outline-color: var(--color-primary-light);
+
+  font-size: 14px !important;
+
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--color-surface-1) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-text-prefix {
+    padding-right: 12px !important;
+    padding-left: 0 !important;
+  }
+
+  .mat-mdc-form-field-icon-suffix,
+  .mat-mdc-form-field-text-suffix {
+    padding-left: 12px !important;
+    padding-right: 0 !important;
+  }
+
+  &.mat-focused {
+    .mat-mdc-text-field-wrapper {
+      box-shadow: 0 0 0 3px var(--color-primary-subtle);
+    }
+  }
+
+  // Icon position fix
+  .mat-icon[matPrefix], .mat-icon[matIconPrefix], .mat-icon[matSuffix], .mat-icon[matIconSuffix],
+  svg[matPrefix], svg[matIconPrefix], svg[matSuffix], svg[matIconSuffix] {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: var(--color-text-tertiary) !important;
+  }
+
+  // Spacing for prefixes and suffixes globally (covers text, icons, spans, etc.)
+  [matPrefix], [matIconPrefix], [matTextPrefix] {
+    margin-left: 0 !important;
+    margin-right: 12px !important;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  [matSuffix], [matIconSuffix], [matTextSuffix] {
+    margin-right: 0 !important;
+    margin-left: 12px !important;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+// Button icon + text alignment (global)
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  .mdc-button__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+// Modern Button & Card Defaults with animations
+.mat-mdc-card {
+  background-color: var(--color-surface-1) !important;
+  border-radius: 0 !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-md) !important;
+  }
+}
+
+.mat-flat-button, .mat-raised-button {
+  border-radius: 0 !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-xs) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.mat-outlined-button {
+  border-radius: 0 !important;
+  border-color: var(--color-border) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  &:hover {
+    background-color: var(--color-surface-2) !important;
+  }
+}
+
+// --- Modern Dialog Styling ---
+.mat-mdc-dialog-container {
+  .mdc-dialog__surface {
+    border-radius: var(--radius-xl) !important;
+    background-color: var(--color-surface-1) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+}
+
+.mat-mdc-dialog-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary) !important;
+  // padding: 20px 24px 0 !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em;
+}
+
+.mat-mdc-dialog-content {
+  padding: 16px 24px !important;
+  color: var(--color-text-primary) !important;
+}
+
+.mat-mdc-dialog-actions {
+  padding: 8px 24px 20px !important;
+  gap: 8px;
+
+  .mat-mdc-button:not(.mdc-button--unelevated) {
+    color: var(--color-text-secondary) !important;
+  }
+}
+
+// --- Button color variants (global utility classes) ---
+.mat-btn-danger {
+  background-color: var(--color-error) !important;
+  --mdc-filled-button-container-color: var(--color-error) !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mdc-filled-button-hover-state-layer-opacity: 0.08;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+.mat-btn-warning {
+  --mdc-filled-button-container-color: var(--color-warning) !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mdc-filled-button-hover-state-layer-opacity: 0.08;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+.mat-btn-info {
+  --mdc-filled-button-container-color: var(--color-info) !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mdc-filled-button-hover-state-layer-opacity: 0.08;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+// --- Theme-aware Select & Autocomplete Panels ---
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background-color: var(--color-surface-1) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.mat-mdc-option {
+  background-color: var(--color-surface-1) !important;
+  color: var(--color-text-primary) !important;
+  font-size: 14px !important;
+
+  &:hover:not(.mdc-list-item--disabled),
+  &:focus:not(.mdc-list-item--disabled),
+  &.mat-mdc-option-active {
+    background-color: var(--color-surface-2) !important;
+  }
+
+  &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+    background-color: var(--color-primary-subtle) !important;
+    color: var(--color-primary) !important;
+
+    .mdc-list-item__primary-text {
+      color: var(--color-primary) !important;
+    }
+  }
+}
+
+// Glassmorphic / Premium styling for popups and menus
+.mat-mdc-menu-panel {
+  border-radius: 0 !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  background: var(--color-glass) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+// --- Theme-aware Material Tooltips ---
+// Light mode: dark tooltip background for contrast
+.mdc-tooltip__surface {
+  background-color: var(--color-text-primary) !important;
+  color: var(--color-surface-1) !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 10px !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+// Dark mode: lighter tooltip for readability
+html.dark .mdc-tooltip__surface {
+  background-color: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+// --- Remove autocomplete/autofill default styling globally ---
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-1) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  transition: background-color 600000s ease-in-out 0s;
 }

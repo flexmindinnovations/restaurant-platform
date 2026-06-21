@@ -85,7 +85,7 @@ async def test_add_to_cart_success(mock_cart_repo, mock_menu_service):
         restaurant_id=restaurant_id,
         name="Burger",
         price_amount=Decimal("10.00"),
-        price_currency="USD",
+        price_currency="INR",
         is_available=True,
     )
     mock_cart_repo.get_by_customer_id.return_value = None
@@ -120,7 +120,7 @@ async def test_add_to_cart_item_not_available(mock_cart_repo, mock_menu_service)
         restaurant_id=uuid.uuid4(),
         name="Burger",
         price_amount=Decimal("10.00"),
-        price_currency="USD",
+        price_currency="INR",
         is_available=False,
     )
     handler = AddToCartHandler(mock_cart_repo, mock_menu_service)
@@ -138,7 +138,7 @@ async def test_update_cart_item_quantity(mock_cart_repo):
     customer_id = uuid.uuid4()
     menu_item_id = uuid.uuid4()
     cart = Cart.create(customer_id)
-    cart.add_item(menu_item_id, "Burger", Money(Decimal("10.00"), "USD"), uuid.uuid4(), 1)
+    cart.add_item(menu_item_id, "Burger", Money(Decimal("10.00"), "INR"), uuid.uuid4(), 1)
 
     mock_cart_repo.get_by_customer_id.return_value = cart
 
@@ -159,7 +159,7 @@ async def test_remove_from_cart(mock_cart_repo):
     customer_id = uuid.uuid4()
     menu_item_id = uuid.uuid4()
     cart = Cart.create(customer_id)
-    cart.add_item(menu_item_id, "Burger", Money(Decimal("10.00"), "USD"), uuid.uuid4(), 1)
+    cart.add_item(menu_item_id, "Burger", Money(Decimal("10.00"), "INR"), uuid.uuid4(), 1)
 
     mock_cart_repo.get_by_customer_id.return_value = cart
 
@@ -179,7 +179,7 @@ async def test_remove_from_cart(mock_cart_repo):
 async def test_clear_cart(mock_cart_repo):
     customer_id = uuid.uuid4()
     cart = Cart.create(customer_id)
-    cart.add_item(uuid.uuid4(), "Burger", Money(Decimal("10.00"), "USD"), uuid.uuid4(), 1)
+    cart.add_item(uuid.uuid4(), "Burger", Money(Decimal("10.00"), "INR"), uuid.uuid4(), 1)
 
     mock_cart_repo.get_by_customer_id.return_value = cart
 
@@ -200,7 +200,7 @@ async def test_place_order_success(mock_order_repo, mock_cart_repo, mock_uow):
     customer_id = uuid.uuid4()
     restaurant_id = uuid.uuid4()
     cart = Cart.create(customer_id)
-    cart.add_item(uuid.uuid4(), "Burger", Money(Decimal("10.00"), "USD"), restaurant_id, 2)
+    cart.add_item(uuid.uuid4(), "Burger", Money(Decimal("10.00"), "INR"), restaurant_id, 2)
 
     mock_cart_repo.get_by_customer_id.return_value = cart
 
@@ -255,7 +255,7 @@ async def test_confirm_order_success(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -267,10 +267,10 @@ async def test_confirm_order_success(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
     mock_order_repo.get_by_id.return_value = order
 
@@ -294,7 +294,7 @@ async def test_update_order_status(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -306,10 +306,10 @@ async def test_update_order_status(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
     order.confirm()  # Must be confirmed before prepared
 
@@ -336,7 +336,7 @@ async def test_cancel_order_customer_success(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -348,10 +348,10 @@ async def test_cancel_order_customer_success(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
 
     mock_order_repo.get_by_id.return_value = order
@@ -380,7 +380,7 @@ async def test_cancel_order_customer_not_authorized(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -392,10 +392,10 @@ async def test_cancel_order_customer_not_authorized(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
 
     mock_order_repo.get_by_id.return_value = order
@@ -421,7 +421,7 @@ async def test_cancel_order_customer_not_pending(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -433,10 +433,10 @@ async def test_cancel_order_customer_not_pending(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
     order.confirm()  # No longer in PENDING
 
@@ -462,7 +462,7 @@ async def test_cancel_order_restaurant_owner_success(mock_order_repo, mock_uow):
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Burger",
-        unit_price=Money(Decimal("10.00"), "USD"),
+        unit_price=Money(Decimal("10.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -474,10 +474,10 @@ async def test_cancel_order_restaurant_owner_success(mock_order_repo, mock_uow):
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("10.00"), "USD"),
-        tax=Money(Decimal("0.80"), "USD"),
-        delivery_fee=Money(Decimal("3.99"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("10.00"), "INR"),
+        tax=Money(Decimal("0.80"), "INR"),
+        delivery_fee=Money(Decimal("49"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
     )
     order.confirm()  # Confirming
 

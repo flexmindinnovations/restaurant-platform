@@ -45,10 +45,10 @@ def upgrade() -> None:
     op.create_index('ix_reviews_restaurant_id', 'reviews', ['restaurant_id'], schema='reviews')
     op.create_index('ix_reviews_is_flagged', 'reviews', ['is_flagged'], schema='reviews', postgresql_where=sa.text('is_flagged = true'))
 
+    op.execute("ALTER TABLE reviews.reviews ENABLE ROW LEVEL SECURITY")
     op.execute("""
-        ALTER TABLE reviews.reviews ENABLE ROW LEVEL SECURITY;
         CREATE POLICY reviews_tenant_isolation ON reviews.reviews
-            USING (restaurant_id = current_setting('app.current_restaurant_id')::uuid);
+            USING (restaurant_id = current_setting('app.current_restaurant_id')::uuid)
     """)
 
 

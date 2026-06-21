@@ -144,7 +144,7 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["notifications"])
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
-    app.include_router(analytics_router, prefix="/api/v1/admin/analytics", tags=["analytics"])
+    app.include_router(analytics_router, prefix="/api/v1/analytics", tags=["analytics"])
     from modules.analytics.api.ai_routes import ai_router
 
     app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"])

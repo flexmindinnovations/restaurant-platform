@@ -40,7 +40,7 @@ def test_cart_add_item_success():
     cart.add_item(
         menu_item_id=menu_item_id,
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=2,
         special_instructions="No onions",
@@ -51,7 +51,7 @@ def test_cart_add_item_success():
     assert cart.items[0].menu_item_id == menu_item_id
     assert cart.items[0].quantity == 2
     assert cart.items[0].special_instructions == "No onions"
-    assert cart.total_amount == Money(Decimal("25.00"), "USD")
+    assert cart.total_amount == Money(Decimal("25.00"), "INR")
 
 
 def test_cart_add_item_invalid_quantity():
@@ -64,7 +64,7 @@ def test_cart_add_item_invalid_quantity():
         cart.add_item(
             menu_item_id=menu_item_id,
             name="Pizza",
-            unit_price=Money(Decimal("12.50"), "USD"),
+            unit_price=Money(Decimal("12.50"), "INR"),
             restaurant_id=restaurant_id,
             quantity=0,
         )
@@ -79,7 +79,7 @@ def test_cart_add_item_different_restaurant():
     cart.add_item(
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id_1,
         quantity=1,
     )
@@ -88,7 +88,7 @@ def test_cart_add_item_different_restaurant():
         cart.add_item(
             menu_item_id=uuid.uuid4(),
             name="Burger",
-            unit_price=Money(Decimal("8.50"), "USD"),
+            unit_price=Money(Decimal("8.50"), "INR"),
             restaurant_id=restaurant_id_2,
             quantity=1,
         )
@@ -103,7 +103,7 @@ def test_cart_add_identical_item_merges():
     cart.add_item(
         menu_item_id=menu_item_id,
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=1,
         special_instructions="Extra cheese",
@@ -112,7 +112,7 @@ def test_cart_add_identical_item_merges():
     cart.add_item(
         menu_item_id=menu_item_id,
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=2,
         special_instructions="Extra cheese",
@@ -131,7 +131,7 @@ def test_cart_remove_item():
     cart.add_item(
         menu_item_id=menu_item_id,
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=1,
     )
@@ -151,7 +151,7 @@ def test_cart_update_quantity():
     cart.add_item(
         menu_item_id=menu_item_id,
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=1,
     )
@@ -180,7 +180,7 @@ def test_cart_clear():
     cart.add_item(
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("12.50"), "USD"),
+        unit_price=Money(Decimal("12.50"), "INR"),
         restaurant_id=restaurant_id,
         quantity=1,
     )
@@ -199,7 +199,7 @@ def test_place_order_success():
         id=uuid.uuid4(),
         menu_item_id=item_id,
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=2,
         special_instructions="Crispy",
     )
@@ -213,17 +213,17 @@ def test_place_order_success():
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("30.00"), "USD"),
-        tax=Money(Decimal("3.00"), "USD"),
-        delivery_fee=Money(Decimal("5.00"), "USD"),
-        tip=Money(Decimal("2.00"), "USD"),
+        subtotal=Money(Decimal("30.00"), "INR"),
+        tax=Money(Decimal("3.00"), "INR"),
+        delivery_fee=Money(Decimal("5.00"), "INR"),
+        tip=Money(Decimal("2.00"), "INR"),
         delivery_notes="Leave at door",
     )
 
     assert order.restaurant_id == restaurant_id
     assert order.customer_id == customer_id
     assert order.status == OrderStatus.PENDING
-    assert order.total_amount == Money(Decimal("40.00"), "USD")
+    assert order.total_amount == Money(Decimal("40.00"), "INR")
     assert len(order._domain_events) == 1
     assert isinstance(order._domain_events[0], OrderPlaced)
 
@@ -239,10 +239,10 @@ def test_place_order_empty_items():
             delivery_address_state="WA",
             delivery_address_postal_code="98101",
             delivery_address_country="US",
-            subtotal=Money(Decimal("0.00"), "USD"),
-            tax=Money(Decimal("0.00"), "USD"),
-            delivery_fee=Money(Decimal("0.00"), "USD"),
-            tip=Money(Decimal("0.00"), "USD"),
+            subtotal=Money(Decimal("0.00"), "INR"),
+            tax=Money(Decimal("0.00"), "INR"),
+            delivery_fee=Money(Decimal("0.00"), "INR"),
+            tip=Money(Decimal("0.00"), "INR"),
         )
 
 
@@ -267,17 +267,17 @@ def test_place_order_currency_mismatch():
             delivery_address_state="WA",
             delivery_address_postal_code="98101",
             delivery_address_country="US",
-            subtotal=Money(Decimal("15.00"), "USD"),
-            tax=Money(Decimal("1.50"), "USD"),
-            delivery_fee=Money(Decimal("5.00"), "USD"),
-            tip=Money(Decimal("2.00"), "USD"),
+            subtotal=Money(Decimal("15.00"), "INR"),
+            tax=Money(Decimal("1.50"), "INR"),
+            delivery_fee=Money(Decimal("5.00"), "INR"),
+            tip=Money(Decimal("2.00"), "INR"),
         )
 
     item_usd = OrderItem(
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=1,
     )
 
@@ -291,10 +291,10 @@ def test_place_order_currency_mismatch():
             delivery_address_state="WA",
             delivery_address_postal_code="98101",
             delivery_address_country="US",
-            subtotal=Money(Decimal("15.00"), "USD"),
+            subtotal=Money(Decimal("15.00"), "INR"),
             tax=Money(Decimal("1.50"), "EUR"),  # EUR mismatch
-            delivery_fee=Money(Decimal("5.00"), "USD"),
-            tip=Money(Decimal("2.00"), "USD"),
+            delivery_fee=Money(Decimal("5.00"), "INR"),
+            tip=Money(Decimal("2.00"), "INR"),
         )
 
 
@@ -305,7 +305,7 @@ def test_order_transitions():
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -317,10 +317,10 @@ def test_order_transitions():
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("15.00"), "USD"),
-        tax=Money(Decimal("1.50"), "USD"),
-        delivery_fee=Money(Decimal("2.00"), "USD"),
-        tip=Money(Decimal("1.00"), "USD"),
+        subtotal=Money(Decimal("15.00"), "INR"),
+        tax=Money(Decimal("1.50"), "INR"),
+        delivery_fee=Money(Decimal("2.00"), "INR"),
+        tip=Money(Decimal("1.00"), "INR"),
     )
 
     # 1. PENDING -> CONFIRMED
@@ -366,7 +366,7 @@ def test_order_invalid_transitions():
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -378,10 +378,10 @@ def test_order_invalid_transitions():
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("15.00"), "USD"),
-        tax=Money(Decimal("1.50"), "USD"),
-        delivery_fee=Money(Decimal("2.00"), "USD"),
-        tip=Money(Decimal("1.00"), "USD"),
+        subtotal=Money(Decimal("15.00"), "INR"),
+        tax=Money(Decimal("1.50"), "INR"),
+        delivery_fee=Money(Decimal("2.00"), "INR"),
+        tip=Money(Decimal("1.00"), "INR"),
     )
 
     # Cannot skip from PENDING to READY
@@ -396,7 +396,7 @@ def test_order_cancellation():
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -408,10 +408,10 @@ def test_order_cancellation():
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("15.00"), "USD"),
-        tax=Money(Decimal("1.50"), "USD"),
-        delivery_fee=Money(Decimal("2.00"), "USD"),
-        tip=Money(Decimal("1.00"), "USD"),
+        subtotal=Money(Decimal("15.00"), "INR"),
+        tax=Money(Decimal("1.50"), "INR"),
+        delivery_fee=Money(Decimal("2.00"), "INR"),
+        tip=Money(Decimal("1.00"), "INR"),
     )
 
     order.cancel("Customer changed mind")
@@ -428,7 +428,7 @@ def test_order_cancellation_non_cancellable():
         id=uuid.uuid4(),
         menu_item_id=uuid.uuid4(),
         name="Pizza",
-        unit_price=Money(Decimal("15.00"), "USD"),
+        unit_price=Money(Decimal("15.00"), "INR"),
         quantity=1,
     )
     order = Order.place(
@@ -440,10 +440,10 @@ def test_order_cancellation_non_cancellable():
         delivery_address_state="WA",
         delivery_address_postal_code="98101",
         delivery_address_country="US",
-        subtotal=Money(Decimal("15.00"), "USD"),
-        tax=Money(Decimal("1.50"), "USD"),
-        delivery_fee=Money(Decimal("2.00"), "USD"),
-        tip=Money(Decimal("1.00"), "USD"),
+        subtotal=Money(Decimal("15.00"), "INR"),
+        tax=Money(Decimal("1.50"), "INR"),
+        delivery_fee=Money(Decimal("2.00"), "INR"),
+        tip=Money(Decimal("1.00"), "INR"),
     )
 
     order.confirm()

@@ -1,0 +1,79 @@
+<app-page-header
+  title="Delivery Operations"
+  subtitle="List of active deliveries and couriers"
+>
+  <button mat-flat-button (click)="store.loadAll()">
+    <svg lucideRefreshCw [size]="18" aria-hidden="true"></svg>
+    <span>Refresh</span>
+  </button>
+</app-page-header>
+
+<div class="filters-row">
+  <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+    <mat-label>Search deliveries</mat-label>
+    <svg lucideSearch [size]="18" matIconPrefix></svg>
+    <input
+      matInput
+      [ngModel]="searchValue()"
+      (ngModelChange)="onSearch($event)"
+      placeholder="Restaurant, destination, or Order ID..."
+      id="delivery-search"
+    />
+  </mat-form-field>
+
+  <mat-chip-listbox
+    [ngModel]="statusFilter()"
+    (ngModelChange)="onStatusFilter($event)"
+    class="filter-chips"
+    aria-label="Status filter"
+  >
+    <mat-chip-option value="ALL">All</mat-chip-option>
+    <mat-chip-option value="PENDING">Pending</mat-chip-option>
+    <mat-chip-option value="ASSIGNED">Assigned</mat-chip-option>
+    <mat-chip-option value="PICKED_UP">Picked Up</mat-chip-option>
+    <mat-chip-option value="DELIVERED">Delivered</mat-chip-option>
+  </mat-chip-listbox>
+</div>
+
+<div class="workspace-layout">
+  <div class="table-wrapper-container">
+    @if (!store.loading() && filteredDeliveries().length === 0) {
+      <app-empty-state
+        icon="inbox"
+        title="No deliveries found"
+        message="Try adjusting your search or filters."
+      />
+    } @else {
+      <app-datatable
+        [dataSource]="filteredDeliveries()"
+        [columns]="columns"
+        [total]="filteredDeliveries().length"
+        [showPaginator]="true"
+        (rowClick)="onRowClick($event)"
+        paginatorAriaLabel="Deliveries pagination"
+      >
+        <!-- Courier Column -->
+        <ng-template appDatatableCell="partner_name" let-row>
+          <span>{{ row.partner_name || 'Unassigned ⚠️' }}</span>
+        </ng-template>
+
+        <!-- Status Column -->
+        <ng-template appDatatableCell="status" let-row>
+          <app-status-badge [status]="row.status" />
+        </ng-template>
+
+        <!-- Actions Column -->
+        <ng-template appDatatableCell="actions" let-row>
+          <button
+            mat-icon-button
+            (click)="onRowClick(row)"
+            matTooltip="View live map & override assignment"
+            aria-label="View delivery detail"
+          >
+            <svg lucideChevronRight [size]="16" style="color: var(--color-text-secondary)"></svg>
+          </button>
+        </ng-template>
+      </app-datatable>
+    }
+  </div>
+</div>

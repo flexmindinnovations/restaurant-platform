@@ -167,6 +167,7 @@ async def get_platform_dashboard(
 
 
 @router.get("/revenue", response_model=ResponseEnvelope[RevenueBreakdownResponse])
+@router.get("/revenue-breakdown", response_model=ResponseEnvelope[RevenueBreakdownResponse])
 async def get_revenue_breakdown(
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),

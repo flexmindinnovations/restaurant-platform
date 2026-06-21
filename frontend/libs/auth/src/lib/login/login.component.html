@@ -1,0 +1,113 @@
+<div class="login-container">
+  <!-- Left: Food imagery -->
+  <div class="login-hero" aria-hidden="true">
+    <img src="food-bg.jpg" alt="" class="hero-img" />
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-brand">
+        <div class="hero-logo-box">
+          @if (settingsStore.settings()?.logo_url) {
+            <img [src]="settingsStore.settings()?.logo_url" alt="Logo" class="custom-hero-logo" />
+          } @else {
+            <svg lucideUtensilsCrossed class="hero-lucide-icon"></svg>
+          }
+        </div>
+        <span class="hero-brand-name">{{
+          settingsStore.settings()?.brand_name || 'QuickBite'
+        }}</span>
+      </div>
+      <h2 class="hero-tagline">Delicious food,<br />delivered fast.</h2>
+      <p class="hero-sub">Manage your restaurants, menus, and orders — all in one place.</p>
+    </div>
+  </div>
+
+  <!-- Right: Login form -->
+  <div class="login-panel">
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate" class="loader"></mat-progress-bar>
+    }
+
+    <div class="login-header">
+      <div class="logo-box">
+        @if (settingsStore.settings()?.logo_url) {
+          <img [src]="settingsStore.settings()?.logo_url" alt="Logo" class="custom-login-logo" />
+        } @else {
+          <svg lucideUtensilsCrossed class="hero-lucide-icon"></svg>
+        }
+      </div>
+      <h1 class="title">Welcome Back</h1>
+      <p class="subtitle">Log in to manage your restaurant platform</p>
+    </div>
+
+    <div class="login-content">
+      @if (errorMessage) {
+        <div class="error-banner">
+          <svg lucideCircleAlert [size]="18"></svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <form class="login-form" (submit)="onSubmit($event)">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Email Address</mat-label>
+          <input
+            matInput
+            type="email"
+            [formField]="loginForm.email"
+            placeholder="e.g. admin@quickbite.com"
+            autocomplete="email"
+          />
+          <svg lucideMail [size]="18" matSuffix></svg>
+          @for (error of loginForm.email().errors(); track error.kind) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            [formField]="loginForm.password"
+            autocomplete="current-password"
+            aria-label="Password"
+            (input)="passwordHasValue = $any($event.target).value.length > 0"
+          />
+          @if (passwordHasValue) {
+            <button
+              mat-icon-button
+              matSuffix
+              (click)="hidePassword = !hidePassword"
+              type="button"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="hidePassword"
+            >
+              @if (hidePassword) {
+                <svg lucideEyeOff [size]="18"></svg>
+              } @else {
+                <svg lucideEye [size]="18"></svg>
+              }
+            </button>
+          }
+          @for (error of loginForm.password().errors(); track error.kind) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="loginForm().invalid() || loading"
+          class="submit-btn"
+        >
+          Log In
+        </button>
+      </form>
+    </div>
+
+    <p class="login-footer">
+      Powered by <strong>{{ settingsStore.settings()?.brand_name || 'QuickBite' }}</strong>
+    </p>
+  </div>
+</div>

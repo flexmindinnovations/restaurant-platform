@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from modules.deliveries.application.ports.delivery_repository import DeliveryRepository
 from modules.deliveries.domain.entities.delivery import Delivery
+from modules.deliveries.domain.value_objects.location import GeoLocation
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
 
 
@@ -13,6 +14,7 @@ class CreateDeliveryCommand:
     restaurant_id: uuid.UUID
     pickup_address: str
     delivery_address: str
+    pickup_location: GeoLocation | None = None
     distance_km: Decimal | None = None
 
 
@@ -31,6 +33,7 @@ class CreateDeliveryHandler:
             restaurant_id=command.restaurant_id,
             pickup_address=command.pickup_address,
             delivery_address=command.delivery_address,
+            pickup_location=command.pickup_location,
             distance_km=command.distance_km,
         )
         async with self._uow:

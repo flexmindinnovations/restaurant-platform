@@ -136,7 +136,7 @@ def test_daily_order_stats_creation():
     )
     assert stats.order_count == 42
     assert stats.revenue == Decimal("2100.50")
-    assert stats.currency == "USD"
+    assert stats.currency == "INR"
 
 
 @pytest.mark.unit

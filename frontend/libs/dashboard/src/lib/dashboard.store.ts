@@ -1,8 +1,10 @@
 import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
-import { of, delay, switchMap } from 'rxjs';
-import { computed } from '@angular/core';
+import { of, forkJoin, switchMap, catchError } from 'rxjs';
+import { computed, inject } from '@angular/core';
+import { AnalyticsService, RestaurantsService, OrdersService } from '@app/api-client';
+import { AuthService, DecodedToken } from '@app/auth';
 
 export interface DashboardKPI {
   value: string;
@@ -41,39 +43,55 @@ export interface DashboardState {
 
 const initialState: DashboardState = {
   kpis: {
-    orders: { label: 'Total Orders', value: '1,482', change: '+12.4%', isPositive: true, icon: 'shopping_bag' },
-    revenue: { label: 'Total Revenue', value: '$28,450.00', change: '+8.5%', isPositive: true, icon: 'attach_money' },
-    partners: { label: 'Active Partners', value: '42', change: '+4.8%', isPositive: true, icon: 'storefront' },
-    users: { label: 'New Users', value: '156', change: '+18.2%', isPositive: true, icon: 'person_add' },
+    orders: {
+      label: 'Total Orders',
+      value: '0',
+      change: '0%',
+      isPositive: true,
+      icon: 'shopping-bag',
+    },
+    revenue: {
+      label: 'Total Revenue',
+      value: '₹0.00',
+      change: '0%',
+      isPositive: true,
+      icon: 'indian-rupee',
+    },
+    partners: {
+      label: 'Active Partners',
+      value: '0',
+      change: '0%',
+      isPositive: true,
+      icon: 'store',
+    },
+    users: { label: 'New Users', value: '0', change: '0%', isPositive: true, icon: 'user-plus' },
   },
-  ordersTrend: [
-    { label: 'Mon', value: 120 },
-    { label: 'Tue', value: 150 },
-    { label: 'Wed', value: 180 },
-    { label: 'Thu', value: 140 },
-    { label: 'Fri', value: 220 },
-    { label: 'Sat', value: 310 },
-    { label: 'Sun', value: 290 },
-  ],
-  revenueTrend: [
-    { label: 'Mon', value: 2400 },
-    { label: 'Tue', value: 3100 },
-    { label: 'Wed', value: 3600 },
-    { label: 'Thu', value: 2800 },
-    { label: 'Fri', value: 4400 },
-    { label: 'Sat', value: 6200 },
-    { label: 'Sun', value: 5800 },
-  ],
-  recentOrders: [
-    { id: '001', customer: 'John Doe', amount: '45.99', status: 'Completed', time: '2 min ago' },
-    { id: '002', customer: 'Jane Smith', amount: '82.50', status: 'Completed', time: '5 min ago' },
-    { id: '003', customer: 'Mike Johnson', amount: '120.00', status: 'Pending', time: '10 min ago' },
-    { id: '004', customer: 'Sarah Williams', amount: '65.75', status: 'Completed', time: '15 min ago' },
-    { id: '005', customer: 'Tom Brown', amount: '156.30', status: 'Completed', time: '22 min ago' },
-  ],
+  ordersTrend: [],
+  revenueTrend: [],
+  recentOrders: [],
   loading: false,
   error: null,
 };
+
+function mapOrderStatus(status: string): 'Pending' | 'Completed' | 'Cancelled' {
+  if (status === 'COMPLETED') return 'Completed';
+  if (status === 'CANCELLED') return 'Cancelled';
+  return 'Pending';
+}
+
+function formatRelativeTime(dateStr: string): string {
+  try {
+    const diffMs = new Date().getTime() - new Date(dateStr).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hr ago`;
+    return new Date(dateStr).toLocaleDateString();
+  } catch {
+    return 'recently';
+  }
+}
 
 export const DashboardStore = signalStore(
   { providedIn: 'root' },
@@ -82,29 +100,226 @@ export const DashboardStore = signalStore(
     isLoading: computed(() => store.loading()),
     hasError: computed(() => !!store.error()),
   })),
-  withMethods((store) => ({
-    loadDashboardData: rxMethod<void>((trigger$) =>
-      trigger$.pipe(
-        switchMap(() => {
-          patchState(store, { loading: true, error: null });
-          // Simulating API call
-          return of({
-            kpis: { ...store.kpis() },
-            ordersTrend: [...store.ordersTrend()],
-            revenueTrend: [...store.revenueTrend()],
-            recentOrders: [...store.recentOrders()],
-          }).pipe(
-            delay(300),
-            tapResponse({
-              next: (data) => patchState(store, { ...data, loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
-            })
-          );
-        })
-      )
-    ),
-  }))
+  withMethods(
+    (
+      store,
+      analyticsService = inject(AnalyticsService),
+      restaurantsService = inject(RestaurantsService),
+      ordersService = inject(OrdersService),
+      authService = inject(AuthService),
+    ) => {
+      const handlePlatformData = (platformData: any, ordersList: any) => {
+        if (!platformData) return;
+
+        const dailyStats = platformData.daily_stats || [];
+        const ordersTrend = dailyStats.map((s: any) => ({
+          label: new Date(s.date).toLocaleDateString(undefined, { weekday: 'short' }),
+          value: s.order_count,
+        }));
+        const revenueTrend = dailyStats.map((s: any) => ({
+          label: new Date(s.date).toLocaleDateString(undefined, { weekday: 'short' }),
+          value: Number(s.revenue),
+        }));
+
+        const recentOrders = (ordersList?.items || []).map((o: any) => ({
+          id: o.order_number,
+          customer: `Customer #${o.customer_id.substring(0, 5)}`,
+          amount: Number(o.total_amount).toFixed(2),
+          status: mapOrderStatus(o.status),
+          time: formatRelativeTime(o.placed_at || o.created_at),
+        }));
+
+        patchState(store, {
+          kpis: {
+            orders: {
+              label: 'Total Orders',
+              value: platformData.total_orders.toLocaleString(),
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'shopping-bag',
+            },
+            revenue: {
+              label: 'Total Revenue',
+              value: `₹${Number(platformData.total_revenue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'indian-rupee',
+            },
+            partners: {
+              label: 'Active Partners',
+              value: platformData.total_restaurants.toString(),
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'store',
+            },
+            users: {
+              label: 'Total Customers',
+              value: platformData.total_customers.toString(),
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'users',
+            },
+          },
+          ordersTrend,
+          revenueTrend,
+          recentOrders,
+          loading: false,
+        });
+      };
+
+      const handleRestaurantData = (restaurantData: any, ordersList: any) => {
+        if (!restaurantData) return;
+
+        const dailyStats = restaurantData.daily_stats || [];
+        const ordersTrend = dailyStats.map((s: any) => ({
+          label: new Date(s.date).toLocaleDateString(undefined, { weekday: 'short' }),
+          value: s.order_count,
+        }));
+        const revenueTrend = dailyStats.map((s: any) => ({
+          label: new Date(s.date).toLocaleDateString(undefined, { weekday: 'short' }),
+          value: Number(s.revenue),
+        }));
+
+        const recentOrders = (ordersList?.items || []).map((o: any) => ({
+          id: o.order_number,
+          customer: `Customer #${o.customer_id.substring(0, 5)}`,
+          amount: Number(o.total_amount).toFixed(2),
+          status: mapOrderStatus(o.status),
+          time: formatRelativeTime(o.placed_at || o.created_at),
+        }));
+
+        patchState(store, {
+          kpis: {
+            orders: {
+              label: 'Total Orders',
+              value: restaurantData.total_orders.toLocaleString(),
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'shopping-bag',
+            },
+            revenue: {
+              label: 'Total Revenue',
+              value: `₹${Number(restaurantData.total_revenue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              change: '+0.0%',
+              isPositive: true,
+              icon: 'indian-rupee',
+            },
+            partners: {
+              label: 'Average Rating',
+              value: restaurantData.average_rating.toFixed(1),
+              change: '',
+              isPositive: true,
+              icon: 'star',
+            },
+            users: {
+              label: 'Popular Items',
+              value: restaurantData.popular_items.length.toString(),
+              change: '',
+              isPositive: true,
+              icon: 'utensils-crossed',
+            },
+          },
+          ordersTrend,
+          revenueTrend,
+          recentOrders,
+          loading: false,
+        });
+      };
+
+      return {
+        loadDashboardData: rxMethod<void>((trigger$) =>
+          trigger$.pipe(
+            switchMap(() => {
+              patchState(store, { loading: true, error: null });
+
+              if (typeof window === 'undefined') {
+                return of(null);
+              }
+
+              const user: DecodedToken | null = authService.getDecodedToken();
+              if (!user || !authService.isLoggedIn()) {
+                patchState(store, {
+                  error: 'Your session has expired. Please log in again.',
+                  loading: false,
+                });
+                authService.logout();
+                return of(null);
+              }
+
+              const roles: string[] = user.roles || [];
+              const isSuperAdmin = roles.includes('SUPER_ADMIN');
+              const isRestaurantStaff =
+                roles.includes('RESTAURANT_OWNER') || roles.includes('RESTAURANT_MANAGER');
+
+              if (isSuperAdmin) {
+                return forkJoin([
+                  analyticsService.getPlatformDashboard().pipe(
+                    catchError((err) => {
+                      console.error('Error fetching platform dashboard:', err);
+                      return of(null);
+                    }),
+                  ),
+                  ordersService.list({ limit: 5 }).pipe(
+                    catchError((err) => {
+                      console.error('Error fetching recent orders:', err);
+                      return of({ items: [], total: 0 });
+                    }),
+                  ),
+                ]).pipe(
+                  tapResponse({
+                    next: ([platformData, ordersList]) =>
+                      handlePlatformData(platformData, ordersList),
+                    error: (err: unknown) => {
+                      patchState(store, { error: String(err), loading: false });
+                    },
+                  }),
+                );
+              } else if (isRestaurantStaff) {
+                return restaurantsService.list().pipe(
+                  switchMap((resList) => {
+                    const myRestaurant = (resList.items || []).find(
+                      (r: any) => r.owner_id === user.sub,
+                    );
+                    if (!myRestaurant) {
+                      throw new Error('No restaurant associated with this account found.');
+                    }
+                    const rId = myRestaurant.id;
+                    return forkJoin([
+                      analyticsService.getRestaurantDashboard(rId).pipe(
+                        catchError((err) => {
+                          console.error('Error fetching restaurant dashboard:', err);
+                          return of(null);
+                        }),
+                      ),
+                      ordersService.list({ restaurant_id: rId, limit: 5 }).pipe(
+                        catchError((err) => {
+                          console.error('Error fetching restaurant orders:', err);
+                          return of({ items: [], total: 0 });
+                        }),
+                      ),
+                    ]);
+                  }),
+                  tapResponse({
+                    next: ([restaurantData, ordersList]) =>
+                      handleRestaurantData(restaurantData, ordersList),
+                    error: (err: unknown) => {
+                      patchState(store, { error: String(err), loading: false });
+                    },
+                  }),
+                );
+              } else {
+                patchState(store, {
+                  error: 'Access denied: Dashboard restricted to admins/owners.',
+                  loading: false,
+                });
+                return of(null);
+              }
+            }),
+          ),
+        ),
+      };
+    },
+  ),
 );
 
 export type DashboardStoreType = InstanceType<typeof DashboardStore>;

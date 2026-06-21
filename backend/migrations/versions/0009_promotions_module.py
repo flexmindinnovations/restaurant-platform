@@ -64,14 +64,15 @@ def upgrade() -> None:
     op.create_index('ix_coupon_usages_customer_id', 'coupon_usages', ['customer_id'], schema='promotions')
     op.create_index('ix_coupon_usages_order_id', 'coupon_usages', ['order_id'], schema='promotions')
 
+    op.execute("ALTER TABLE promotions.promotions ENABLE ROW LEVEL SECURITY")
     op.execute("""
-        ALTER TABLE promotions.promotions ENABLE ROW LEVEL SECURITY;
         CREATE POLICY promotions_tenant_isolation ON promotions.promotions
-            USING (restaurant_id IS NULL OR restaurant_id = current_setting('app.current_restaurant_id')::uuid);
-
-        ALTER TABLE promotions.coupon_usages ENABLE ROW LEVEL SECURITY;
+            USING (restaurant_id IS NULL OR restaurant_id = current_setting('app.current_restaurant_id')::uuid)
+    """)
+    op.execute("ALTER TABLE promotions.coupon_usages ENABLE ROW LEVEL SECURITY")
+    op.execute("""
         CREATE POLICY coupon_usages_tenant_isolation ON promotions.coupon_usages
-            USING (true);
+            USING (true)
     """)
 
 

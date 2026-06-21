@@ -63,8 +63,7 @@ export const UsersStore = signalStore(
                   total: result.total,
                   loading: false,
                 }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),
@@ -82,7 +81,8 @@ export const UsersStore = signalStore(
                 patchState(store, {
                   users: updated,
                   loading: false,
-                  selectedUser: store.selectedUser()?.id === id ? updatedUser : store.selectedUser(),
+                  selectedUser:
+                    store.selectedUser()?.id === id ? updatedUser : store.selectedUser(),
                 });
               },
               error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
@@ -103,7 +103,8 @@ export const UsersStore = signalStore(
                 patchState(store, {
                   users: updated,
                   loading: false,
-                  selectedUser: store.selectedUser()?.id === id ? updatedUser : store.selectedUser(),
+                  selectedUser:
+                    store.selectedUser()?.id === id ? updatedUser : store.selectedUser(),
                 });
               },
               error: (err: unknown) => patchState(store, { error: String(err), loading: false }),

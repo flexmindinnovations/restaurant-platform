@@ -5,11 +5,13 @@ import { PlatformSettings } from './settings.model';
 const DEFAULT_SETTINGS: PlatformSettings = {
   commission_rate: 10,
   delivery_radius_km: 15,
-  min_order_value: 12.00,
-  base_delivery_fee: 3.50,
-  service_fee: 1.50,
+  min_order_value: 12.0,
+  base_delivery_fee: 3.5,
+  service_fee: 1.5,
   ai_provider: 'Gemini',
   ai_api_key: '',
+  logo_url: '',
+  brand_name: '',
 };
 
 @Injectable({ providedIn: 'root' })

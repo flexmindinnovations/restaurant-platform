@@ -80,7 +80,8 @@ export const animationTokens = {
   transition: {
     none: 'none',
     all: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-    colors: 'color, background-color, border-color, text-decoration-color, fill, stroke 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+    colors:
+      'color, background-color, border-color, text-decoration-color, fill, stroke 300ms cubic-bezier(0.4, 0, 0.2, 1)',
     opacity: 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
     transform: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
     shadow: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',

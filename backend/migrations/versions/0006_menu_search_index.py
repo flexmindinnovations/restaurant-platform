@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     op.execute("""
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_menu_items_search_trgm
+        CREATE INDEX IF NOT EXISTS ix_menu_items_search_trgm
         ON menus.menu_items
         USING gin ((coalesce(name, '') || ' ' || coalesce(description, '')) gin_trgm_ops)
     """)

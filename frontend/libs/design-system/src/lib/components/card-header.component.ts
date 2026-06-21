@@ -1,17 +1,44 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  LucideDynamicIcon,
+  provideLucideIcons,
+  LucideLayoutDashboard,
+  LucideReceipt,
+  LucideStore,
+  LucideTruck,
+  LucideCreditCard,
+  LucideUsers,
+  LucideTags,
+  LucideStar,
+  LucideBarChart3,
+  LucideSettings,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-card-header',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, LucideDynamicIcon],
+  providers: [
+    provideLucideIcons(
+      LucideLayoutDashboard,
+      LucideReceipt,
+      LucideStore,
+      LucideTruck,
+      LucideCreditCard,
+      LucideUsers,
+      LucideTags,
+      LucideStar,
+      LucideBarChart3,
+      LucideSettings,
+    ),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="card-header">
       @if (icon) {
         <div class="header-icon">
-          <mat-icon>{{ icon }}</mat-icon>
+          <svg [lucideIcon]="icon" class="header-icon-svg"></svg>
         </div>
       }
       <div class="header-text">
@@ -36,15 +63,14 @@ import { MatIconModule } from '@angular/material/icon';
     .header-icon {
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: 0;
       background: var(--color-primary-subtle);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
 
-      mat-icon {
-        font-size: 18px;
+      .header-icon-svg {
         width: 18px;
         height: 18px;
         color: var(--color-primary);

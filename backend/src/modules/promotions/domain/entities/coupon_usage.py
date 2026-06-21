@@ -12,7 +12,7 @@ class CouponUsage(Entity):
     order_id: uuid.UUID = None  # type: ignore[assignment]
     customer_id: uuid.UUID = None  # type: ignore[assignment]
     discount_amount: Decimal = Decimal("0")
-    discount_currency: str = "USD"
+    discount_currency: str = "INR"
 
     @classmethod
     def record(
@@ -21,7 +21,7 @@ class CouponUsage(Entity):
         order_id: uuid.UUID,
         customer_id: uuid.UUID,
         discount_amount: Decimal,
-        discount_currency: str = "USD",
+        discount_currency: str = "INR",
     ) -> "CouponUsage":
         now = datetime.now(UTC)
         return cls(

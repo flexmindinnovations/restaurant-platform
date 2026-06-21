@@ -2,7 +2,7 @@ import pathlib
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.dependencies import get_db_session
 from modules.menus.api.dependencies import (
@@ -224,7 +224,15 @@ async def create_menu(
     handler: CreateMenuHandler = Depends(get_create_menu_handler),
     query_handler: GetMenuHandler = Depends(get_menu_query_handler),
 ) -> ResponseEnvelope[MenuResponse]:
-    restaurant_id = uuid.UUID(current_user["restaurant_id"])
+    token_restaurant_id = current_user.get("restaurant_id")
+    if token_restaurant_id:
+        restaurant_id = uuid.UUID(token_restaurant_id)
+    elif request.restaurant_id:
+        restaurant_id = request.restaurant_id
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="restaurant_id is required for administrative users"
+        )
     command = CreateMenuCommand(
         restaurant_id=restaurant_id,
         name=request.name,
@@ -305,6 +313,8 @@ async def add_category(
     _current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
     handler: AddCategoryHandler = Depends(get_add_category_handler),
 ) -> ResponseEnvelope[CategoryResponse]:
+    from datetime import UTC, datetime
+
     command = AddCategoryCommand(
         menu_id=menu_id,
         name=request.name,
@@ -312,6 +322,7 @@ async def add_category(
         display_order=request.display_order,
     )
     category_id = await handler.handle(command)
+    now = datetime.now(UTC)
     return ResponseEnvelope(
         data=CategoryResponse(
             id=category_id,
@@ -320,8 +331,8 @@ async def add_category(
             description=request.description,
             display_order=request.display_order,
             is_active=True,
-            created_at=None,
-            updated_at=None,
+            created_at=now,
+            updated_at=now,
         )
     )
 
@@ -368,8 +379,10 @@ async def create_menu_item(
     current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
     handler: CreateMenuItemHandler = Depends(get_create_item_handler),
     query_handler: GetMenuItemHandler = Depends(get_item_query_handler),
+    menu_query_handler: GetMenuHandler = Depends(get_menu_query_handler),
 ) -> ResponseEnvelope[MenuItemResponse]:
-    restaurant_id = uuid.UUID(current_user["restaurant_id"])
+    menu_dto = await menu_query_handler.handle(GetMenuQuery(menu_id=menu_id))
+    restaurant_id = menu_dto.restaurant_id
     command = CreateMenuItemCommand(
         menu_id=menu_id,
         restaurant_id=restaurant_id,
@@ -478,8 +491,10 @@ async def create_modifier_group(
     request: CreateModifierGroupRequest,
     current_user: dict[str, Any] = Depends(require_roles("RESTAURANT_OWNER", "SUPER_ADMIN")),
     handler: CreateModifierGroupHandler = Depends(get_create_modifier_group_handler),
+    item_query_handler: GetMenuItemHandler = Depends(get_item_query_handler),
 ) -> ResponseEnvelope[dict]:
-    restaurant_id = uuid.UUID(current_user["restaurant_id"])
+    item_dto = await item_query_handler.handle(GetMenuItemQuery(item_id=item_id))
+    restaurant_id = item_dto.restaurant_id
     command = CreateModifierGroupCommand(
         menu_item_id=item_id,
         restaurant_id=restaurant_id,

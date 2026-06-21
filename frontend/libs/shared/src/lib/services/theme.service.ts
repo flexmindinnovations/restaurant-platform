@@ -35,7 +35,7 @@ export class ThemeService {
    */
   private getInitialTheme(): Theme {
     if (!this.isBrowser) return 'system';
-    
+
     try {
       // Try to get saved preference
       const saved = localStorage?.getItem('theme') as Theme;
@@ -88,13 +88,16 @@ export class ThemeService {
    */
   private applyTheme(theme: Theme): void {
     if (!this.isBrowser) return;
-    
-    const computed = theme === 'system' 
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : theme;
+
+    const computed =
+      theme === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : theme;
 
     const root = document.documentElement;
-    
+
     if (computed === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
@@ -109,7 +112,7 @@ export class ThemeService {
    */
   listenToSystemPreference(): void {
     if (!this.isBrowser) return;
-    
+
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (this.theme() === 'system') {
         this.applyTheme('system');

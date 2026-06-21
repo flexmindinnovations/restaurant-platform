@@ -136,6 +136,16 @@ class SqlAlchemyMenuItemRepository(MenuItemRepository):
         result = await self._session.execute(count_stmt)
         return result.scalar_one()
 
+    async def exists_by_name(self, menu_id: uuid.UUID, name: str, category_id: uuid.UUID | None = None) -> bool:
+        query = select(func.count(MenuItemModel.id)).where(
+            MenuItemModel.menu_id == menu_id,
+            func.lower(MenuItemModel.name) == name.lower(),
+        )
+        if category_id is not None:
+            query = query.where(MenuItemModel.category_id == category_id)
+        result = await self._session.execute(query)
+        return result.scalar_one() > 0
+
     def _to_domain(self, model: MenuItemModel) -> MenuItem:
         return MenuItem(
             id=model.id,

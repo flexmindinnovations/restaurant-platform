@@ -191,7 +191,7 @@ class TestMenuItem:
 
         item.change_price(Decimal("10.00"))
         assert item.price.amount == Decimal("10.00")
-        assert item.price.currency == "USD"
+        assert item.price.currency == "INR"
 
     def test_mark_removed(self):
         item = MenuItem.create(

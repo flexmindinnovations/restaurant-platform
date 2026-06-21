@@ -10,7 +10,7 @@ from shared.domain.value_objects import Money
 class ValidatePromotionQuery:
     code: str
     order_amount: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)

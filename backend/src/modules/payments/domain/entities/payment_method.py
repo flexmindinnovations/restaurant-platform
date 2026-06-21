@@ -1,11 +1,11 @@
 import uuid
 from dataclasses import dataclass
 
-from shared.domain.entity import Entity
+from shared.domain.entity import AggregateRoot
 
 
 @dataclass
-class PaymentMethod(Entity):
+class PaymentMethod(AggregateRoot):
     customer_id: uuid.UUID = None  # type: ignore[assignment]
     type: str = "CARD"
     last_four: str | None = None

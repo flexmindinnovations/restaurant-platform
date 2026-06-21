@@ -5,7 +5,7 @@ from modules.menus.application.ports.category_repository import CategoryReposito
 from modules.menus.application.ports.menu_repository import MenuRepository
 from modules.menus.domain.entities.category import Category
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
-from shared.domain.exceptions import NotFoundException
+from shared.domain.exceptions import BusinessRuleViolationError, NotFoundException
 
 
 @dataclass(frozen=True)
@@ -32,6 +32,9 @@ class AddCategoryHandler:
             menu = await self._menu_repo.get_by_id(command.menu_id)
             if not menu:
                 raise NotFoundException("Menu not found")
+
+            if await self._category_repo.exists_by_name(command.menu_id, command.name):
+                raise BusinessRuleViolationError(f'A category named "{command.name}" already exists in this menu')
 
             category = Category.create(
                 menu_id=command.menu_id,

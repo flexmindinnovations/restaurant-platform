@@ -1,14 +1,35 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  LucideDynamicIcon,
+  LucideInbox,
+  LucideReceipt,
+  LucideStore,
+  LucideUsers,
+  LucideStar,
+  LucideTag,
+  LucideUtensilsCrossed,
+  provideLucideIcons,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [MatIconModule],
+  imports: [LucideDynamicIcon],
+  providers: [
+    provideLucideIcons(
+      LucideInbox,
+      LucideReceipt,
+      LucideStore,
+      LucideUsers,
+      LucideStar,
+      LucideTag,
+      LucideUtensilsCrossed,
+    ),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="empty-state">
-      <mat-icon class="empty-state__icon">{{ icon() }}</mat-icon>
+      <svg [lucideIcon]="icon()" class="empty-state__icon"></svg>
       <h3 class="empty-state__title">{{ title() }}</h3>
       @if (message()) {
         <p class="empty-state__message">{{ message() }}</p>
@@ -24,10 +45,9 @@ import { MatIconModule } from '@angular/material/icon';
       justify-content: center;
       padding: 64px 24px;
       text-align: center;
-      color: var(--mat-sys-on-surface-variant, #555);
+      color: var(--color-text-secondary);
     }
     .empty-state__icon {
-      font-size: 56px;
       width: 56px;
       height: 56px;
       opacity: 0.4;

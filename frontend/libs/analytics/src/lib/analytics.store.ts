@@ -1,7 +1,9 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
-import { of, delay, switchMap } from 'rxjs';
+import { of, forkJoin, switchMap, catchError } from 'rxjs';
+import { inject } from '@angular/core';
+import { AnalyticsService } from '@app/api-client';
 
 export interface AnalyticPoint {
   label: string;
@@ -24,15 +26,7 @@ export interface AnalyticsState {
 }
 
 const initialState: AnalyticsState = {
-  commissionTrend: [
-    { label: 'Mon', value: 240 },
-    { label: 'Tue', value: 310 },
-    { label: 'Wed', value: 360 },
-    { label: 'Thu', value: 280 },
-    { label: 'Fri', value: 440 },
-    { label: 'Sat', value: 620 },
-    { label: 'Sun', value: 580 },
-  ],
+  commissionTrend: [],
   peakHours: [
     { label: '08:00 - 11:00', value: 85 },
     { label: '11:00 - 14:00 (Lunch)', value: 420 },
@@ -40,13 +34,7 @@ const initialState: AnalyticsState = {
     { label: '17:00 - 20:00 (Dinner)', value: 680 },
     { label: '20:00 - 23:00', value: 310 },
   ],
-  restaurantPerformance: [
-    { name: 'Pizza Roma', orders_count: 320, rating: 4.8, revenue: 6400 },
-    { name: 'Burger Joint', orders_count: 280, rating: 4.5, revenue: 4200 },
-    { name: 'Sushi Zen', orders_count: 150, rating: 4.9, revenue: 5800 },
-    { name: 'Taco Express', orders_count: 410, rating: 4.2, revenue: 3690 },
-    { name: 'Salad House', orders_count: 90, rating: 4.6, revenue: 1170 },
-  ],
+  restaurantPerformance: [],
   loading: false,
   error: null,
 };
@@ -54,26 +42,66 @@ const initialState: AnalyticsState = {
 export const AnalyticsStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withMethods((store) => ({
-    loadAnalyticsData: rxMethod<void>(
-      pipe => pipe.pipe(
+  withMethods((store, analyticsService = inject(AnalyticsService)) => ({
+    loadAnalyticsData: rxMethod<void>((trigger$) =>
+      trigger$.pipe(
         switchMap(() => {
           patchState(store, { loading: true, error: null });
-          return of({
-            commissionTrend: [...store.commissionTrend()],
-            peakHours: [...store.peakHours()],
-            restaurantPerformance: [...store.restaurantPerformance()],
-          }).pipe(
-            delay(250),
+
+          return forkJoin([
+            analyticsService.getRevenueBreakdown().pipe(
+              catchError((err) => {
+                console.error('Error fetching revenue breakdown:', err);
+                return of(null);
+              }),
+            ),
+            analyticsService.getPlatformDashboard().pipe(
+              catchError((err) => {
+                console.error('Error fetching platform dashboard:', err);
+                return of(null);
+              }),
+            ),
+          ]).pipe(
             tapResponse({
-              next: (data) => patchState(store, { ...data, loading: false }),
-              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
-            })
+              next: ([revenueData, platformData]) => {
+                if (!revenueData) {
+                  patchState(store, { error: 'Failed to load analytics data.', loading: false });
+                  return;
+                }
+
+                // Calculate daily commissions
+                const ratio =
+                  Number(revenueData.total_revenue) > 0
+                    ? Number(revenueData.commission_revenue) / Number(revenueData.total_revenue)
+                    : 0.15;
+
+                const commissionTrend = (revenueData.daily_revenue || []).map((s) => ({
+                  label: new Date(s.date).toLocaleDateString(undefined, { weekday: 'short' }),
+                  value: Math.round(Number(s.revenue) * ratio),
+                }));
+
+                const restaurantPerformance = (revenueData.top_restaurants || []).map((r) => ({
+                  name: r.name,
+                  orders_count: r.order_count,
+                  rating: Number(r.average_rating),
+                  revenue: Number(r.revenue),
+                }));
+
+                patchState(store, {
+                  commissionTrend,
+                  restaurantPerformance,
+                  loading: false,
+                });
+              },
+              error: (err: unknown) => {
+                patchState(store, { error: String(err), loading: false });
+              },
+            }),
           );
-        })
-      )
+        }),
+      ),
     ),
-  }))
+  })),
 );
 
 export type AnalyticsStoreType = InstanceType<typeof AnalyticsStore>;

@@ -32,43 +32,31 @@ export class MenusService {
     if (params?.skip !== undefined) httpParams = httpParams.set('skip', params.skip);
     if (params?.limit !== undefined) httpParams = httpParams.set('limit', params.limit);
 
-    return this.http
-      .get<ListResponse<Menu>>(BASE, { params: httpParams })
-      .pipe(map((r) => r.data));
+    return this.http.get<ListResponse<Menu>>(BASE, { params: httpParams }).pipe(map((r) => r.data));
   }
 
   get(id: string): Observable<Menu> {
-    return this.http
-      .get<ApiResponse<Menu>>(`${BASE}/${id}`)
-      .pipe(map((r) => r.data));
+    return this.http.get<ApiResponse<Menu>>(`${BASE}/${id}`).pipe(map((r) => r.data));
   }
 
   create(body: CreateMenuRequest): Observable<Menu> {
-    return this.http
-      .post<ApiResponse<Menu>>(BASE, body)
-      .pipe(map((r) => r.data));
+    return this.http.post<ApiResponse<Menu>>(BASE, body).pipe(map((r) => r.data));
   }
 
   update(id: string, body: UpdateMenuRequest): Observable<Menu> {
-    return this.http
-      .patch<ApiResponse<Menu>>(`${BASE}/${id}`, body)
-      .pipe(map((r) => r.data));
+    return this.http.patch<ApiResponse<Menu>>(`${BASE}/${id}`, body).pipe(map((r) => r.data));
   }
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/${id}`);
   }
 
-  publish(id: string): Observable<Menu> {
-    return this.http
-      .post<ApiResponse<Menu>>(`${BASE}/${id}/publish`, {})
-      .pipe(map((r) => r.data));
+  activate(id: string): Observable<Menu> {
+    return this.update(id, { is_active: true });
   }
 
-  unpublish(id: string): Observable<Menu> {
-    return this.http
-      .post<ApiResponse<Menu>>(`${BASE}/${id}/unpublish`, {})
-      .pipe(map((r) => r.data));
+  deactivate(id: string): Observable<Menu> {
+    return this.update(id, { is_active: false });
   }
 
   // Categories
@@ -78,14 +66,18 @@ export class MenusService {
       .pipe(map((r) => r.data));
   }
 
-  updateCategory(menuId: string, categoryId: string, body: UpdateCategoryRequest): Observable<Category> {
+  updateCategory(
+    _menuId: string,
+    categoryId: string,
+    body: UpdateCategoryRequest,
+  ): Observable<Category> {
     return this.http
-      .patch<ApiResponse<Category>>(`${BASE}/${menuId}/categories/${categoryId}`, body)
+      .patch<ApiResponse<Category>>(`${BASE}/categories/${categoryId}`, body)
       .pipe(map((r) => r.data));
   }
 
-  deleteCategory(menuId: string, categoryId: string): Observable<void> {
-    return this.http.delete<void>(`${BASE}/${menuId}/categories/${categoryId}`);
+  deleteCategory(_menuId: string, categoryId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/categories/${categoryId}`);
   }
 
   // Items
@@ -95,13 +87,13 @@ export class MenusService {
       .pipe(map((r) => r.data));
   }
 
-  updateItem(menuId: string, itemId: string, body: UpdateMenuItemRequest): Observable<MenuItem> {
+  updateItem(_menuId: string, itemId: string, body: UpdateMenuItemRequest): Observable<MenuItem> {
     return this.http
-      .patch<ApiResponse<MenuItem>>(`${BASE}/${menuId}/items/${itemId}`, body)
+      .patch<ApiResponse<MenuItem>>(`${BASE}/items/${itemId}`, body)
       .pipe(map((r) => r.data));
   }
 
-  deleteItem(menuId: string, itemId: string): Observable<void> {
-    return this.http.delete<void>(`${BASE}/${menuId}/items/${itemId}`);
+  deleteItem(_menuId: string, itemId: string): Observable<void> {
+    return this.http.delete<void>(`${BASE}/items/${itemId}`);
   }
 }

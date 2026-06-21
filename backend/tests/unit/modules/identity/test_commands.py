@@ -16,7 +16,7 @@ from modules.identity.application.queries.get_account import GetAccountHandler, 
 from modules.identity.domain.entities.account import Account
 from modules.identity.domain.value_objects.email import Email
 from modules.identity.domain.value_objects.role import Role
-from shared.domain.exceptions import NotFoundException, ValidationException
+from shared.domain.exceptions import AuthenticationException, NotFoundException, ValidationException
 
 
 def _make_account(
@@ -179,7 +179,7 @@ class TestLoginHandler:
 
         handler = LoginHandler(repo, hasher, _mock_token_service(), uow)
 
-        with pytest.raises(ValidationException, match="Invalid credentials"):
+        with pytest.raises(AuthenticationException, match="Invalid credentials"):
             await handler.handle(LoginCommand(email="user@example.com", password="wrong"))
 
     @pytest.mark.asyncio
@@ -190,7 +190,7 @@ class TestLoginHandler:
 
         handler = LoginHandler(repo, _mock_hasher(), _mock_token_service(), uow)
 
-        with pytest.raises(ValidationException, match="Invalid credentials"):
+        with pytest.raises(AuthenticationException, match="Invalid credentials"):
             await handler.handle(LoginCommand(email="gone@example.com", password="pass"))
 
     @pytest.mark.asyncio
@@ -203,7 +203,7 @@ class TestLoginHandler:
 
         handler = LoginHandler(repo, hasher, _mock_token_service(), uow)
 
-        with pytest.raises(ValidationException, match="inactive"):
+        with pytest.raises(AuthenticationException, match="inactive"):
             await handler.handle(LoginCommand(email="user@example.com", password="SecurePass1!"))
 
     @pytest.mark.asyncio
@@ -216,7 +216,7 @@ class TestLoginHandler:
 
         handler = LoginHandler(repo, hasher, _mock_token_service(), uow)
 
-        with pytest.raises(ValidationException, match="not verified"):
+        with pytest.raises(AuthenticationException, match="not verified"):
             await handler.handle(LoginCommand(email="user@example.com", password="SecurePass1!"))
 
 

@@ -17,6 +17,14 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+class PGVector(sa.types.UserDefinedType):
+    def __init__(self, dim: int):
+        self.dim = dim
+
+    def get_col_spec(self, **kw):
+        return f"vector({self.dim})"
+
+
 def upgrade() -> None:
     # 1. Enable the vector extension
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -25,7 +33,7 @@ def upgrade() -> None:
     op.create_table(
         'menu_item_embeddings',
         sa.Column('menu_item_id', sa.UUID(), nullable=False),
-        sa.Column('embedding', sa.UserDefinedType('vector', 768), nullable=False),
+        sa.Column('embedding', PGVector(768), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['menu_item_id'], ['menus.menu_items.id'], ondelete='CASCADE'),

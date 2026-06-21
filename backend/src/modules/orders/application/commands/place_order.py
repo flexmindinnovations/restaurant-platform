@@ -52,8 +52,7 @@ class PlaceOrderHandler:
         tax_amount = (subtotal.amount * Decimal("0.08")).quantize(Decimal("0.01"))
         tax = Money(amount=tax_amount, currency=currency)
 
-        # Flat $3.99 delivery fee
-        delivery_fee = Money(amount=Decimal("3.99"), currency=currency)
+        delivery_fee = Money(amount=Decimal("49"), currency=currency)
 
         tip = Money(amount=command.tip_amount, currency=currency)
 

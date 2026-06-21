@@ -1,0 +1,37 @@
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-field { flex: 1; min-width: 240px; }
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  ::ng-deep .mat-mdc-chip {
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+.workspace-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.table-wrapper-container {
+  flex: 1;
+  min-width: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.table-row--selected {
+  background: var(--color-orange-bg, #fff7ed) !important;
+}

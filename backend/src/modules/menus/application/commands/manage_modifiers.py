@@ -68,7 +68,7 @@ class AddModifierCommand:
     modifier_group_id: uuid.UUID
     name: str
     price_adjustment_amount: Decimal = Decimal("0.00")
-    price_adjustment_currency: str = "USD"
+    price_adjustment_currency: str = "INR"
     is_default: bool = False
     display_order: int = 0
 

@@ -1,12 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  LucideX,
+  LucideCheck,
+  LucideBan,
+  LucideCircleCheck,
+  LucideCircle,
+  LucideInfo,
+} from '@lucide/angular';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
@@ -22,16 +24,22 @@ interface StatusStep {
 }
 
 const STATUS_TIMELINE: StatusStep[] = [
-  { status: 'PENDING',          label: 'Placed',           timestampKey: 'placed_at' },
-  { status: 'CONFIRMED',        label: 'Confirmed',         timestampKey: 'confirmed_at' },
-  { status: 'PREPARING',        label: 'Preparing',         timestampKey: 'preparing_at' },
-  { status: 'READY',            label: 'Ready for pickup',  timestampKey: 'ready_at' },
-  { status: 'OUT_FOR_DELIVERY', label: 'Picked up',         timestampKey: 'picked_up_at' },
-  { status: 'DELIVERED',        label: 'Delivered',         timestampKey: 'delivered_at' },
+  { status: 'PENDING', label: 'Placed', timestampKey: 'placed_at' },
+  { status: 'CONFIRMED', label: 'Confirmed', timestampKey: 'confirmed_at' },
+  { status: 'PREPARING', label: 'Preparing', timestampKey: 'preparing_at' },
+  { status: 'READY', label: 'Ready for pickup', timestampKey: 'ready_at' },
+  { status: 'OUT_FOR_DELIVERY', label: 'Picked up', timestampKey: 'picked_up_at' },
+  { status: 'DELIVERED', label: 'Delivered', timestampKey: 'delivered_at' },
 ];
 
 const STATUS_ORDER: OrderStatus[] = [
-  'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED',
+  'PENDING',
+  'CONFIRMED',
+  'PREPARING',
+  'READY',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED',
+  'COMPLETED',
 ];
 
 @Component({
@@ -41,7 +49,12 @@ const STATUS_ORDER: OrderStatus[] = [
   imports: [
     DatePipe,
     MatButtonModule,
-    MatIconModule,
+    LucideX,
+    LucideCheck,
+    LucideBan,
+    LucideCircleCheck,
+    LucideCircle,
+    LucideInfo,
     MatDividerModule,
     MatProgressSpinnerModule,
     MatListModule,
@@ -60,7 +73,7 @@ const STATUS_ORDER: OrderStatus[] = [
             <app-status-badge [status]="order.status" />
           </div>
           <button mat-icon-button (click)="closed.emit()" aria-label="Close panel">
-            <mat-icon>close</mat-icon>
+            <svg lucideX [size]="18"></svg>
           </button>
         </div>
 
@@ -70,12 +83,16 @@ const STATUS_ORDER: OrderStatus[] = [
         <div class="actions-bar">
           @if (order.status === 'PENDING') {
             <button mat-flat-button color="primary" (click)="onConfirm(order.id)">
-              <mat-icon>check</mat-icon> Confirm
+              <svg lucideCheck [size]="18"></svg> Confirm
             </button>
           }
-          @if (order.status !== 'CANCELLED' && order.status !== 'COMPLETED' && order.status !== 'DELIVERED') {
+          @if (
+            order.status !== 'CANCELLED' &&
+            order.status !== 'COMPLETED' &&
+            order.status !== 'DELIVERED'
+          ) {
             <button mat-stroked-button color="warn" (click)="onCancel(order.id)">
-              <mat-icon>cancel</mat-icon> Cancel
+              <svg lucideBan [size]="18"></svg> Cancel
             </button>
           }
         </div>
@@ -89,12 +106,16 @@ const STATUS_ORDER: OrderStatus[] = [
               @let isDone = isStatusReached(order.status, step.status);
               <div class="timeline-item" [class.done]="isDone">
                 <div class="timeline-dot" [class.done]="isDone">
-                  <mat-icon class="dot-icon">{{ isDone ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                  @if (isDone) {
+                    <svg lucideCircleCheck class="dot-icon" [size]="16"></svg>
+                  } @else {
+                    <svg lucideCircle class="dot-icon" [size]="16"></svg>
+                  }
                 </div>
                 <div class="timeline-content">
                   <span class="tl-label">{{ step.label }}</span>
                   @if (ts) {
-                    <span class="tl-time">{{ ts | date:'short' }}</span>
+                    <span class="tl-time">{{ ts | date: 'short' }}</span>
                   }
                 </div>
               </div>
@@ -102,12 +123,12 @@ const STATUS_ORDER: OrderStatus[] = [
             @if (order.status === 'CANCELLED') {
               <div class="timeline-item cancelled">
                 <div class="timeline-dot cancelled">
-                  <mat-icon class="dot-icon">cancel</mat-icon>
+                  <svg lucideBan class="dot-icon" [size]="16"></svg>
                 </div>
                 <div class="timeline-content">
                   <span class="tl-label">Cancelled</span>
                   @if (order.cancelled_at) {
-                    <span class="tl-time">{{ order.cancelled_at | date:'short' }}</span>
+                    <span class="tl-time">{{ order.cancelled_at | date: 'short' }}</span>
                   }
                   @if (order.cancellation_reason) {
                     <span class="tl-reason">{{ order.cancellation_reason }}</span>
@@ -127,7 +148,9 @@ const STATUS_ORDER: OrderStatus[] = [
             <div class="order-item-row">
               <span class="item-qty">×{{ item.quantity }}</span>
               <span class="item-name-col">{{ item.name }}</span>
-              <span class="item-price-col">{{ order.subtotal_currency }} {{ item.subtotal_amount }}</span>
+              <span class="item-price-col"
+                >{{ order.subtotal_currency }} {{ item.subtotal_amount }}</span
+              >
             </div>
           }
           <mat-divider class="items-divider" />
@@ -164,7 +187,7 @@ const STATUS_ORDER: OrderStatus[] = [
           </address>
           @if (order.delivery_notes) {
             <p class="delivery-notes">
-              <mat-icon class="notes-icon">info</mat-icon>
+              <svg lucideInfo class="notes-icon" [size]="16"></svg>
               {{ order.delivery_notes }}
             </p>
           }
@@ -173,20 +196,48 @@ const STATUS_ORDER: OrderStatus[] = [
     }
   `,
   styles: `
-    .center-spinner { display: flex; justify-content: center; padding: 40px; }
-    .detail-wrapper { padding: 16px; }
+    .center-spinner {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .detail-wrapper {
+      padding: 16px;
+    }
     .detail-header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .order-num { margin: 0 0 6px; font-size: 1rem; font-weight: 600; font-family: monospace; }
-    .actions-bar { display: flex; gap: 8px; padding: 12px 0; }
-    .section { padding: 12px 0; }
-    .section-title { margin: 0 0 10px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
+    .order-num {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+    .actions-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0;
+    }
+    .section {
+      padding: 12px 0;
+    }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+    }
     /* Timeline */
-    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
     .timeline-item {
       display: flex;
       gap: 12px;
@@ -199,17 +250,50 @@ const STATUS_ORDER: OrderStatus[] = [
       top: 24px;
       bottom: -4px;
       width: 2px;
-      background: var(--mat-sys-outline-variant, #ddd);
+      background: var(--color-border);
     }
-    .timeline-item.done::after { background: var(--mat-sys-primary, #e65100); opacity: 0.4; }
-    .timeline-dot { width: 24px; height: 24px; display: flex; align-items: flex-start; padding-top: 4px; }
-    .dot-icon { font-size: 16px; width: 16px; height: 16px; color: var(--mat-sys-outline, #ccc); }
-    .timeline-dot.done .dot-icon { color: var(--mat-sys-primary, #e65100); }
-    .timeline-dot.cancelled .dot-icon { color: #d32f2f; }
-    .timeline-content { padding-bottom: 12px; }
-    .tl-label { display: block; font-size: 0.875rem; font-weight: 500; }
-    .tl-time { display: block; font-size: 0.75rem; opacity: 0.6; }
-    .tl-reason { display: block; font-size: 0.75rem; color: #d32f2f; margin-top: 2px; }
+    .timeline-item.done::after {
+      background: var(--color-primary);
+      opacity: 0.4;
+    }
+    .timeline-dot {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 4px;
+    }
+    .dot-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: var(--color-border);
+    }
+    .timeline-dot.done .dot-icon {
+      color: var(--color-primary);
+    }
+    .timeline-dot.cancelled .dot-icon {
+      color: var(--color-error);
+    }
+    .timeline-content {
+      padding-bottom: 12px;
+    }
+    .tl-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .tl-time {
+      display: block;
+      font-size: 0.75rem;
+      opacity: 0.6;
+    }
+    .tl-reason {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-error);
+      margin-top: 2px;
+    }
     /* Items */
     .order-item-row {
       display: grid;
@@ -219,17 +303,58 @@ const STATUS_ORDER: OrderStatus[] = [
       padding: 4px 0;
       font-size: 0.875rem;
     }
-    .item-qty { font-weight: 700; opacity: 0.5; }
-    .item-name-col { font-weight: 500; }
-    .item-price-col { font-weight: 600; }
-    .items-divider { margin: 8px 0; }
-    .totals { display: flex; flex-direction: column; gap: 4px; }
-    .total-row { display: flex; justify-content: space-between; font-size: 0.875rem; opacity: 0.8; }
-    .total-grand { opacity: 1; font-size: 1rem; margin-top: 4px; }
+    .item-qty {
+      font-weight: 700;
+      opacity: 0.5;
+    }
+    .item-name-col {
+      font-weight: 500;
+    }
+    .item-price-col {
+      font-weight: 600;
+    }
+    .items-divider {
+      margin: 8px 0;
+    }
+    .totals {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    .total-grand {
+      opacity: 1;
+      font-size: 1rem;
+      margin-top: 4px;
+    }
     /* Address */
-    address { font-style: normal; line-height: 1.8; font-size: 0.875rem; }
-    .delivery-notes { display: flex; align-items: flex-start; gap: 6px; font-size: 0.8rem; opacity: 0.75; margin-top: 8px; }
-    .notes-icon { font-size: 16px; width: 16px; height: 16px; margin-top: 2px; }
+    address {
+      font-style: normal;
+      line-height: 1.8;
+      font-size: 0.875rem;
+    }
+    .delivery-notes {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 0.8rem;
+      opacity: 0.75;
+      margin-top: 8px;
+    }
+    .notes-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+    }
+    svg[class*='lucide'] {
+      vertical-align: middle;
+    }
   `,
 })
 export class OrderDetail {

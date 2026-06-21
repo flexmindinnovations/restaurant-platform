@@ -10,7 +10,7 @@ class DailyOrderStatsResponse(BaseModel):
     order_count: int
     revenue: Decimal
     average_order_value: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class PopularItemResponse(BaseModel):
@@ -18,14 +18,14 @@ class PopularItemResponse(BaseModel):
     name: str
     order_count: int
     total_revenue: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class PeakHourResponse(BaseModel):
     hour: int
     order_count: int
     average_revenue: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class DeliveryStatsResponse(BaseModel):
@@ -47,7 +47,7 @@ class TopRestaurantResponse(BaseModel):
     order_count: int
     revenue: Decimal
     average_rating: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class RestaurantDashboardResponse(BaseModel):
@@ -59,7 +59,7 @@ class RestaurantDashboardResponse(BaseModel):
     total_orders: int
     total_revenue: Decimal
     average_rating: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class PlatformDashboardResponse(BaseModel):
@@ -71,7 +71,7 @@ class PlatformDashboardResponse(BaseModel):
     customer_stats: CustomerStatsResponse | None
     delivery_stats: DeliveryStatsResponse | None
     top_restaurants: list[TopRestaurantResponse]
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 class RevenueBreakdownResponse(BaseModel):
@@ -80,4 +80,4 @@ class RevenueBreakdownResponse(BaseModel):
     delivery_revenue: Decimal
     daily_revenue: list[DailyOrderStatsResponse]
     top_restaurants: list[TopRestaurantResponse]
-    currency: str = "USD"
+    currency: str = "INR"

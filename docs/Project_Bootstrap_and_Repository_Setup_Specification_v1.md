@@ -2078,61 +2078,61 @@ File: `Makefile` (root of repository)
 .PHONY: infra-up infra-down infra-reset
 
 infra-up:
-	cd infrastructure/docker && docker compose up -d
+ cd infrastructure/docker && docker compose up -d
 
 infra-down:
-	cd infrastructure/docker && docker compose down
+ cd infrastructure/docker && docker compose down
 
 infra-reset:
-	cd infrastructure/docker && docker compose down -v && docker compose up -d
+ cd infrastructure/docker && docker compose down -v && docker compose up -d
 
 # ---- Backend ----
 .PHONY: backend-install backend-dev backend-test backend-lint backend-migrate
 
 backend-install:
-	cd backend && uv sync --all-extras
+ cd backend && uv sync --all-extras
 
 backend-dev:
-	cd backend && uv run uvicorn app.main:create_app --factory --reload --host 0.0.0.0 --port 8000
+ cd backend && uv run uvicorn app.main:create_app --factory --reload --host 0.0.0.0 --port 8000
 
 backend-test:
-	cd backend && uv run pytest
+ cd backend && uv run pytest
 
 backend-lint:
-	cd backend && uv run ruff check src/ tests/ && uv run mypy src/
+ cd backend && uv run ruff check src/ tests/ && uv run mypy src/
 
 backend-migrate:
-	cd backend && uv run alembic upgrade head
+ cd backend && uv run alembic upgrade head
 
 # ---- Frontend ----
 .PHONY: frontend-install frontend-dev frontend-test frontend-lint frontend-build
 
 frontend-install:
-	cd frontend && npm ci
+ cd frontend && npm ci
 
 frontend-dev:
-	cd frontend && npm start
+ cd frontend && npm start
 
 frontend-test:
-	cd frontend && npm test -- --watch=false
+ cd frontend && npm test -- --watch=false
 
 frontend-lint:
-	cd frontend && npx ng lint
+ cd frontend && npx ng lint
 
 frontend-build:
-	cd frontend && npm run build:prod
+ cd frontend && npm run build:prod
 
 # ---- Mobile ----
 .PHONY: mobile-install mobile-test mobile-analyze
 
 mobile-install:
-	cd mobile && dart pub get && dart run melos bootstrap
+ cd mobile && dart pub get && dart run melos bootstrap
 
 mobile-test:
-	cd mobile && dart run melos run test
+ cd mobile && dart run melos run test
 
 mobile-analyze:
-	cd mobile && dart run melos run analyze
+ cd mobile && dart run melos run analyze
 
 # ---- All ----
 .PHONY: install test lint

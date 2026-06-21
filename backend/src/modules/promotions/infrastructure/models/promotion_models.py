@@ -46,7 +46,7 @@ class CouponUsageModel(Base):
     order_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     discount_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    discount_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
+    discount_currency: Mapped[str] = mapped_column(String(3), nullable=False, default="INR")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)

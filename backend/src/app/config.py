@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     db_port: int = 5432
     db_user: str = "platform"
     db_password: str = "platform_dev"
-    db_name: str = "restaurant_platform"
+    db_name: str = "restaurant_db"
 
     @property
     def database_url(self) -> str:
@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     # JWT
     jwt_secret_key: str = "dev-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 15
-    jwt_refresh_token_expire_days: int = 7
+    jwt_access_token_expire_minutes: int = 43200
+    jwt_refresh_token_expire_days: int = 30
 
     # AWS
     aws_endpoint_url: str | None = None
@@ -65,6 +65,13 @@ class Settings(BaseSettings):
 
     # OpenAI
     openai_api_key: str = ""
+
+    # Gemini
+    gemini_api_key: str = ""
+
+    # Locale / Currency
+    default_currency: str = "INR"
+    currency_symbol: str = "₹"
 
     # Stripe
     stripe_secret_key: str = "sk_test_51MockKeyChangeInProduction"

@@ -1,16 +1,17 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideDynamicIcon, LucideConstruction, provideLucideIcons } from '@lucide/angular';
 
 @Component({
   selector: 'app-placeholder',
   standalone: true,
-  imports: [MatCardModule, MatIconModule],
+  imports: [MatCardModule, LucideDynamicIcon],
+  providers: [provideLucideIcons(LucideConstruction)],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <mat-card appearance="outlined">
       <mat-card-content class="placeholder">
-        <mat-icon class="placeholder-icon">{{ icon() }}</mat-icon>
+        <svg [lucideIcon]="icon()" class="placeholder-icon"></svg>
         <h1>{{ title() }}</h1>
         <p>This module is ready for development.</p>
       </mat-card-content>
@@ -26,7 +27,6 @@ import { MatIconModule } from '@angular/material/icon';
       text-align: center;
     }
     .placeholder-icon {
-      font-size: 48px;
       width: 48px;
       height: 48px;
       opacity: 0.5;

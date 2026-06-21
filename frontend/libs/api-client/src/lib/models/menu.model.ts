@@ -3,8 +3,7 @@ export interface Menu {
   restaurant_id: string;
   name: string;
   description: string | null;
-  is_published: boolean;
-  display_order: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   categories: Category[];
@@ -38,12 +37,13 @@ export interface MenuItem {
 export interface CreateMenuRequest {
   name: string;
   description?: string;
+  restaurant_id?: string;
 }
 
 export interface UpdateMenuRequest {
   name?: string;
   description?: string;
-  is_published?: boolean;
+  is_active?: boolean;
 }
 
 export interface CreateCategoryRequest {

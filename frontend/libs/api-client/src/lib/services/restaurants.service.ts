@@ -22,7 +22,8 @@ export class RestaurantsService {
     if (params?.skip !== undefined) httpParams = httpParams.set('skip', params.skip);
     if (params?.limit !== undefined) httpParams = httpParams.set('limit', params.limit);
     if (params?.search) httpParams = httpParams.set('search', params.search);
-    if (params?.is_verified !== undefined) httpParams = httpParams.set('is_verified', params.is_verified);
+    if (params?.is_verified !== undefined)
+      httpParams = httpParams.set('is_verified', params.is_verified);
 
     return this.http
       .get<PaginatedResponse<Restaurant>>(BASE, { params: httpParams })
@@ -30,25 +31,18 @@ export class RestaurantsService {
   }
 
   get(id: string): Observable<Restaurant> {
-    return this.http
-      .get<ApiResponse<Restaurant>>(`${BASE}/${id}`)
-      .pipe(map((r) => r.data));
+    return this.http.get<ApiResponse<Restaurant>>(`${BASE}/${id}`).pipe(map((r) => r.data));
   }
 
   create(body: CreateRestaurantRequest): Observable<Restaurant> {
-    return this.http
-      .post<ApiResponse<Restaurant>>(BASE, body)
-      .pipe(map((r) => r.data));
+    return this.http.post<ApiResponse<Restaurant>>(BASE, body).pipe(map((r) => r.data));
   }
 
   update(id: string, body: UpdateRestaurantRequest): Observable<Restaurant> {
-    return this.http
-      .patch<ApiResponse<Restaurant>>(`${BASE}/${id}`, body)
-      .pipe(map((r) => r.data));
+    return this.http.patch<ApiResponse<Restaurant>>(`${BASE}/${id}`, body).pipe(map((r) => r.data));
   }
 
   verify(id: string): Observable<void> {
-    return this.http
-      .post<void>(`/api/v1/admin/restaurants/${id}/verify`, {});
+    return this.http.post<void>(`/api/v1/admin/restaurants/${id}/verify`, {});
   }
 }

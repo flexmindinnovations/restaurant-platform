@@ -10,7 +10,14 @@ export interface MenuItemDialogData {
   menuId: string;
   categoryId: string;
   categoryName: string;
-  item?: { id: string; name: string; description: string | null; price_amount: string; price_currency: string; is_available: boolean };
+  item?: {
+    id: string;
+    name: string;
+    description: string | null;
+    price_amount: string;
+    price_currency: string;
+    is_available: boolean;
+  };
 }
 
 export interface MenuItemDialogResult {
@@ -45,20 +52,38 @@ export interface MenuItemDialogResult {
 
         <mat-form-field appearance="outline" class="full">
           <mat-label>Description</mat-label>
-          <textarea matInput formControlName="description" rows="3"
-            placeholder="Brief description…" id="item-description"></textarea>
+          <textarea
+            matInput
+            formControlName="description"
+            rows="3"
+            placeholder="Brief description…"
+            id="item-description"
+          ></textarea>
         </mat-form-field>
 
         <div class="price-row">
           <mat-form-field appearance="outline" class="price-amount">
             <mat-label>Price</mat-label>
-            <input matInput formControlName="price_amount" type="number" min="0" step="0.01"
-              id="item-price" placeholder="0.00" />
+            <input
+              matInput
+              formControlName="price_amount"
+              type="number"
+              min="0"
+              step="0.01"
+              id="item-price"
+              placeholder="0.00"
+            />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="price-currency">
             <mat-label>Currency</mat-label>
-            <input matInput formControlName="price_currency" placeholder="USD" id="item-currency" maxlength="3" />
+            <input
+              matInput
+              formControlName="price_currency"
+              placeholder="INR"
+              id="item-currency"
+              maxlength="3"
+            />
           </mat-form-field>
         </div>
 
@@ -69,18 +94,38 @@ export interface MenuItemDialogResult {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" (click)="onSave()" [disabled]="form.invalid"
-        id="item-save-btn">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="onSave()"
+        [disabled]="form.invalid"
+        id="item-save-btn"
+      >
         {{ data.item ? 'Save changes' : 'Add item' }}
       </button>
     </mat-dialog-actions>
   `,
   styles: `
-    .item-form { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; min-width: 400px; }
-    .full { width: 100%; }
-    .price-row { display: flex; gap: 12px; }
-    .price-amount { flex: 2; }
-    .price-currency { flex: 1; }
+    .item-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 0;
+      min-width: 400px;
+    }
+    .full {
+      width: 100%;
+    }
+    .price-row {
+      display: flex;
+      gap: 12px;
+    }
+    .price-amount {
+      flex: 2;
+    }
+    .price-currency {
+      flex: 1;
+    }
   `,
 })
 export class MenuItemDialog {
@@ -89,23 +134,23 @@ export class MenuItemDialog {
   private readonly fb = inject(FormBuilder);
 
   protected readonly form = this.fb.nonNullable.group({
-    name:           [this.data.item?.name ?? '', Validators.required],
-    description:    [this.data.item?.description ?? ''],
-    price_amount:   [this.data.item?.price_amount ?? '', [Validators.required, Validators.min(0)]],
-    price_currency: [this.data.item?.price_currency ?? 'USD', Validators.required],
-    is_available:   [this.data.item?.is_available ?? true],
+    name: [this.data.item?.name ?? '', Validators.required],
+    description: [this.data.item?.description ?? ''],
+    price_amount: [this.data.item?.price_amount ?? '', [Validators.required, Validators.min(0)]],
+    price_currency: [this.data.item?.price_currency ?? 'INR', Validators.required],
+    is_available: [this.data.item?.is_available ?? true],
   });
 
   onSave(): void {
     if (this.form.invalid) return;
     const val = this.form.getRawValue();
     const result: MenuItemDialogResult = {
-      name:           val.name,
-      description:    val.description || null,
-      price_amount:   parseFloat(val.price_amount).toFixed(2),
+      name: val.name,
+      description: val.description || null,
+      price_amount: parseFloat(val.price_amount).toFixed(2),
       price_currency: val.price_currency.toUpperCase(),
-      category_id:    this.data.categoryId,
-      is_available:   val.is_available,
+      category_id: this.data.categoryId,
+      is_available: val.is_available,
     };
     this.dialogRef.close(result);
   }

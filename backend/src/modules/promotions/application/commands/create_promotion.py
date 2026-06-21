@@ -21,7 +21,7 @@ class CreatePromotionCommand:
     valid_until: datetime
     min_order_amount: Decimal | None = None
     max_discount_amount: Decimal | None = None
-    currency: str = "USD"
+    currency: str = "INR"
     max_total_uses: int | None = None
     max_uses_per_customer: int = 1
     restaurant_id: uuid.UUID | None = None

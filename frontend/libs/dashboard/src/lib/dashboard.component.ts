@@ -1,10 +1,27 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
+import {
+  LucideRefreshCw,
+  LucideCircleAlert,
+  LucideShoppingBag,
+  LucideIndianRupee,
+  LucideStore,
+  LucideUserPlus,
+  LucideInbox,
+  LucideTrendingUp,
+  LucideTrendingDown,
+} from '@lucide/angular';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 
-import { PageHeader } from '@app/shared';
+import { PageHeader, HeaderService } from '@app/shared';
 import { DashboardStore } from './dashboard.store';
 
 @Component({
@@ -13,91 +30,127 @@ import { DashboardStore } from './dashboard.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    MatIconModule,
+    RouterLink,
     MatButtonModule,
-    MatProgressBarModule,
+    LucideRefreshCw,
+    LucideCircleAlert,
+    LucideShoppingBag,
+    LucideIndianRupee,
+    LucideStore,
+    LucideUserPlus,
+    LucideInbox,
+    LucideTrendingUp,
+    LucideTrendingDown,
     PageHeader,
   ],
   template: `
-    <app-page-header
-      title="Dashboard"
-      subtitle="Platform overview and key metrics"
-    >
-      <button mat-stroked-button (click)="refreshData()" class="refresh-btn">
-        <mat-icon>refresh</mat-icon>
-        Refresh
+    <app-page-header title="Dashboard" subtitle="Platform overview and key metrics">
+      <button matButton="filled" (click)="refreshData()">
+        <svg lucideRefreshCw [size]="18"></svg>
+        <span>Refresh</span>
       </button>
     </app-page-header>
 
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" class="loading-bar" />
+    @if (store.error()) {
+      <div class="error-banner">
+        <svg lucideCircleAlert [size]="18"></svg>
+        <span>{{ store.error() }}</span>
+      </div>
     }
 
     <!-- KPI Grid -->
     <section class="kpi-grid">
-      <div class="kpi-card">
+      <a class="kpi-card" [routerLink]="'/orders'">
         <div class="kpi-header">
           <span class="kpi-label">Total Orders</span>
           <div class="kpi-icon-box kpi-icon--blue">
-            <mat-icon>shopping_bag</mat-icon>
+            <svg lucideShoppingBag [size]="20"></svg>
           </div>
         </div>
         <div class="kpi-value">{{ store.kpis().orders.value }}</div>
-        <div class="kpi-trend" [class.kpi-trend--up]="store.kpis().orders.isPositive"
-             [class.kpi-trend--down]="!store.kpis().orders.isPositive">
-          <mat-icon class="trend-icon">{{ store.kpis().orders.isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
+        <div
+          class="kpi-trend"
+          [class.kpi-trend--up]="store.kpis().orders.isPositive"
+          [class.kpi-trend--down]="!store.kpis().orders.isPositive"
+        >
+          @if (store.kpis().orders.isPositive) {
+            <svg lucideTrendingUp class="trend-icon" [size]="16"></svg>
+          } @else {
+            <svg lucideTrendingDown class="trend-icon" [size]="16"></svg>
+          }
           <span>{{ store.kpis().orders.change }}</span>
           <span class="trend-period">vs last period</span>
         </div>
-      </div>
+      </a>
 
-      <div class="kpi-card">
+      <a class="kpi-card" [routerLink]="'/analytics'">
         <div class="kpi-header">
           <span class="kpi-label">Revenue</span>
           <div class="kpi-icon-box kpi-icon--green">
-            <mat-icon>attach_money</mat-icon>
+            <svg lucideIndianRupee [size]="20"></svg>
           </div>
         </div>
         <div class="kpi-value">{{ store.kpis().revenue.value }}</div>
-        <div class="kpi-trend" [class.kpi-trend--up]="store.kpis().revenue.isPositive"
-             [class.kpi-trend--down]="!store.kpis().revenue.isPositive">
-          <mat-icon class="trend-icon">{{ store.kpis().revenue.isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
+        <div
+          class="kpi-trend"
+          [class.kpi-trend--up]="store.kpis().revenue.isPositive"
+          [class.kpi-trend--down]="!store.kpis().revenue.isPositive"
+        >
+          @if (store.kpis().revenue.isPositive) {
+            <svg lucideTrendingUp class="trend-icon" [size]="16"></svg>
+          } @else {
+            <svg lucideTrendingDown class="trend-icon" [size]="16"></svg>
+          }
           <span>{{ store.kpis().revenue.change }}</span>
           <span class="trend-period">vs last period</span>
         </div>
-      </div>
+      </a>
 
-      <div class="kpi-card">
+      <a class="kpi-card" [routerLink]="'/restaurants'">
         <div class="kpi-header">
           <span class="kpi-label">Active Partners</span>
           <div class="kpi-icon-box kpi-icon--violet">
-            <mat-icon>storefront</mat-icon>
+            <svg lucideStore [size]="20"></svg>
           </div>
         </div>
         <div class="kpi-value">{{ store.kpis().partners.value }}</div>
-        <div class="kpi-trend" [class.kpi-trend--up]="store.kpis().partners.isPositive"
-             [class.kpi-trend--down]="!store.kpis().partners.isPositive">
-          <mat-icon class="trend-icon">{{ store.kpis().partners.isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
+        <div
+          class="kpi-trend"
+          [class.kpi-trend--up]="store.kpis().partners.isPositive"
+          [class.kpi-trend--down]="!store.kpis().partners.isPositive"
+        >
+          @if (store.kpis().partners.isPositive) {
+            <svg lucideTrendingUp class="trend-icon" [size]="16"></svg>
+          } @else {
+            <svg lucideTrendingDown class="trend-icon" [size]="16"></svg>
+          }
           <span>{{ store.kpis().partners.change }}</span>
           <span class="trend-period">vs last period</span>
         </div>
-      </div>
+      </a>
 
-      <div class="kpi-card">
+      <a class="kpi-card" [routerLink]="'/users'">
         <div class="kpi-header">
           <span class="kpi-label">New Users</span>
           <div class="kpi-icon-box kpi-icon--amber">
-            <mat-icon>person_add</mat-icon>
+            <svg lucideUserPlus [size]="20"></svg>
           </div>
         </div>
         <div class="kpi-value">{{ store.kpis().users.value }}</div>
-        <div class="kpi-trend" [class.kpi-trend--up]="store.kpis().users.isPositive"
-             [class.kpi-trend--down]="!store.kpis().users.isPositive">
-          <mat-icon class="trend-icon">{{ store.kpis().users.isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
+        <div
+          class="kpi-trend"
+          [class.kpi-trend--up]="store.kpis().users.isPositive"
+          [class.kpi-trend--down]="!store.kpis().users.isPositive"
+        >
+          @if (store.kpis().users.isPositive) {
+            <svg lucideTrendingUp class="trend-icon" [size]="16"></svg>
+          } @else {
+            <svg lucideTrendingDown class="trend-icon" [size]="16"></svg>
+          }
           <span>{{ store.kpis().users.change }}</span>
           <span class="trend-period">vs last period</span>
         </div>
-      </div>
+      </a>
     </section>
 
     <!-- Charts row -->
@@ -111,13 +164,22 @@ import { DashboardStore } from './dashboard.store';
           <svg viewBox="0 0 300 80" class="sparkline" preserveAspectRatio="none">
             <defs>
               <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0"/>
+                <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.15" />
+                <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0" />
               </linearGradient>
             </defs>
-            <path d="M0,60 L50,45 L100,30 L150,40 L200,15 L250,0 L300,8 L300,80 L0,80Z" fill="url(#sparkGrad)"/>
-            <polyline points="0,60 50,45 100,30 150,40 200,15 250,0 300,8"
-              fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M0,60 L50,45 L100,30 L150,40 L200,15 L250,0 L300,8 L300,80 L0,80Z"
+              fill="url(#sparkGrad)"
+            />
+            <polyline
+              points="0,60 50,45 100,30 150,40 200,15 250,0 300,8"
+              fill="none"
+              stroke="var(--color-primary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <div class="chart-labels">
             @for (pt of store.ordersTrend(); track pt.label) {
@@ -136,13 +198,22 @@ import { DashboardStore } from './dashboard.store';
           <svg viewBox="0 0 300 80" class="sparkline" preserveAspectRatio="none">
             <defs>
               <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
+                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.15" />
+                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0" />
               </linearGradient>
             </defs>
-            <path d="M0,65 L50,48 L100,35 L150,45 L200,18 L250,0 L300,6 L300,80 L0,80Z" fill="url(#revGrad)"/>
-            <polyline points="0,65 50,48 100,35 150,45 200,18 250,0 300,6"
-              fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M0,65 L50,48 L100,35 L150,45 L200,18 L250,0 L300,6 L300,80 L0,80Z"
+              fill="url(#revGrad)"
+            />
+            <polyline
+              points="0,65 50,48 100,35 150,45 200,18 250,0 300,6"
+              fill="none"
+              stroke="var(--color-accent)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <div class="chart-labels">
             @for (pt of store.revenueTrend(); track pt.label) {
@@ -174,9 +245,11 @@ import { DashboardStore } from './dashboard.store';
             <tbody>
               @for (order of store.recentOrders(); track order.id) {
                 <tr>
-                  <td><code class="order-id">#{{ order.id }}</code></td>
+                  <td>
+                    <code class="order-id">#{{ order.id }}</code>
+                  </td>
                   <td class="cell-name">{{ order.customer }}</td>
-                  <td class="cell-amount">\${{ order.amount }}</td>
+                  <td class="cell-amount">₹{{ order.amount }}</td>
                   <td>
                     <span class="status-pill" [class]="'status--' + order.status.toLowerCase()">
                       {{ order.status }}
@@ -189,7 +262,7 @@ import { DashboardStore } from './dashboard.store';
           </table>
         } @else {
           <div class="empty-state">
-            <mat-icon>inbox</mat-icon>
+            <svg lucideInbox [size]="40"></svg>
             <p>No recent orders</p>
           </div>
         }
@@ -197,16 +270,31 @@ import { DashboardStore } from './dashboard.store';
     </section>
   `,
   styles: `
-    :host { display: block; }
-
-    .refresh-btn {
-      font-size: 13px;
-      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    :host {
+      display: block;
     }
 
     .loading-bar {
       margin-bottom: 16px;
-      border-radius: 2px;
+      border-radius: 0;
+    }
+
+    .error-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-error-bg);
+      border: 1px solid var(--color-error);
+      border-radius: 0;
+      padding: 10px 12px;
+      color: var(--color-error);
+      font-size: 13px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+
+      svg {
+        flex-shrink: 0;
+      }
     }
 
     /* ── KPI Grid ───────────────────────────── */
@@ -220,12 +308,18 @@ import { DashboardStore } from './dashboard.store';
     .kpi-card {
       background: var(--color-surface-1);
       border: 1px solid var(--color-border);
-      border-radius: 12px;
+      border-radius: 0;
       padding: 16px;
-      transition: box-shadow 150ms ease;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition:
+        box-shadow 150ms ease,
+        transform 150ms ease;
 
       &:hover {
         box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
       }
     }
 
@@ -245,40 +339,27 @@ import { DashboardStore } from './dashboard.store';
     .kpi-icon-box {
       width: 36px;
       height: 36px;
-      border-radius: 10px;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
 
-      mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-      }
-
       &.kpi-icon--blue {
-        background: #eff6ff;
-        color: #2563eb;
+        background: var(--color-info-bg);
+        color: var(--color-info);
       }
       &.kpi-icon--green {
-        background: #f0fdf4;
-        color: #16a34a;
+        background: var(--color-success-bg);
+        color: var(--color-success);
       }
       &.kpi-icon--violet {
-        background: #f5f3ff;
-        color: #7c3aed;
+        background: var(--color-accent-subtle);
+        color: var(--color-accent);
       }
       &.kpi-icon--amber {
-        background: #fffbeb;
-        color: #d97706;
+        background: var(--color-warning-bg);
+        color: var(--color-warning);
       }
-    }
-
-    :host-context(.dark) {
-      .kpi-icon--blue  { background: rgba(37, 99, 235, 0.12); }
-      .kpi-icon--green { background: rgba(22, 163, 74, 0.12); }
-      .kpi-icon--violet { background: rgba(124, 58, 237, 0.12); }
-      .kpi-icon--amber { background: rgba(217, 119, 6, 0.12); }
     }
 
     .kpi-value {
@@ -298,13 +379,17 @@ import { DashboardStore } from './dashboard.store';
       font-size: 12px;
       font-weight: 500;
     }
-    .kpi-trend--up { color: var(--color-success); }
-    .kpi-trend--down { color: var(--color-error); }
+    .kpi-trend--up {
+      color: var(--color-success);
+    }
+    .kpi-trend--down {
+      color: var(--color-error);
+    }
 
     .trend-icon {
-      font-size: 16px;
       width: 16px;
       height: 16px;
+      vertical-align: middle;
     }
 
     .trend-period {
@@ -324,7 +409,7 @@ import { DashboardStore } from './dashboard.store';
     .chart-card {
       background: var(--color-surface-1);
       border: 1px solid var(--color-border);
-      border-radius: 12px;
+      border-radius: 0;
       padding: 16px;
     }
 
@@ -369,7 +454,7 @@ import { DashboardStore } from './dashboard.store';
     .section-card {
       background: var(--color-surface-1);
       border: 1px solid var(--color-border);
-      border-radius: 12px;
+      border-radius: 0;
       overflow: hidden;
     }
 
@@ -416,8 +501,12 @@ import { DashboardStore } from './dashboard.store';
         border-bottom: 1px solid var(--color-border-light);
         transition: background 100ms ease;
 
-        &:last-child { border-bottom: none; }
-        &:hover { background: var(--color-surface-2); }
+        &:last-child {
+          border-bottom: none;
+        }
+        &:hover {
+          background: var(--color-surface-2);
+        }
 
         td {
           padding: 12px 16px;
@@ -432,7 +521,7 @@ import { DashboardStore } from './dashboard.store';
       color: var(--color-text-secondary);
       background: var(--color-surface-2);
       padding: 2px 8px;
-      border-radius: 4px;
+      border-radius: 0;
     }
 
     .cell-name {
@@ -453,7 +542,7 @@ import { DashboardStore } from './dashboard.store';
       display: inline-flex;
       align-items: center;
       padding: 2px 10px;
-      border-radius: 9999px;
+      border-radius: 0;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
@@ -480,8 +569,7 @@ import { DashboardStore } from './dashboard.store';
       padding: 48px 16px;
       color: var(--color-text-tertiary);
 
-      mat-icon {
-        font-size: 40px;
+      svg {
         width: 40px;
         height: 40px;
         margin-bottom: 12px;
@@ -511,8 +599,23 @@ import { DashboardStore } from './dashboard.store';
     }
   `,
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   protected store = inject(DashboardStore);
+  private readonly headerService = inject(HeaderService);
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
+
+  ngOnInit(): void {
+    this.store.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
+  }
 
   refreshData(): void {
     this.store.loadDashboardData();

@@ -19,3 +19,6 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def list_by_menu(self, menu_id: uuid.UUID) -> list[Category]: ...
+
+    @abstractmethod
+    async def exists_by_name(self, menu_id: uuid.UUID, name: str) -> bool: ...

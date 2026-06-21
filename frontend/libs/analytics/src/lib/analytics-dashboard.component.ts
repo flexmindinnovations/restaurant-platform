@@ -1,11 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  computed,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideRefreshCw, LucideStar } from '@lucide/angular';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { PageHeader } from '../../../shared/src/lib/page-header';
+import { HeaderService } from '@app/shared';
 import { AnalyticsStore } from './analytics.store';
 
 @Component({
@@ -16,21 +24,21 @@ import { AnalyticsStore } from './analytics.store';
     CommonModule,
     MatCardModule,
     MatTableModule,
-    MatIconModule,
+    LucideRefreshCw,
+    LucideStar,
     MatButtonModule,
-    MatProgressBarModule,
     PageHeader,
   ],
   template: `
-    <app-page-header title="Platform Analytics" subtitle="Analyze commission fee revenue, hourly order density, and partner metrics">
-      <button mat-flat-button color="primary" (click)="store.loadAnalyticsData()">
-        <mat-icon>refresh</mat-icon> Refresh Analytics
+    <app-page-header
+      title="Platform Analytics"
+      subtitle="Analyze commission fee revenue, hourly order density, and partner metrics"
+    >
+      <button matButton="filled" (click)="store.loadAnalyticsData()">
+        <svg lucideRefreshCw [size]="18"></svg>
+        <span>Refresh</span>
       </button>
     </app-page-header>
-
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" class="mb-4" />
-    }
 
     <!-- Analytics Charts Grid -->
     <div class="analytics-grid">
@@ -49,22 +57,44 @@ import { AnalyticsStore } from './analytics.store';
               <line x1="40" y1="170" x2="480" y2="170" class="grid-line" />
 
               <!-- Y-Axis Labels -->
-              <text x="30" y="24" class="axis-label" text-anchor="end">$600</text>
-              <text x="30" y="74" class="axis-label" text-anchor="end">$400</text>
-              <text x="30" y="124" class="axis-label" text-anchor="end">$200</text>
-              <text x="30" y="174" class="axis-label" text-anchor="end">$0</text>
+              <text x="30" y="24" class="axis-label" text-anchor="end">₹60K</text>
+              <text x="30" y="74" class="axis-label" text-anchor="end">₹40K</text>
+              <text x="30" y="124" class="axis-label" text-anchor="end">₹20K</text>
+              <text x="30" y="174" class="axis-label" text-anchor="end">₹0</text>
 
               <!-- Gradient Area fill -->
               <path [attr.d]="commissionAreaPath()" fill="url(#comm-grad)" opacity="0.15" />
               <!-- Stroke Line -->
-              <path [attr.d]="commissionLinePath()" fill="none" stroke="#2e7d32" stroke-width="3" stroke-linecap="round" />
+              <path
+                [attr.d]="commissionLinePath()"
+                fill="none"
+                stroke="#2e7d32"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
 
               <!-- Dots -->
               @for (pt of commissionPoints(); track pt.label) {
                 <g class="point-group">
-                  <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" r="5" fill="#2e7d32" stroke="#fff" stroke-width="2" />
-                  <text [attr.x]="pt.cx" y="190" class="axis-label" text-anchor="middle">{{ pt.label }}</text>
-                  <text [attr.x]="pt.cx" [attr.y]="pt.cy - 8" class="value-popup" text-anchor="middle">\${{ pt.value }}</text>
+                  <circle
+                    [attr.cx]="pt.cx"
+                    [attr.cy]="pt.cy"
+                    r="5"
+                    fill="#2e7d32"
+                    stroke="#fff"
+                    stroke-width="2"
+                  />
+                  <text [attr.x]="pt.cx" y="190" class="axis-label" text-anchor="middle">
+                    {{ pt.label }}
+                  </text>
+                  <text
+                    [attr.x]="pt.cx"
+                    [attr.y]="pt.cy - 8"
+                    class="value-popup"
+                    text-anchor="middle"
+                  >
+                    ₹{{ pt.value }}
+                  </text>
                 </g>
               }
             </svg>
@@ -96,10 +126,10 @@ import { AnalyticsStore } from './analytics.store';
     <!-- Restaurant Performance Table -->
     <div class="mt-6">
       <mat-card appearance="outlined">
-        <mat-card-header>
+        <mat-card-header class="mb-4">
           <mat-card-title>Top Bounded Restaurant Performance</mat-card-title>
         </mat-card-header>
-        <mat-card-content>
+        <mat-card-content class="top-bounded">
           <table mat-table [dataSource]="store.restaurantPerformance()" class="full-width">
             <!-- Name -->
             <ng-container matColumnDef="name">
@@ -118,7 +148,7 @@ import { AnalyticsStore } from './analytics.store';
               <th mat-header-cell *matHeaderCellDef>Average Rating</th>
               <td mat-cell *matCellDef="let row">
                 <span class="rating-badge">
-                  <mat-icon>star</mat-icon> {{ row.rating | number:'1.1-1' }}
+                  <svg lucideStar [size]="14"></svg> {{ row.rating | number: '1.1-1' }}
                 </span>
               </td>
             </ng-container>
@@ -126,14 +156,16 @@ import { AnalyticsStore } from './analytics.store';
             <!-- Gross Revenue -->
             <ng-container matColumnDef="revenue">
               <th mat-header-cell *matHeaderCellDef>Gross Revenue</th>
-              <td mat-cell *matCellDef="let row" class="font-semibold">{{ row.revenue | currency }}</td>
+              <td mat-cell *matCellDef="let row" class="font-semibold">
+                {{ row.revenue | currency: 'INR' : 'symbol' : '1.0-0' }}
+              </td>
             </ng-container>
 
             <!-- Platform Commission -->
             <ng-container matColumnDef="commission">
               <th mat-header-cell *matHeaderCellDef>Commission (10%)</th>
               <td mat-cell *matCellDef="let row" class="text-green-700 font-medium">
-                {{ (row.revenue * 0.1) | currency }}
+                {{ row.revenue * 0.1 | currency: 'INR' : 'symbol' : '1.0-0' }}
               </td>
             </ng-container>
 
@@ -151,7 +183,7 @@ import { AnalyticsStore } from './analytics.store';
       gap: 16px;
     }
     .chart-card {
-      border-radius: 12px;
+      border-radius: 0;
     }
     .chart-content {
       padding: 16px !important;
@@ -167,18 +199,18 @@ import { AnalyticsStore } from './analytics.store';
       overflow: visible;
     }
     .grid-line {
-      stroke: var(--mat-sys-outline-variant, #e0e0e0);
+      stroke: var(--color-border);
       stroke-width: 1;
       stroke-dasharray: 4 4;
     }
     .axis-label {
       font-size: 10px;
-      fill: var(--mat-sys-on-surface-variant, #888);
+      fill: var(--color-text-tertiary);
       font-weight: 500;
     }
     .value-popup {
       font-size: 9px;
-      fill: #2e7d32;
+      fill: var(--color-success);
       font-weight: 600;
       opacity: 0;
       transition: opacity 0.2s;
@@ -203,26 +235,26 @@ import { AnalyticsStore } from './analytics.store';
       width: 130px;
       font-size: 0.85rem;
       font-weight: 500;
-      color: var(--mat-sys-on-surface, #333);
+      color: var(--color-text-primary);
     }
     .bar-track {
       flex: 1;
       height: 16px;
-      background: var(--mat-sys-outline-variant, #f0f0f0);
-      border-radius: 8px;
+      background: var(--color-surface-2);
+      border-radius: 0;
       overflow: hidden;
     }
     .bar-fill {
       height: 100%;
-      background: var(--mat-sys-primary, #e65100);
-      border-radius: 8px;
+      background: var(--color-primary);
+      border-radius: 0;
       transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     .bar-value {
       width: 80px;
       text-align: right;
       font-size: 0.82rem;
-      color: var(--mat-sys-on-surface-variant, #666);
+      color: var(--color-text-secondary);
     }
 
     /* Restaurant Performance rating badge */
@@ -230,34 +262,52 @@ import { AnalyticsStore } from './analytics.store';
       display: inline-flex;
       align-items: center;
       gap: 2px;
-      background: #fff8e1;
-      color: #f57f17;
+      background: var(--color-amber-bg);
+      color: var(--color-amber-text);
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 0;
       font-weight: 600;
       font-size: 0.8rem;
     }
-    .rating-badge mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
+    .rating-badge svg[class*='lucide'] {
+      vertical-align: middle;
     }
 
-    .full-width { width: 100%; }
-    .table-row:hover { background: var(--mat-sys-surface-variant, #f5f5f5); }
-    .mb-4 { margin-bottom: 16px; }
-    .mt-6 { margin-top: 24px; }
+    .full-width {
+      width: 100%;
+    }
+    .table-row:hover {
+      background: var(--color-surface-2);
+    }
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+    .mt-6 {
+      margin-top: 24px;
+    }
+
+    /* Top Bounded Card */
+    mat-card-content.top-bounded {
+      padding: 0;
+    }
   `,
 })
-export class AnalyticsDashboardComponent implements OnInit {
+export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
   protected readonly store = inject(AnalyticsStore);
+  private readonly headerService = inject(HeaderService);
   protected readonly displayedColumns = ['name', 'orders', 'rating', 'revenue', 'commission'];
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
 
   // Calculate SVG line points for commission trend
   protected readonly commissionPoints = computed(() => {
     const data = this.store.commissionTrend();
     if (!data.length) return [];
-    const maxVal = Math.max(...data.map(d => d.value));
+    const maxVal = Math.max(...data.map((d) => d.value));
     const chartHeight = 150;
     const baseHeight = 170;
     const startX = 60;
@@ -294,7 +344,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   protected readonly peakHourBars = computed(() => {
     const data = this.store.peakHours();
     if (!data.length) return [];
-    const maxVal = Math.max(...data.map(d => d.value));
+    const maxVal = Math.max(...data.map((d) => d.value));
     return data.map((d) => ({
       label: d.label,
       value: d.value,
@@ -307,12 +357,19 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.store.loadAnalyticsData();
   }
 
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
+  }
+
   private ensureGradientsExist(): void {
     if (typeof document === 'undefined') return;
-    let svgDefs = document.getElementById('analytics-defs');
+    const svgDefs = document.getElementById('analytics-defs');
     if (!svgDefs) {
       const defsContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      defsContainer.setAttribute('style', 'position: absolute; width: 0; height: 0; overflow: hidden;');
+      defsContainer.setAttribute(
+        'style',
+        'position: absolute; width: 0; height: 0; overflow: hidden;',
+      );
       defsContainer.setAttribute('id', 'analytics-defs');
       defsContainer.innerHTML = `
         <defs>

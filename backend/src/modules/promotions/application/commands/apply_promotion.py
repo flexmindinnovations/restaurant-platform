@@ -15,7 +15,7 @@ class ApplyPromotionCommand:
     order_id: uuid.UUID
     customer_id: uuid.UUID
     order_amount: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
 
 
 @dataclass(frozen=True)

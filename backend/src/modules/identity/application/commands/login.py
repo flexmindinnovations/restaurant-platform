@@ -7,7 +7,7 @@ from modules.identity.application.ports.password_hasher import PasswordHasher
 from modules.identity.application.ports.token_service import TokenService
 from modules.identity.domain.value_objects.email import Email
 from shared.application.ports.unit_of_work import AbstractUnitOfWork
-from shared.domain.exceptions import ValidationException
+from shared.domain.exceptions import AuthenticationException
 
 
 @dataclass(frozen=True)
@@ -40,17 +40,17 @@ class LoginHandler:
         email_vo = Email(command.email)
         account = await self._account_repo.get_by_email(email_vo)
         if not account:
-            raise ValidationException("Invalid credentials")
+            raise AuthenticationException("Invalid credentials")
 
         # Verify password
         if not self._password_hasher.verify(command.password, account.password_hash):
-            raise ValidationException("Invalid credentials")
+            raise AuthenticationException("Invalid credentials")
 
         if not account.is_active:
-            raise ValidationException("Account is inactive")
+            raise AuthenticationException("Account is inactive")
 
         if not account.is_verified:
-            raise ValidationException("Email not verified")
+            raise AuthenticationException("Email not verified")
 
         # Generate tokens
         roles_list = [r.value for r in account.roles]

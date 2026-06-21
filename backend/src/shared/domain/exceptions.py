@@ -44,3 +44,8 @@ class ConcurrencyError(DomainException):
 class ValidationException(DomainException):
     def __init__(self, message: str, code: str = "VALIDATION_ERROR") -> None:
         super().__init__(message=message, code=code)
+
+
+class AuthenticationException(DomainException):
+    def __init__(self, message: str = "Invalid credentials", code: str = "AUTHENTICATION_ERROR") -> None:
+        super().__init__(message=message, code=code)

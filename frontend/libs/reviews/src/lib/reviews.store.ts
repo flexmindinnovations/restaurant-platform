@@ -48,7 +48,8 @@ export const ReviewsStore = signalStore(
                 const updatedSelected = reviews.find((r) => r.id === id) || null;
                 patchState(store, {
                   reviews,
-                  selectedReview: store.selectedReview()?.id === id ? updatedSelected : store.selectedReview(),
+                  selectedReview:
+                    store.selectedReview()?.id === id ? updatedSelected : store.selectedReview(),
                   loading: false,
                 });
               },
@@ -69,7 +70,8 @@ export const ReviewsStore = signalStore(
                 const updatedSelected = reviews.find((r) => r.id === id) || null;
                 patchState(store, {
                   reviews,
-                  selectedReview: store.selectedReview()?.id === id ? updatedSelected : store.selectedReview(),
+                  selectedReview:
+                    store.selectedReview()?.id === id ? updatedSelected : store.selectedReview(),
                   loading: false,
                 });
               },

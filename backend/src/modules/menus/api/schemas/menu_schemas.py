@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class CreateMenuRequest(BaseModel):
     name: str = Field(..., max_length=255)
     description: str | None = None
+    restaurant_id: uuid.UUID | None = None
 
 
 class UpdateMenuRequest(BaseModel):
@@ -32,7 +33,7 @@ class CreateMenuItemRequest(BaseModel):
     name: str = Field(..., max_length=255)
     description: str | None = None
     price_amount: Decimal = Field(..., gt=0, decimal_places=2)
-    price_currency: str = Field("USD", max_length=3)
+    price_currency: str = Field("INR", max_length=3)
     category_id: uuid.UUID | None = None
     image_url: str | None = Field(None, max_length=500)
     display_order: int = 0
@@ -64,6 +65,7 @@ class CategoryResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    items: list["MenuItemResponse"] = Field(default_factory=list)
 
 
 class MenuResponse(BaseModel):
@@ -125,7 +127,7 @@ class CreateModifierGroupRequest(BaseModel):
 class AddModifierRequest(BaseModel):
     name: str = Field(..., max_length=255)
     price_adjustment_amount: Decimal = Field(Decimal("0.00"), ge=0)
-    price_adjustment_currency: str = "USD"
+    price_adjustment_currency: str = "INR"
     is_default: bool = False
     display_order: int = 0
 

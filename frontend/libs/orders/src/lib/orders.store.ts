@@ -28,7 +28,7 @@ const initialState: OrdersState = {
   error: null,
   statusFilter: 'ALL',
   skip: 0,
-  limit: 20,
+  limit: 10,
 };
 
 export const OrdersStore = signalStore(
@@ -54,10 +54,8 @@ export const OrdersStore = signalStore(
           };
           return ordersService.list(params).pipe(
             tapResponse({
-              next: (r) =>
-                patchState(store, { orders: r.items, total: r.total, loading: false }),
-              error: (err: unknown) =>
-                patchState(store, { error: String(err), loading: false }),
+              next: (r) => patchState(store, { orders: r.items, total: r.total, loading: false }),
+              error: (err: unknown) => patchState(store, { error: String(err), loading: false }),
             }),
           );
         }),
@@ -70,8 +68,7 @@ export const OrdersStore = signalStore(
           patchState(store, { detailLoading: true, error: null });
           return ordersService.get(id).pipe(
             tapResponse({
-              next: (order) =>
-                patchState(store, { selectedOrder: order, detailLoading: false }),
+              next: (order) => patchState(store, { selectedOrder: order, detailLoading: false }),
               error: (err: unknown) =>
                 patchState(store, { error: String(err), detailLoading: false }),
             }),

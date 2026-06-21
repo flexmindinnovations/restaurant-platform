@@ -32,3 +32,6 @@ class MenuRepository(ABC):
         restaurant_id: uuid.UUID,
         active_only: bool = False,
     ) -> int: ...
+
+    @abstractmethod
+    async def exists_by_name(self, restaurant_id: uuid.UUID, name: str) -> bool: ...

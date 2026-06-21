@@ -6,11 +6,11 @@
 
 export const spacingTokens = {
   // Base unit: 8px
-  xs: '4px',     // 0.5 unit - micro spacing
-  sm: '8px',     // 1 unit - small
-  md: '16px',    // 2 units - medium
-  lg: '24px',    // 3 units - large
-  xl: '32px',    // 4 units - extra large
+  xs: '4px', // 0.5 unit - micro spacing
+  sm: '8px', // 1 unit - small
+  md: '16px', // 2 units - medium
+  lg: '24px', // 3 units - large
+  xl: '32px', // 4 units - extra large
   '2xl': '40px', // 5 units
   '3xl': '48px', // 6 units
   '4xl': '56px', // 7 units

@@ -49,9 +49,9 @@ const MOCK_DELIVERIES: ActiveDelivery[] = [
   {
     id: 'ord-101',
     restaurant_name: 'Pizza Roma',
-    restaurant_location: { lat: 37.7780, lng: -122.4120 },
+    restaurant_location: { lat: 37.778, lng: -122.412 },
     customer_address: '852 Folsom St, San Francisco, CA',
-    customer_location: { lat: 37.7810, lng: -122.4040 },
+    customer_location: { lat: 37.781, lng: -122.404 },
     partner_id: 'dp2',
     partner_name: 'Chloe Bennett',
     status: 'PICKED_UP',
@@ -59,9 +59,9 @@ const MOCK_DELIVERIES: ActiveDelivery[] = [
   {
     id: 'ord-102',
     restaurant_name: 'Burger Joint',
-    restaurant_location: { lat: 37.7650, lng: -122.4400 },
+    restaurant_location: { lat: 37.765, lng: -122.44 },
     customer_address: '1240 Castro St, San Francisco, CA',
-    customer_location: { lat: 37.7520, lng: -122.4350 },
+    customer_location: { lat: 37.752, lng: -122.435 },
     partner_id: null,
     partner_name: null,
     status: 'PENDING',
@@ -69,9 +69,9 @@ const MOCK_DELIVERIES: ActiveDelivery[] = [
   {
     id: 'ord-103',
     restaurant_name: 'Sushi Zen',
-    restaurant_location: { lat: 37.7890, lng: -122.4200 },
+    restaurant_location: { lat: 37.789, lng: -122.42 },
     customer_address: '2200 Broadway, San Francisco, CA',
-    customer_location: { lat: 37.7950, lng: -122.4320 },
+    customer_location: { lat: 37.795, lng: -122.432 },
     partner_id: null,
     partner_name: null,
     status: 'PENDING',
@@ -124,7 +124,10 @@ export class DeliveriesService {
     return of([...this.deliveries]).pipe(delay(200));
   }
 
-  overrideAssignment(deliveryId: string, partnerId: string | null): Observable<{ partners: DeliveryPartner[]; deliveries: ActiveDelivery[] }> {
+  overrideAssignment(
+    deliveryId: string,
+    partnerId: string | null,
+  ): Observable<{ partners: DeliveryPartner[]; deliveries: ActiveDelivery[] }> {
     const delivery = this.deliveries.find((d) => d.id === deliveryId);
     if (!delivery) throw new Error('Delivery not found');
 
@@ -135,7 +138,7 @@ export class DeliveriesService {
       delivery.partner_id = null;
       delivery.partner_name = null;
       delivery.status = 'PENDING';
-      
+
       if (oldPartnerId) {
         const oldP = this.partners.find((p) => p.id === oldPartnerId);
         if (oldP) oldP.status = 'ONLINE';

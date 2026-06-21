@@ -20,8 +20,10 @@ export type CardSize = 'sm' | 'md' | 'lg';
     }
 
     .card {
-      border-radius: var(--radius-lg);
-      transition: box-shadow 150ms ease, border-color 150ms ease;
+      border-radius: 0;
+      transition:
+        box-shadow 150ms ease,
+        border-color 150ms ease;
 
       /* Elevated — primary card style */
       &.variant-elevated {
@@ -51,9 +53,15 @@ export type CardSize = 'sm' | 'md' | 'lg';
       }
 
       /* Sizing */
-      &.size-sm { padding: 12px; }
-      &.size-md { padding: 16px; }
-      &.size-lg { padding: 24px; }
+      &.size-sm {
+        padding: 12px;
+      }
+      &.size-md {
+        padding: 16px;
+      }
+      &.size-lg {
+        padding: 24px;
+      }
     }
   `,
 })
@@ -65,7 +73,7 @@ export class GlassCardComponent {
   get cardClasses(): Record<string, boolean> {
     const v = this.mapVariant(this.variant);
     return {
-      'card': true,
+      card: true,
       [`variant-${v}`]: true,
       [`size-${this.size}`]: true,
       ...this.parseClasses(),

@@ -20,7 +20,7 @@ export class ThemeProviderComponent implements OnInit {
   ngOnInit(): void {
     // Initialize theme on app startup
     const theme = this.themeService.theme$;
-    
+
     // Listen to system preference changes
     this.themeService.listenToSystemPreference();
   }

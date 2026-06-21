@@ -52,10 +52,10 @@ def upgrade() -> None:
     )
 
     # RLS policies
+    op.execute("ALTER TABLE menus.modifier_groups ENABLE ROW LEVEL SECURITY")
     op.execute("""
-        ALTER TABLE menus.modifier_groups ENABLE ROW LEVEL SECURITY;
         CREATE POLICY modifier_groups_tenant_isolation ON menus.modifier_groups
-            USING (restaurant_id = current_setting('app.current_restaurant_id')::uuid);
+            USING (restaurant_id = current_setting('app.current_restaurant_id')::uuid)
     """)
 
 

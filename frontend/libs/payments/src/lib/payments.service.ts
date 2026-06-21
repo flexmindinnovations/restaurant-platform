@@ -7,7 +7,7 @@ const MOCK_PAYMENTS: PaymentTransaction[] = [
     id: 'pay-501',
     order_id: 'ord-101',
     customer_name: 'John Doe',
-    amount: 42.50,
+    amount: 42.5,
     status: 'SUCCESS',
     payment_method: 'Visa (•••• 4242)',
     created_at: '2026-06-18T10:15:00Z',
@@ -16,7 +16,7 @@ const MOCK_PAYMENTS: PaymentTransaction[] = [
     id: 'pay-502',
     order_id: 'ord-102',
     customer_name: 'Alice Smith',
-    amount: 18.90,
+    amount: 18.9,
     status: 'FAILED',
     payment_method: 'Mastercard (•••• 5555)',
     created_at: '2026-06-18T11:20:00Z',
@@ -25,7 +25,7 @@ const MOCK_PAYMENTS: PaymentTransaction[] = [
     id: 'pay-503',
     order_id: 'ord-103',
     customer_name: 'Bob Johnson',
-    amount: 65.00,
+    amount: 65.0,
     status: 'SUCCESS',
     payment_method: 'Apple Pay',
     created_at: '2026-06-18T12:05:00Z',
@@ -34,7 +34,7 @@ const MOCK_PAYMENTS: PaymentTransaction[] = [
     id: 'pay-504',
     order_id: 'ord-104',
     customer_name: 'Sarah Connor',
-    amount: 112.40,
+    amount: 112.4,
     status: 'REFUNDED',
     payment_method: 'Visa (•••• 1111)',
     created_at: '2026-06-17T15:30:00Z',
@@ -92,7 +92,7 @@ export class PaymentsService {
           p.id.toLowerCase().includes(q) ||
           p.order_id.toLowerCase().includes(q) ||
           p.customer_name.toLowerCase().includes(q) ||
-          p.payment_method.toLowerCase().includes(q)
+          p.payment_method.toLowerCase().includes(q),
       );
     }
 

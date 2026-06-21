@@ -3,6 +3,8 @@ import {
   Component,
   inject,
   OnInit,
+  OnDestroy,
+  effect,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -12,11 +14,12 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { LucideSearch, LucideUndo2 } from '@lucide/angular';
+
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageHeader } from '../../../shared/src/lib/page-header';
+import { HeaderService } from '@app/shared';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
 import { PaymentsStore } from './payments.store';
 import { PaymentStatus } from './payments.model';
@@ -33,28 +36,40 @@ import { PaymentStatus } from './payments.model';
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule,
     MatChipsModule,
-    MatProgressBarModule,
+    LucideSearch,
+    LucideUndo2,
     MatTooltipModule,
     PageHeader,
     EmptyState,
   ],
   template: `
-    <app-page-header title="Payments Ledger" subtitle="View transaction history, payment methods, and handle refunds">
+    <app-page-header
+      title="Payments Ledger"
+      subtitle="View transaction history, payment methods, and handle refunds"
+    >
     </app-page-header>
 
     <!-- Filters -->
     <div class="filters-row">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
         <mat-label>Search transactions</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [ngModel]="searchValue()" (ngModelChange)="onSearch($event)"
-          placeholder="Tx ID, Order ID, Customer…" id="payment-search" />
+        <svg lucideSearch [size]="18" matIconPrefix></svg>
+        <input
+          matInput
+          [ngModel]="searchValue()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Tx ID, Order ID, Customer…"
+          id="payment-search"
+        />
       </mat-form-field>
 
-      <mat-chip-listbox [ngModel]="statusFilter()" (ngModelChange)="onStatusFilter($event)"
-        class="filter-chips" aria-label="Status filter">
+      <mat-chip-listbox
+        [ngModel]="statusFilter()"
+        (ngModelChange)="onStatusFilter($event)"
+        class="filter-chips"
+        aria-label="Status filter"
+      >
         <mat-chip-option value="ALL">All Transactions</mat-chip-option>
         <mat-chip-option value="SUCCESS">Success</mat-chip-option>
         <mat-chip-option value="REFUNDED">Refunded</mat-chip-option>
@@ -62,16 +77,14 @@ import { PaymentStatus } from './payments.model';
       </mat-chip-listbox>
     </div>
 
-    <!-- Loading bar -->
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
     <!-- Table -->
     <div class="table-container mat-elevation-z1">
       @if (!store.loading() && !store.hasResults()) {
-        <app-empty-state icon="receipt_long" title="No transactions found"
-          message="Try adjusting your search or filters." />
+        <app-empty-state
+          icon="receipt"
+          title="No transactions found"
+          message="Try adjusting your search or filters."
+        />
       } @else {
         <table mat-table [dataSource]="store.payments()" class="full-width">
           <!-- TX ID -->
@@ -96,14 +109,16 @@ import { PaymentStatus } from './payments.model';
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef>Amount</th>
             <td mat-cell *matCellDef="let tx" class="font-semibold">
-              {{ tx.amount | currency }}
+              {{ tx.amount | currency: 'INR' : 'symbol' : '1.0-2' }}
             </td>
           </ng-container>
 
           <!-- Payment Method -->
           <ng-container matColumnDef="method">
             <th mat-header-cell *matHeaderCellDef>Payment Method</th>
-            <td mat-cell *matCellDef="let tx" class="text-sm opacity-80">{{ tx.payment_method }}</td>
+            <td mat-cell *matCellDef="let tx" class="text-sm opacity-80">
+              {{ tx.payment_method }}
+            </td>
           </ng-container>
 
           <!-- Status -->
@@ -111,7 +126,9 @@ import { PaymentStatus } from './payments.model';
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let tx">
               <!-- status-badge mapping expects custom statuses -->
-              <span class="custom-badge" [class]="'badge--' + tx.status.toLowerCase()">{{ tx.status }}</span>
+              <span class="custom-badge" [class]="'badge--' + tx.status.toLowerCase()">{{
+                tx.status
+              }}</span>
             </td>
           </ng-container>
 
@@ -128,9 +145,13 @@ import { PaymentStatus } from './payments.model';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let tx">
               @if (tx.status === 'SUCCESS') {
-                <button mat-flat-button color="warn" class="refund-button"
-                  (click)="onRefund(tx.id)">
-                  <mat-icon>undo</mat-icon> Refund
+                <button
+                  mat-flat-button
+                  color="warn"
+                  class="refund-button"
+                  (click)="onRefund(tx.id)"
+                >
+                  <svg lucideUndo2 [size]="16"></svg> Refund
                 </button>
               }
             </td>
@@ -143,9 +164,10 @@ import { PaymentStatus } from './payments.model';
         <mat-paginator
           [length]="store.total()"
           [pageSize]="store.limit()"
-          [pageSizeOptions]="[5, 10, 20]"
+          [pageSizeOptions]="[5, 10, 20, 50]"
           (page)="onPage($event)"
-          aria-label="Payments pagination">
+          aria-label="Payments pagination"
+        >
         </mat-paginator>
       }
     </div>
@@ -159,25 +181,47 @@ import { PaymentStatus } from './payments.model';
       flex-wrap: wrap;
     }
     .search-field { flex: 1; min-width: 240px; }
-    .filter-chips { display: flex; gap: 8px; }
-    .table-container {
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--mat-sys-surface, #fff);
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      &::ng-deep .mat-mdc-chip {
+        height: 40px;
+        font-size: 13px;
+      }
     }
-    .full-width { width: 100%; }
-    .table-row:hover { background: var(--mat-sys-surface-variant, #f5f5f5); }
-    
+    .table-container {
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--color-surface-1);
+    }
+    .full-width {
+      width: 100%;
+    }
+    .table-row:hover {
+      background: var(--color-surface-2);
+    }
+
     .custom-badge {
       font-size: 0.72rem;
       font-weight: 600;
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 0;
       text-transform: uppercase;
     }
-    .badge--success { background: #e8f5e9; color: #2e7d32; }
-    .badge--refunded { background: #fff3e0; color: #e65100; }
-    .badge--failed { background: #ffebee; color: #c62828; }
+    .badge--success {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+    }
+    .badge--refunded {
+      background: var(--color-orange-bg);
+      color: var(--color-orange-text);
+    }
+    .badge--failed {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+    }
 
     .refund-button {
       font-size: 0.78rem !important;
@@ -185,16 +229,23 @@ import { PaymentStatus } from './payments.model';
       padding: 0 10px !important;
       line-height: 28px !important;
     }
-    .refund-button mat-icon {
-      font-size: 16px !important;
-      width: 16px !important;
-      height: 16px !important;
-      margin-right: 2px !important;
+    .refund-button svg {
+      width: 16px;
+      height: 16px;
+      margin-right: 2px;
+      vertical-align: middle;
     }
   `,
 })
-export class PaymentsListComponent implements OnInit {
+export class PaymentsListComponent implements OnInit, OnDestroy {
   protected readonly store = inject(PaymentsStore);
+  private readonly headerService = inject(HeaderService);
+
+  constructor() {
+    effect(() => {
+      this.headerService.setLoading(this.store.loading());
+    });
+  }
   protected readonly displayedColumns = [
     'id',
     'order_id',
@@ -211,6 +262,10 @@ export class PaymentsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.loadPayments();
+  }
+
+  ngOnDestroy(): void {
+    this.headerService.setLoading(false);
   }
 
   onSearch(value: string): void {

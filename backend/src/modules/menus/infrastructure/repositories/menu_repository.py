@@ -71,6 +71,14 @@ class SqlAlchemyMenuRepository(MenuRepository):
         result = await self._session.execute(query)
         return result.scalar_one()
 
+    async def exists_by_name(self, restaurant_id: uuid.UUID, name: str) -> bool:
+        query = select(func.count(MenuModel.id)).where(
+            MenuModel.restaurant_id == restaurant_id,
+            func.lower(MenuModel.name) == name.lower(),
+        )
+        result = await self._session.execute(query)
+        return result.scalar_one() > 0
+
     def _to_domain(self, model: MenuModel) -> Menu:
         return Menu(
             id=model.id,

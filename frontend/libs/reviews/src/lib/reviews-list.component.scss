@@ -1,0 +1,82 @@
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.search-field { flex: 1; min-width: 240px; }
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  &::ng-deep .mat-mdc-chip {
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.star-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-border);
+}
+.star-filled {
+  color: var(--color-warning);
+}
+
+.custom-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 0;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.badge-sentiment--positive {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.badge-sentiment--neutral {
+  background: var(--color-grey-bg);
+  color: var(--color-grey-text);
+}
+.badge-sentiment--negative {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.badge-status--approved {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.badge-status--pending {
+  background: var(--color-amber-bg);
+  color: var(--color-amber-text);
+}
+.badge-status--flagged {
+  background: var(--color-orange-bg);
+  color: var(--color-orange-text);
+}
+.badge-status--rejected {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.font-semibold {
+  font-weight: 600;
+}

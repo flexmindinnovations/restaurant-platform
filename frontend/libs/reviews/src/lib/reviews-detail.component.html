@@ -1,0 +1,145 @@
+<div class="dialog-wrapper">
+  @if (currentReview(); as review) {
+    <div class="dialog-header">
+      <div class="header-title-group">
+        <h2 mat-dialog-title class="restaurant-name">{{ review.restaurant_name }}</h2>
+        <span class="custom-badge" [class]="'badge-status--' + review.status.toLowerCase()">
+          {{ review.status }}
+        </span>
+      </div>
+      <button mat-icon-button (click)="goBack()" aria-label="Close dialog">
+        <svg lucideX [size]="18"></svg>
+      </button>
+    </div>
+
+    <div mat-dialog-content class="dialog-body">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Customer</span>
+          <span class="info-val font-semibold">{{ review.customer_name }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Date Submitted</span>
+          <span class="info-val">{{ review.created_at | date: 'medium' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Rating</span>
+          <div class="rating-stars">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <svg
+                lucideStar
+                class="star-icon"
+                [class.star-filled]="star <= review.rating"
+                [size]="18"
+              ></svg>
+            }
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">AI Sentiment</span>
+          <span
+            class="custom-badge"
+            [class]="'badge-sentiment--' + review.sentiment.toLowerCase()"
+          >
+            {{ review.sentiment }}
+          </span>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="detail-section">
+        <h3 class="section-title">Review Comment</h3>
+        <p class="comment-text">"{{ review.comment }}"</p>
+      </div>
+
+      @if (review.tags && review.tags.length > 0) {
+        <div class="detail-section mt-4">
+          <h3 class="section-title">AI Extracted Tags</h3>
+          <div class="tags-container">
+            @for (tag of review.tags; track tag) {
+              <span class="tag-chip">{{ tag }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="section-divider"></div>
+
+      <!-- Moderation Controls -->
+      <div class="detail-section">
+        <h3 class="section-title">Moderation Actions</h3>
+        <div class="moderation-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            [disabled]="review.status === 'APPROVED'"
+            (click)="onApprove(review.id)"
+          >
+            Approve Review
+          </button>
+          <button
+            mat-flat-button
+            color="warn"
+            [disabled]="review.status === 'REJECTED'"
+            (click)="onReject(review.id)"
+          >
+            Reject / Remove
+          </button>
+          <button
+            mat-stroked-button
+            [disabled]="review.status === 'FLAGGED'"
+            (click)="onFlag(review.id)"
+          >
+            Flag for Moderation
+          </button>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Owner Reply Section -->
+      <div class="detail-section">
+        <h3 class="section-title">Restaurant Owner Reply</h3>
+        @if (review.owner_reply) {
+          <div class="existing-reply">
+            <p class="reply-text">{{ review.owner_reply }}</p>
+            <button mat-stroked-button color="primary" class="mt-2" (click)="replyText.set(review.owner_reply || '')">
+              Edit Reply
+            </button>
+          </div>
+        } @else {
+          <div class="reply-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Write response as owner...</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [ngModel]="replyText()"
+                (ngModelChange)="replyText.set($event)"
+                placeholder="Thank the customer or address concerns..."
+              ></textarea>
+            </mat-form-field>
+            <div class="form-actions">
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="!replyText().trim()"
+                (click)="onSubmitReply(review.id)"
+              >
+                Submit Reply
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="loading-state">
+      <p>Loading review details...</p>
+    </div>
+  }
+</div>

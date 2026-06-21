@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.menus.application.ports.category_repository import CategoryRepository
@@ -52,6 +52,14 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         query = select(CategoryModel).where(CategoryModel.menu_id == menu_id).order_by(CategoryModel.display_order)
         result = await self._session.execute(query)
         return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def exists_by_name(self, menu_id: uuid.UUID, name: str) -> bool:
+        query = select(func.count(CategoryModel.id)).where(
+            CategoryModel.menu_id == menu_id,
+            func.lower(CategoryModel.name) == name.lower(),
+        )
+        result = await self._session.execute(query)
+        return result.scalar_one() > 0
 
     def _to_domain(self, model: CategoryModel) -> Category:
         return Category(
