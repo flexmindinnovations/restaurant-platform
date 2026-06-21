@@ -1,7 +1,7 @@
 # Sprint Plan — Phase 7-10 Feature Expansion
 
-> **Last updated**: 2026-06-21
-> **Status**: Planning
+> **Last updated**: 2026-06-22
+> **Status**: In Progress — EPIC-7A backend + frontend complete
 > **Reference**: [REQUIREMENTS-PHASE-NEXT.md](REQUIREMENTS-PHASE-NEXT.md)
 > **Architecture**: Clean Architecture (Domain → Application → Infrastructure → API)
 > **Conventions**: schema-per-module, RLS with `restaurant_id`, cross-schema by UUID only, transactional outbox for events
@@ -258,15 +258,15 @@ A complete dine-in operations module covering floor plan management, table statu
 
 ### Acceptance Criteria (Definition of Done)
 
-- [ ] Floor plan renders tables by shape at (x, y) coordinates with correct color per status
+- [x] Floor plan renders tables by shape at (x, y) coordinates with correct color per status
 - [ ] Table statuses update within 2 seconds via WebSocket across all connected clients
-- [ ] Reservation booking shows only available time slots for requested party size and date
-- [ ] No double-booking: system prevents overlapping reservations for the same table (enforced in domain)
+- [x] Reservation booking shows only available time slots for requested party size and date
+- [x] No double-booking: system prevents overlapping reservations for the same table (enforced in domain)
 - [ ] No-show auto-detection: reservation auto-marks as NO_SHOW after `hold_minutes` past start_time
 - [ ] Waitlist estimated time recalculates when tables are freed or parties cancel
-- [ ] All tables RLS-scoped — tenant A cannot see tenant B's tables or reservations
+- [x] All tables RLS-scoped — tenant A cannot see tenant B's tables or reservations
 - [ ] Reservation confirmation sends notification (email or SMS) to customer
-- [ ] API returns proper error codes: `409` for conflicts, `422` for validation, `404` for not found
+- [x] API returns proper error codes: `409` for conflicts, `422` for validation, `404` for not found
 
 ---
 
