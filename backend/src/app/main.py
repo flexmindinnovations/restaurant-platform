@@ -15,6 +15,7 @@ from modules.deliveries.api.routes import (
 )
 from modules.identity.api.routes import router as identity_router
 from modules.menus.api.routes import router as menus_router
+from modules.tables.api.routes import router as tables_router
 from modules.notifications.api.routes import router as notifications_router
 from modules.orders.api.routes import checkout_router
 from modules.orders.api.routes import router as orders_router
@@ -133,6 +134,7 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(restaurants_router, prefix="/api/v1/restaurants", tags=["restaurants"])
     app.include_router(restaurants_admin_router, prefix="/api/v1/admin/restaurants", tags=["restaurants-admin"])
     app.include_router(menus_router, prefix="/api/v1/menus", tags=["menus"])
+    app.include_router(tables_router, prefix="/api/v1/tables", tags=["tables"])
     app.include_router(checkout_router, prefix="/api/v1/checkout", tags=["checkout"])
     app.include_router(orders_router, prefix="/api/v1/orders", tags=["orders"])
     app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])
@@ -141,6 +143,15 @@ def _register_routes(app: FastAPI) -> None:
     from shared.api.websockets import router as websocket_router
 
     app.include_router(websocket_router)
+
+    from modules.tables.api.websockets import router as tables_ws_router
+
+    app.include_router(tables_ws_router)
+
+    from modules.tables.infrastructure.adapters.table_event_handlers import register_table_event_handlers
+    from shared.infrastructure.event_bus import get_event_bus
+
+    register_table_event_handlers(get_event_bus())
     app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["notifications"])
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
