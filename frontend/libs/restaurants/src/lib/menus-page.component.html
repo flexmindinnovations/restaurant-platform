@@ -1,0 +1,173 @@
+<app-page-header
+  title="Menus"
+  [subtitle]="'Restaurant menus — ' + store.menus().length + ' total'"
+>
+  <a mat-stroked-button [matTooltip]="backButtonTooltip" [routerLink]="['../']">
+    <svg lucideArrowLeft [size]="18"></svg> Back to restaurant
+  </a>
+  <button mat-flat-button [matTooltip]="newMenuButtonTooltip" color="primary" (click)="onCreateMenu()" id="create-menu-btn">
+    <svg lucidePlus [size]="18"></svg> New Menu
+  </button>
+</app-page-header>
+
+@if (!store.loading() && store.menus().length === 0) {
+  <app-empty-state
+    icon="utensils-crossed"
+    title="No menus yet"
+    message="Create your first menu to start adding categories and items."
+  >
+    <button mat-flat-button color="primary" (click)="onCreateMenu()" style="margin-top:16px">
+      Create menu
+    </button>
+  </app-empty-state>
+}
+
+<mat-accordion multi class="menus-accordion">
+  @for (menu of store.menus(); track menu.id) {
+    <mat-expansion-panel class="menu-panel" [expanded]="$first">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="panel-title">
+          <span class="menu-icon-wrap">
+            <svg lucideUtensilsCrossed [size]="16" style="color: var(--color-primary)"></svg>
+          </span>
+          {{ menu.name }}
+        </mat-panel-title>
+        <mat-panel-description class="panel-desc">
+          <span class="category-count">{{ menu.categories.length }} categories</span>
+          <app-status-badge [status]="menu.is_active ? 'ACTIVE' : 'INACTIVE'" />
+          <button
+            mat-icon-button
+            (click)="onToggleActive(menu, $event)"
+            [matTooltip]="menu.is_active ? 'Deactivate menu' : 'Activate menu'"
+            [attr.aria-label]="menu.is_active ? 'Deactivate menu' : 'Activate menu'"
+            [class]="menu.is_active ? 'action-icon-btn deactivate-btn' : 'action-icon-btn activate-btn'"
+          >
+            @if (menu.is_active) {
+              <svg lucideEyeOff [size]="16"></svg>
+            } @else {
+              <svg lucideEye [size]="16"></svg>
+            }
+          </button>
+          <button
+            mat-icon-button
+            (click)="onDeleteMenu(menu, $event)"
+            matTooltip="Delete menu"
+            aria-label="Delete menu"
+            class="action-icon-btn delete-btn"
+          >
+            <svg lucideTrash2 [size]="16"></svg>
+          </button>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="panel-body">
+        @for (cat of menu.categories; track cat.id) {
+          <div class="category-block">
+            <div class="category-header">
+              <h4 class="category-name">
+                <svg lucideLayoutGrid [size]="16" style="color: var(--color-accent)"></svg>
+                {{ cat.name }}
+              </h4>
+              <div class="category-actions">
+                <button mat-stroked-button (click)="onAddItem(menu, cat)" id="add-item-btn" class="compact-btn">
+                  <svg lucidePlus [size]="16"></svg> Add item
+                </button>
+                <button
+                  mat-icon-button
+                  (click)="onDeleteCategory(menu.id, cat.id)"
+                  matTooltip="Delete category"
+                  aria-label="Delete category"
+                  class="action-icon-btn delete-btn"
+                >
+                  <svg lucideTrash2 [size]="16" style="color: var(--color-error)"></svg>
+                </button>
+              </div>
+            </div>
+
+            @if (cat.items.length > 0) {
+              <div class="items-table" cdkDropList (cdkDropListDropped)="onItemDrop($event, menu.id, cat.id)">
+                @for (item of cat.items; track item.id) {
+                  <div class="item-row" cdkDrag>
+                    <div class="item-drag-placeholder" *cdkDragPlaceholder></div>
+                    <span class="drag-handle" cdkDragHandle>
+                      <svg lucideGripVertical [size]="16" style="color: var(--color-text-tertiary)"></svg>
+                    </span>
+                    <div class="item-main-info">
+                      <div class="item-info">
+                        <span class="item-name">{{ item.name }}</span>
+                        @if (item.description) {
+                          <span class="item-desc">{{ item.description }}</span>
+                        }
+                        <div class="item-meta-badges">
+                          @if (item.preparation_time_minutes) {
+                            <span class="prep-time-tag">⏱️ {{ item.preparation_time_minutes }} mins</span>
+                          }
+                          @for (label of item.dietary_labels; track label) {
+                            <span class="dietary-tag" [class]="label">{{ label | titlecase }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div class="item-actions">
+                      <span class="item-price">{{ getCurrencySymbol(item.price_currency) }}{{ item.price_amount }}</span>
+                      <app-status-badge [status]="item.is_available ? 'ACTIVE' : 'INACTIVE'" />
+                      <button
+                        mat-icon-button
+                        (click)="moveItem(menu.id, cat.id, item, -1)"
+                        [disabled]="$first"
+                        matTooltip="Move item up"
+                        aria-label="Move item up"
+                        class="action-icon-btn edit-btn"
+                      >
+                        <svg lucideArrowUp [size]="16"></svg>
+                      </button>
+                      <button
+                        mat-icon-button
+                        (click)="moveItem(menu.id, cat.id, item, 1)"
+                        [disabled]="$last"
+                        matTooltip="Move item down"
+                        aria-label="Move item down"
+                        class="action-icon-btn edit-btn"
+                      >
+                        <svg lucideArrowDown [size]="16"></svg>
+                      </button>
+                      <button
+                        mat-icon-button
+                        (click)="onEditItem(menu, cat, item)"
+                        matTooltip="Edit item"
+                        aria-label="Edit item"
+                        class="action-icon-btn edit-btn"
+                      >
+                        <svg lucidePencil [size]="16"></svg>
+                      </button>
+                      <button
+                        mat-icon-button
+                        (click)="onDeleteItem(menu.id, item.id, cat.id)"
+                        matTooltip="Remove item"
+                        aria-label="Remove item"
+                        class="action-icon-btn delete-btn"
+                      >
+                        <svg lucideTrash2 [size]="16" style="color: var(--color-error)"></svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="no-items">
+                No items yet.
+                <button mat-button color="primary" (click)="onAddItem(menu, cat)">Add first item</button>
+              </p>
+            }
+          </div>
+        }
+
+        <div class="add-category-row">
+          <button mat-stroked-button (click)="onAddCategory(menu.id)" id="add-category-btn" class="add-category-btn">
+            <svg lucidePlus [size]="16"></svg> Add category
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  }
+</mat-accordion>

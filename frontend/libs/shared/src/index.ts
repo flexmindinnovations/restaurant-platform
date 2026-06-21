@@ -11,3 +11,5 @@ export { HeaderService } from './lib/services/header.service';
 
 // Dialogs
 export { ConfirmDialog, type ConfirmDialogData, type ConfirmDialogVariant } from './lib/confirm-dialog';
+export { ImagePicker } from './lib/image-picker';
+

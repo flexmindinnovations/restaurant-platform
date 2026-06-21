@@ -4,7 +4,7 @@ import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { HttpErrorResponse } from '@angular/common/http';
-import { pipe, switchMap } from 'rxjs';
+import { pipe, mergeMap, switchMap } from 'rxjs';
 import {
   Category,
   CreateCategoryRequest,
@@ -13,6 +13,7 @@ import {
   Menu,
   MenuItem,
   UpdateMenuRequest,
+  UpdateMenuItemRequest,
 } from '@app/api-client';
 import { MenusService } from '@app/api-client';
 
@@ -43,6 +44,13 @@ const initialState: MenusState = {
   restaurantId: null,
 };
 
+const showSnackbar = (snackBar: MatSnackBar, message: string) => {
+  const ref = snackBar.open(message, 'Dismiss', { duration: 5000 });
+  ref.onAction().subscribe(() => {
+    ref.dismiss();
+  });
+};
+
 export const MenusStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
@@ -64,7 +72,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg, loading: false });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -88,7 +96,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg, loading: false });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -110,7 +118,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg, loading: false });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -133,7 +141,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -153,7 +161,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -173,7 +181,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -193,7 +201,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -220,7 +228,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -246,7 +254,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -273,7 +281,7 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
@@ -301,13 +309,63 @@ export const MenusStore = signalStore(
               error: (err: unknown) => {
                 const msg = extractErrorMessage(err);
                 patchState(store, { error: msg });
-                snackBar.open(msg, 'Dismiss', { duration: 5000 });
+                showSnackbar(snackBar, msg);
               },
             }),
           );
         }),
       ),
     ),
+
+    updateItem: rxMethod<{ menuId: string; itemId: string; body: UpdateMenuItemRequest }>(
+      pipe(
+        mergeMap(({ menuId, itemId, body }) => {
+          return menusService.updateItem(menuId, itemId, body).pipe(
+            tapResponse({
+              next: () => {
+                const menus = store.menus().map((m) => {
+                  if (m.id !== menuId) return m;
+                  const categories = m.categories.map((c) => {
+                    const items = c.items.map((i) => {
+                      if (i.id === itemId) {
+                        return {
+                          ...i,
+                          ...body,
+                          price_amount: body.price_amount !== undefined ? body.price_amount : i.price_amount,
+                          price_currency: body.price_currency !== undefined ? body.price_currency : i.price_currency,
+                          image_url: body.image_url !== undefined ? body.image_url : i.image_url,
+                        };
+                      }
+                      return i;
+                    });
+                    return { ...c, items };
+                  });
+                  return { ...m, categories };
+                });
+                patchState(store, { menus });
+              },
+              error: (err: unknown) => {
+                const msg = extractErrorMessage(err);
+                patchState(store, { error: msg });
+                showSnackbar(snackBar, msg);
+              },
+            }),
+          );
+        }),
+      ),
+    ),
+
+    updateLocalItemsOrder(menuId: string, categoryId: string, items: MenuItem[]): void {
+      const menus = store.menus().map((m) => {
+        if (m.id !== menuId) return m;
+        const categories = m.categories.map((c) => {
+          if (c.id !== categoryId) return c;
+          return { ...c, items };
+        });
+        return { ...m, categories };
+      });
+      patchState(store, { menus });
+    },
 
     selectMenu(menu: Menu | null): void {
       patchState(store, { selectedMenu: menu });

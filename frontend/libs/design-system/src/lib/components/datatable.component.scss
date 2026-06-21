@@ -68,3 +68,46 @@
   background: transparent;
   border-top: 1px solid var(--color-border);
 }
+
+// --- Skeleton Loading State ---
+.loading-row {
+  cursor: default !important;
+  background-color: transparent !important;
+}
+
+.skeleton-shimmer {
+  width: 85%;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-border) 37%,
+    var(--color-surface-2) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer-animation 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer-animation {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+// Vary skeleton widths across columns for a natural, organic look
+.datatable-cell:nth-child(2n) .skeleton-shimmer {
+  width: 65%;
+}
+.datatable-cell:nth-child(3n) .skeleton-shimmer {
+  width: 80%;
+}
+.datatable-cell:nth-child(4n) .skeleton-shimmer {
+  width: 50%;
+}
+.datatable-cell:nth-child(5n) .skeleton-shimmer {
+  width: 70%;
+}
+

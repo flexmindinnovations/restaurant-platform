@@ -35,7 +35,7 @@ class CreateMenuItemRequest(BaseModel):
     price_amount: Decimal = Field(..., gt=0, decimal_places=2)
     price_currency: str = Field("INR", max_length=3)
     category_id: uuid.UUID | None = None
-    image_url: str | None = Field(None, max_length=500)
+    image_url: str | None = Field(None)
     display_order: int = 0
     dietary_labels: list[str] = Field(default_factory=list)
     preparation_time_minutes: int | None = Field(None, ge=0)
@@ -47,7 +47,7 @@ class UpdateMenuItemRequest(BaseModel):
     price_amount: Decimal | None = Field(None, gt=0, decimal_places=2)
     price_currency: str | None = Field(None, max_length=3)
     category_id: uuid.UUID | None = ...  # type: ignore[assignment]
-    image_url: str | None = Field(None, max_length=500)
+    image_url: str | None = Field(None)
     display_order: int | None = None
     is_available: bool | None = None
     dietary_labels: list[str] | None = None

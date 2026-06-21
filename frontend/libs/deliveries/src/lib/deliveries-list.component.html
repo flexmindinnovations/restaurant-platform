@@ -49,6 +49,7 @@
         [columns]="columns"
         [total]="filteredDeliveries().length"
         [showPaginator]="true"
+        [loading]="store.loading()"
         (rowClick)="onRowClick($event)"
         paginatorAriaLabel="Deliveries pagination"
       >

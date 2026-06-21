@@ -104,6 +104,7 @@ import { User, UserRole } from './users.model';
             [total]="store.total()"
             [pageSize]="store.limit()"
             [selectedRowId]="store.selectedUser()?.id"
+            [loading]="store.loading()"
             selectedRowClass="table-row--selected"
             (pageChange)="onPage($event)"
             (rowClick)="onSelectUser($event)"

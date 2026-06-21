@@ -7,6 +7,7 @@ import {
   Directive,
   ChangeDetectionStrategy,
   inject,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -48,6 +49,16 @@ export class DatatableComponent {
   selectedRowId = input<string | number | null | undefined>(null);
   rowIdKey = input<string>('id');
   selectedRowClass = input<string>('');
+  loading = input<boolean>(false);
+
+  // Computed data source that returns skeleton items when loading
+  tableDataSource = computed(() => {
+    if (this.loading()) {
+      return Array(this.pageSize() || 5).fill({});
+    }
+    return this.dataSource();
+  });
+
 
   // Signal Outputs
   pageChange = output<PageEvent>();
@@ -90,19 +101,22 @@ export class DatatableComponent {
 
   getRowClasses(row: unknown): Record<string, boolean> {
     const isSel = this.isSelected(row);
+    const isLoad = this.loading();
     const classes: Record<string, boolean> = {
-      'table-row': true,
-      'selected-row': isSel,
-      'table-row--selected': isSel,
+      'table-row': !isLoad,
+      'loading-row': isLoad,
+      'selected-row': isSel && !isLoad,
+      'table-row--selected': isSel && !isLoad,
     };
     const customClass = this.selectedRowClass();
-    if (isSel && customClass) {
+    if (isSel && customClass && !isLoad) {
       classes[customClass] = true;
     }
     return classes;
   }
 
   onRowClick(row: unknown, event: Event): void {
+    if (this.loading()) return;
     const target = event.target as HTMLElement;
     const isInteractive =
       target.closest('button') ||
@@ -120,4 +134,5 @@ export class DatatableComponent {
       this.rowClick.emit(row);
     }
   }
+
 }

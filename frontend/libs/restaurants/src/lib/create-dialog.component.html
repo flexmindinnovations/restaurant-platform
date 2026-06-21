@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+  <form class="create-form">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ data.nameLabel }}</mat-label>
+      <input matInput [formField]="createForm.name" id="dialog-name-input" placeholder="{{ data.namePlaceholder }}"
+        title="{{ data.nameLabel }}" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ data.descriptionLabel || 'Description' }}</mat-label>
+      <textarea matInput [formField]="createForm.description" rows="3"
+        placeholder="{{ data.descriptionPlaceholder || 'Optional description…' }}"
+        title="{{ data.descriptionLabel || 'Description' }}" id="dialog-desc-input"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button matButton="tonal" mat-dialog-close type="button">Cancel</button>
+  <button matButton="filled" color="primary" (click)="onSave()"
+    [disabled]="createForm().invalid() || !formModel().name.trim()" id="dialog-save-btn" type="button">
+    Submit
+  </button>
+</mat-dialog-actions>

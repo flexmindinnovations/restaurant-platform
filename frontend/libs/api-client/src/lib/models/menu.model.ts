@@ -30,6 +30,8 @@ export interface MenuItem {
   is_available: boolean;
   display_order: number;
   image_url: string | null;
+  dietary_labels?: string[];
+  preparation_time_minutes?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +67,9 @@ export interface CreateMenuItemRequest {
   price_currency: string;
   category_id?: string;
   display_order?: number;
+  image_url?: string | null;
+  dietary_labels?: string[];
+  preparation_time_minutes?: number | null;
 }
 
 export interface UpdateMenuItemRequest {
@@ -74,6 +79,10 @@ export interface UpdateMenuItemRequest {
   price_currency?: string;
   is_available?: boolean;
   display_order?: number;
+  category_id?: string;
+  image_url?: string | null;
+  dietary_labels?: string[];
+  preparation_time_minutes?: number | null;
 }
 
 export interface MenuListParams {

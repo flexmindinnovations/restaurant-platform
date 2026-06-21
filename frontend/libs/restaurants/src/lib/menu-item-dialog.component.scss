@@ -1,0 +1,40 @@
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  min-width: 400px;
+}
+.full {
+  width: 100%;
+}
+.price-row {
+  display: flex;
+  gap: 12px;
+}
+.price-amount {
+  flex: 2;
+}
+.price-currency {
+  flex: 1;
+}
+.meta-row {
+  display: flex;
+  gap: 12px;
+}
+.dietary-select {
+  flex: 2;
+}
+.prep-time {
+  flex: 1;
+}
+.image-picker-field {
+  margin-bottom: 12px;
+}
+.field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--color-text-secondary);
+}

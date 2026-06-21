@@ -76,7 +76,7 @@ class MenuItemModel(Base):
     description = Column(Text, nullable=True)
     price_amount = Column(Numeric(precision=10, scale=2), nullable=False)
     price_currency = Column(String(3), default="INR", nullable=False)
-    image_url = Column(String(500), nullable=True)
+    image_url = Column(Text, nullable=True)
     display_order = Column(Integer, default=0, nullable=False)
     is_available = Column(Boolean, default=True, nullable=False)
     dietary_labels = Column(JSONB, default=list, nullable=False)

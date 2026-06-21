@@ -12,6 +12,29 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+// Proxy API requests to the FastAPI backend (port 8000) during SSR
+app.use('/api', (req, res) => {
+  const options = {
+    hostname: 'localhost',
+    port: 8000,
+    path: req.originalUrl,
+    method: req.method,
+    headers: req.headers,
+  };
+
+  const proxyReq = require('node:http').request(options, (proxyRes: any) => {
+    res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+    proxyRes.pipe(res, { end: true });
+  });
+
+  proxyReq.on('error', (err: any) => {
+    res.status(500).send('SSR API Proxy Error: ' + err.message);
+  });
+
+  req.pipe(proxyReq, { end: true });
+});
+
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.

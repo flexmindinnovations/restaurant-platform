@@ -89,6 +89,7 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
             [total]="store.total()"
             [pageSize]="10"
             [selectedRowId]="store.selectedOrder()?.id"
+            [loading]="store.loading()"
             selectedRowClass="selected-row"
             (pageChange)="onPage($event)"
             (rowClick)="onRowClick($event)"

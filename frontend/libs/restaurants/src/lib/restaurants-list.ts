@@ -86,6 +86,7 @@ import { RestaurantsStore } from './restaurants.store';
           [columns]="columns"
           [total]="store.total()"
           [pageSize]="10"
+          [loading]="store.loading()"
           (pageChange)="onPage($event)"
           (rowClick)="onRowClick($event)"
           paginatorAriaLabel="Restaurants pagination"

@@ -31,7 +31,7 @@
 </div>
 
 <!-- Table -->
-@if (filteredReviews().length === 0) {
+@if (!store.loading() && filteredReviews().length === 0) {
   <app-empty-state
     icon="star"
     title="No reviews found"
@@ -43,6 +43,7 @@
     [columns]="columns"
     [showPaginator]="true"
     [pageSize]="10"
+    [loading]="store.loading()"
     (rowClick)="onRowClick($event)"
   >
     <!-- Restaurant Column Template -->

@@ -1,0 +1,106 @@
+<h2 mat-dialog-title>{{ data.item ? 'Edit' : 'Add' }} Menu Item</h2>
+<mat-dialog-content>
+  <form class="item-form">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Item name</mat-label>
+      <input
+        matInput
+        [formField]="itemForm.name"
+        id="item-name"
+        placeholder="e.g. Grilled Salmon"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        [formField]="itemForm.description"
+        rows="3"
+        placeholder="Brief description…"
+        id="item-description"
+      ></textarea>
+    </mat-form-field>
+
+    <div class="price-row">
+      <mat-form-field appearance="outline" class="price-amount">
+        <mat-label>Price</mat-label>
+        <span matTextPrefix>₹&nbsp;</span>
+        <input
+          matInput
+          [formField]="itemForm.priceAmount"
+          type="number"
+          step="0.01"
+          id="item-price"
+          placeholder="0.00"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="price-currency">
+        <mat-label>Currency</mat-label>
+        <input
+          matInput
+          [formField]="itemForm.priceCurrency"
+          placeholder="INR"
+          id="item-currency"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="image-picker-field">
+      <span class="field-label">Item Images</span>
+      <app-image-picker
+        [initialImages]="initialImages"
+        (imagesChanged)="onImagesChanged($event)"
+      ></app-image-picker>
+    </div>
+
+    <div class="meta-row">
+      <mat-form-field appearance="outline" class="dietary-select">
+        <mat-label>Dietary Labels</mat-label>
+        <mat-select
+          [formField]="itemForm.dietaryLabels"
+          multiple
+          id="item-dietary-labels"
+        >
+          @for (label of availableLabels; track label) {
+            <mat-option [value]="label">{{ label | titlecase }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="prep-time">
+        <mat-label>Prep Time (min)</mat-label>
+        <input
+          matInput
+          [formField]="itemForm.preparationTimeMinutes"
+          type="number"
+          id="item-prep-time"
+          placeholder="e.g. 15"
+        />
+      </mat-form-field>
+    </div>
+
+    <mat-checkbox [formField]="itemForm.isAvailable" id="item-available">
+      Available for ordering
+    </mat-checkbox>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="saving()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="onSave()"
+    [disabled]="itemForm().invalid() || saving()"
+    id="item-save-btn"
+  >
+    <span class="btn-content-wrapper" style="display: inline-flex; align-items: center; gap: 8px;">
+      @if (saving()) {
+        <mat-spinner diameter="18" style="margin: 0;"></mat-spinner>
+      }
+      {{ data.item ? 'Save changes' : 'Add item' }}
+    </span>
+  </button>
+</mat-dialog-actions>
+
