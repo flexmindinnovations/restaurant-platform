@@ -53,6 +53,8 @@
         (rowClick)="onRowClick($event)"
         paginatorAriaLabel="Deliveries pagination"
       >
+
+
         <!-- Courier Column -->
         <ng-template appDatatableCell="partner_name" let-row>
           <span>{{ row.partner_name || 'Unassigned ⚠️' }}</span>

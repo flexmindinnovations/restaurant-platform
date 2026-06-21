@@ -15,9 +15,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { LucideSearch, LucideChevronRight, LucideCircleCheck, LucideBan } from '@lucide/angular';
 import { MatChipListbox, MatChipOption } from '@angular/material/chips';
-
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { HeaderService } from '@app/shared';
+import { HeaderService, ConfirmDialog } from '@app/shared';
 import { StatusBadge } from '../../../shared/src/lib/status-badge';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
 import { DatatableComponent, DatatableCellDirective, DatatableColumn } from '@app/design-system';
@@ -40,6 +40,7 @@ import { RestaurantsStore } from './restaurants.store';
     MatChipListbox,
     MatChipOption,
     MatTooltipModule,
+    MatDialogModule,
     StatusBadge,
     EmptyState,
     DatatableComponent,
@@ -186,6 +187,7 @@ export class RestaurantsList implements OnInit, OnDestroy {
   private readonly headerService = inject(HeaderService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
 
   constructor() {
     effect(() => {
@@ -243,9 +245,21 @@ export class RestaurantsList implements OnInit, OnDestroy {
 
   onReject(id: string, event: Event): void {
     event.stopPropagation();
-    if (confirm('Are you sure you want to reject this restaurant registration?')) {
-      this.store.rejectRestaurant(id);
-    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Reject Registration',
+          message: 'Are you sure you want to reject this restaurant registration?',
+          confirmLabel: 'Reject',
+          variant: 'danger',
+        },
+        width: '400px',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.rejectRestaurant(id);
+        }
+      });
   }
 }
-

@@ -1,0 +1,117 @@
+<app-page-header title="My Profile" subtitle="Manage your personal information, display settings, and preferences">
+</app-page-header>
+
+@if (store.loading()) {
+<div class="profile-container profile-container--center">
+  <div class="profile-loading-content">
+    <svg lucideLoaderCircle class="animate-spin loader-icon" [size]="24"></svg>
+    <p class="loading-text">Loading profile details...</p>
+  </div>
+</div>
+} @else if (store.profile(); as profile) {
+<div class="profile-container">
+  <!-- Left Column: Avatar & Profile Card -->
+  <mat-card class="avatar-card mat-elevation-z1" appearance="outlined">
+    <mat-card-content class="avatar-content">
+      <div class="avatar-wrapper">
+        @if (avatarUrl()) {
+        <img [src]="avatarUrl()" alt="Profile Avatar" class="profile-avatar-preview" />
+        } @else {
+        <div class="profile-avatar-placeholder">
+          <svg lucideUser [size]="48"></svg>
+        </div>
+        }
+      </div>
+
+      <h3 class="user-display-name">{{ profile.display_name || 'Guest User' }}</h3>
+      <p class="user-role-label">System Administrator</p>
+
+      <div class="picker-section">
+        <mat-label class="picker-label">Change Avatar</mat-label>
+        <app-image-picker [multiple]="false" [initialImages]="avatarUrl() ? [avatarUrl()!] : []"
+          (imagesChanged)="onAvatarChanged($event)"></app-image-picker>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Right Column: Edit Profile Form -->
+  <mat-card class="form-card mat-elevation-z1" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Account Settings</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content class="form-content">
+      @if (store.successMessage(); as msg) {
+      <div class="alert alert--success">
+        <svg lucideCircleCheck [size]="18"></svg>
+        <span>{{ msg }}</span>
+      </div>
+      }
+
+      @if (store.error(); as err) {
+      <div class="alert alert--error">
+        <svg lucideCircleAlert [size]="18"></svg>
+        <span>{{ err }}</span>
+      </div>
+      }
+
+      <form #profileForm="ngForm" (ngSubmit)="onSubmit(profileForm.value)" class="profile-form">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>First Name</mat-label>
+            <input matInput placeholder="First Name" name="first_name" [ngModel]="profile.first_name" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name</mat-label>
+            <input matInput placeholder="Last Name" name="last_name" [ngModel]="profile.last_name" required />
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Display Name</mat-label>
+            <input matInput placeholder="Display Name" name="display_name" [ngModel]="profile.display_name" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Preferred Language</mat-label>
+            <mat-select name="preferred_language" [ngModel]="profile.preferred_language || 'en'">
+              <mat-option value="en">English (US)</mat-option>
+              <mat-option value="es">Español</mat-option>
+              <mat-option value="fr">Français</mat-option>
+              <mat-option value="hi">हिन्दी (Hindi)</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="store.saving() || !profileForm.valid"
+            class="save-button">
+            @if (store.saving()) {
+            <svg lucideLoader2 [size]="16" class="animate-spin mr-2"></svg>
+            Saving...
+            } @else {
+            <svg lucideSave [size]="16" class="mr-2"></svg>
+            Save Changes
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+} @else if (store.error()) {
+  <div class="profile-container profile-container--center">
+    <mat-card class="form-card form-card--error mat-elevation-z1" appearance="outlined">
+      <mat-card-content class="form-content error-content">
+        <svg lucideCircleAlert [size]="48" class="error-icon"></svg>
+        <h3 class="error-title">Failed to Load Profile</h3>
+        <p class="error-message">{{ store.error() }}</p>
+        <button type="button" matButton="filled" color="primary" (click)="store.loadProfile()">
+          Retry Loading
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

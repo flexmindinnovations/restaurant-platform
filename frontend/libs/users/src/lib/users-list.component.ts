@@ -19,10 +19,7 @@ import { LucideSearch, LucideChevronRight, LucideX } from '@lucide/angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
-import { PageHeader } from '../../../shared/src/lib/page-header';
-import { HeaderService } from '@app/shared';
-import { StatusBadge } from '../../../shared/src/lib/status-badge';
-import { EmptyState } from '../../../shared/src/lib/empty-state';
+import { PageHeader, HeaderService, StatusBadge, EmptyState } from '@app/shared';
 import { DatatableComponent, DatatableCellDirective, DatatableColumn } from '@app/design-system';
 import { UsersStore } from './users.store';
 import { User, UserRole } from './users.model';
@@ -275,11 +272,11 @@ import { User, UserRole } from './users.model';
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 6px 0;
+      padding: 0;
     }
     .user-avatar {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       object-fit: cover;
     }

@@ -20,3 +20,15 @@ export interface UserListParams {
   role?: UserRole | 'ALL';
   is_active?: boolean;
 }
+
+export interface UserProfile {
+  id: string;
+  account_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  preferred_language: string | null;
+  created_at?: string;
+  updated_at?: string;
+}

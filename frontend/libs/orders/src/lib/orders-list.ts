@@ -6,7 +6,7 @@ import {
   OnDestroy,
   effect,
 } from '@angular/core';
-import { DatePipe, SlicePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,7 +42,6 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
-    SlicePipe,
     FormsModule,
     MatButtonModule,
     MatChipsModule,
@@ -105,10 +104,7 @@ const STATUS_TABS: Array<{ label: string; value: OrderStatus | 'ALL' }> = [
               <app-status-badge [status]="row.status" />
             </ng-template>
 
-            <!-- Restaurant -->
-            <ng-template appDatatableCell="restaurant" let-row>
-              {{ row.restaurant_id | slice: 0 : 8 }}…
-            </ng-template>
+
 
             <!-- Total -->
             <ng-template appDatatableCell="total" let-row>
@@ -207,7 +203,6 @@ export class OrdersList implements OnInit, OnDestroy {
   protected readonly columns: DatatableColumn[] = [
     { key: 'order_number', label: 'Order #' },
     { key: 'status', label: 'Status' },
-    { key: 'restaurant', label: 'Restaurant' },
     { key: 'total', label: 'Total' },
     { key: 'placed_at', label: 'Placed' },
     { key: 'actions', label: 'Actions' },

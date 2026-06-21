@@ -29,8 +29,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { PageHeader } from '../../../shared/src/lib/page-header';
-import { HeaderService } from '@app/shared';
+import { HeaderService, ConfirmDialog } from '@app/shared';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
 import { PromotionsStore } from './promotions.store';
 import { Promotion } from './promotions.model';
@@ -39,12 +42,14 @@ import { Promotion } from './promotions.model';
   selector: 'app-promotions-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     FormsModule,
     MatCardModule,
     MatTableModule,
     MatButtonModule,
+    MatDialogModule,
     LucidePlus,
     LucideTag,
     LucideCircleCheck,
@@ -58,6 +63,7 @@ import { Promotion } from './promotions.model';
     MatSelectModule,
     MatChipsModule,
     MatTooltipModule,
+    MatDatepickerModule,
     PageHeader,
     EmptyState,
   ],
@@ -252,12 +258,15 @@ import { Promotion } from './promotions.model';
                   <mat-label>Discount Type</mat-label>
                   <mat-select name="discount_type" [ngModel]="formData().discount_type" required>
                     <mat-option value="PERCENTAGE">Percentage (%)</mat-option>
-                    <mat-option value="FIXED">Fixed Amount ($)</mat-option>
+                    <mat-option value="FIXED">Fixed Amount (₹)</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Discount Value</mat-label>
+                  @if (promoForm.value?.discount_type === 'FIXED') {
+                    <span matPrefix>₹</span>
+                  }
                   <input
                     matInput
                     type="number"
@@ -266,10 +275,14 @@ import { Promotion } from './promotions.model';
                     required
                     min="0"
                   />
+                  @if (promoForm.value?.discount_type === 'PERCENTAGE') {
+                    <span matSuffix>%</span>
+                  }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Min Order Value ($)</mat-label>
+                  <mat-label>Min Order Value (₹)</mat-label>
+                  <span matPrefix>₹</span>
                   <input
                     matInput
                     type="number"
@@ -306,22 +319,26 @@ import { Promotion } from './promotions.model';
                   <mat-label>Start Date</mat-label>
                   <input
                     matInput
-                    type="date"
+                    [matDatepicker]="startDatePicker"
                     name="start_date"
                     [ngModel]="formData().start_date"
                     required
                   />
+                  <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startDatePicker></mat-datepicker>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>End Date</mat-label>
                   <input
                     matInput
-                    type="date"
+                    [matDatepicker]="endDatePicker"
                     name="end_date"
                     [ngModel]="formData().end_date"
                     required
                   />
+                  <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endDatePicker></mat-datepicker>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="col-span-2">
@@ -520,6 +537,7 @@ import { Promotion } from './promotions.model';
 export class PromotionsDashboardComponent implements OnInit, OnDestroy {
   protected readonly store = inject(PromotionsStore);
   private readonly headerService = inject(HeaderService);
+  private readonly dialog = inject(MatDialog);
 
   constructor() {
     effect(() => {
@@ -539,7 +557,15 @@ export class PromotionsDashboardComponent implements OnInit, OnDestroy {
 
   protected readonly isModalOpen = signal(false);
   protected readonly editingPromo = signal<Promotion | null>(null);
-  protected readonly formData = signal<Partial<Promotion>>({});
+  protected readonly formData = signal<Partial<Promotion>>({
+    code: '',
+    discount_type: 'PERCENTAGE',
+    discount_value: 0,
+    min_order_value: 0,
+    restaurant_id: null,
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  });
 
   // Computed statistics
   protected readonly totalCoupons = computed(() => this.store.promotions().length);
@@ -571,11 +597,9 @@ export class PromotionsDashboardComponent implements OnInit, OnDestroy {
     this.formData.set({
       code: '',
       discount_type: 'PERCENTAGE',
-      discount_value: 10,
-      min_order_value: 10,
-      max_usages: 100,
-      restaurant_id: '',
-      status: 'ACTIVE',
+      discount_value: 0,
+      min_order_value: 0,
+      restaurant_id: null,
       start_date: new Date().toISOString().split('T')[0],
       end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     });
@@ -594,17 +618,46 @@ export class PromotionsDashboardComponent implements OnInit, OnDestroy {
   }
 
   onDelete(id: string): void {
-    if (confirm('Are you sure you want to delete this promotion?')) {
-      this.store.delete(id);
-    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Delete Promotion',
+          message: 'Are you sure you want to delete this promotion? This action is irreversible.',
+          confirmLabel: 'Delete',
+          variant: 'danger',
+        },
+        width: '400px',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.delete(id);
+        }
+      });
   }
 
   onSubmit(formValues: Partial<Promotion>): void {
+    const formatDate = (d: any) => {
+      if (!d) return undefined;
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime())) return undefined;
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const payload = {
+      ...formValues,
+      start_date: formatDate(formValues.start_date),
+      end_date: formatDate(formValues.end_date),
+    };
+
     const edit = this.editingPromo();
     if (edit) {
-      this.store.update({ id: edit.id, updated: formValues });
+      this.store.update({ id: edit.id, updated: payload });
     } else {
-      this.store.create(formValues);
+      this.store.create(payload);
     }
     this.onCloseModal();
   }

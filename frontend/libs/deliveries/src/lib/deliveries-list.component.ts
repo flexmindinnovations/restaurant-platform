@@ -67,16 +67,15 @@ export class DeliveriesListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
 
   protected readonly columns: DatatableColumn[] = [
-    { key: 'id', label: 'Order ID', sortable: true },
     { key: 'restaurant_name', label: 'Restaurant', sortable: true },
     { key: 'customer_address', label: 'Destination', sortable: true },
     { key: 'partner_name', label: 'Courier', sortable: true },
     { key: 'status', label: 'Status', sortable: true },
     { key: 'actions', label: 'Actions' },
   ];
-
-  protected readonly searchValue = signal('');
+ 
   protected readonly statusFilter = signal<string>('ALL');
+  protected readonly searchValue = signal<string>('');
 
   constructor() {
     effect(() => {

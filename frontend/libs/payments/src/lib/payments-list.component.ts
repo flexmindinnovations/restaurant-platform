@@ -9,8 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,9 +17,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { LucideSearch, LucideUndo2 } from '@lucide/angular';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PageHeader } from '../../../shared/src/lib/page-header';
-import { HeaderService } from '@app/shared';
+import { HeaderService, ConfirmDialog } from '@app/shared';
 import { EmptyState } from '../../../shared/src/lib/empty-state';
+import { DatatableComponent, DatatableCellDirective, DatatableColumn } from '@app/design-system';
 import { PaymentsStore } from './payments.store';
 import { PaymentStatus } from './payments.model';
 
@@ -31,17 +32,18 @@ import { PaymentStatus } from './payments.model';
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
     MatChipsModule,
+    MatDialogModule,
     LucideSearch,
     LucideUndo2,
     MatTooltipModule,
     PageHeader,
     EmptyState,
+    DatatableComponent,
+    DatatableCellDirective,
   ],
   template: `
     <app-page-header
@@ -86,89 +88,58 @@ import { PaymentStatus } from './payments.model';
           message="Try adjusting your search or filters."
         />
       } @else {
-        <table mat-table [dataSource]="store.payments()" class="full-width">
-          <!-- TX ID -->
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>Transaction ID</th>
-            <td mat-cell *matCellDef="let tx" class="font-mono text-sm">{{ tx.id }}</td>
-          </ng-container>
-
-          <!-- Order ID -->
-          <ng-container matColumnDef="order_id">
-            <th mat-header-cell *matHeaderCellDef>Order ID</th>
-            <td mat-cell *matCellDef="let tx" class="font-mono text-sm">{{ tx.order_id }}</td>
-          </ng-container>
-
-          <!-- Customer -->
-          <ng-container matColumnDef="customer">
-            <th mat-header-cell *matHeaderCellDef>Customer</th>
-            <td mat-cell *matCellDef="let tx">{{ tx.customer_name }}</td>
-          </ng-container>
-
-          <!-- Amount -->
-          <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef>Amount</th>
-            <td mat-cell *matCellDef="let tx" class="font-semibold">
-              {{ tx.amount | currency: 'INR' : 'symbol' : '1.0-2' }}
-            </td>
-          </ng-container>
-
-          <!-- Payment Method -->
-          <ng-container matColumnDef="method">
-            <th mat-header-cell *matHeaderCellDef>Payment Method</th>
-            <td mat-cell *matCellDef="let tx" class="text-sm opacity-80">
-              {{ tx.payment_method }}
-            </td>
-          </ng-container>
-
-          <!-- Status -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let tx">
-              <!-- status-badge mapping expects custom statuses -->
-              <span class="custom-badge" [class]="'badge--' + tx.status.toLowerCase()">{{
-                tx.status
-              }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Created At -->
-          <ng-container matColumnDef="created_at">
-            <th mat-header-cell *matHeaderCellDef>Date & Time</th>
-            <td mat-cell *matCellDef="let tx" class="text-sm opacity-85">
-              {{ tx.created_at | date: 'medium' }}
-            </td>
-          </ng-container>
-
-          <!-- Actions -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let tx">
-              @if (tx.status === 'SUCCESS') {
-                <button
-                  mat-flat-button
-                  color="warn"
-                  class="refund-button"
-                  (click)="onRefund(tx.id)"
-                >
-                  <svg lucideUndo2 [size]="16"></svg> Refund
-                </button>
-              }
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
-        </table>
-
-        <mat-paginator
-          [length]="store.total()"
+        <app-datatable
+          [dataSource]="store.payments()"
+          [columns]="columns"
+          [total]="store.total()"
           [pageSize]="store.limit()"
-          [pageSizeOptions]="[5, 10, 20, 50]"
-          (page)="onPage($event)"
-          aria-label="Payments pagination"
+          [loading]="store.loading()"
+          (pageChange)="onPage($event)"
+          paginatorAriaLabel="Payments pagination"
         >
-        </mat-paginator>
+          <!-- Customer Template -->
+          <ng-template appDatatableCell="customer" let-row>
+            {{ row.customer_name }}
+          </ng-template>
+
+          <!-- Amount Template -->
+          <ng-template appDatatableCell="amount" let-row>
+            <span class="font-semibold">
+              {{ row.amount | currency: 'INR' : 'symbol' : '1.0-2' }}
+            </span>
+          </ng-template>
+
+          <!-- Payment Method Template -->
+          <ng-template appDatatableCell="method" let-row>
+            <span class="text-sm opacity-80">{{ row.payment_method }}</span>
+          </ng-template>
+
+          <!-- Status Template -->
+          <ng-template appDatatableCell="status" let-row>
+            <span class="custom-badge" [class]="'badge--' + row.status.toLowerCase()">
+              {{ row.status }}
+            </span>
+          </ng-template>
+
+          <!-- Created At Template -->
+          <ng-template appDatatableCell="created_at" let-row>
+            <span class="text-sm opacity-85">{{ row.created_at | date: 'medium' }}</span>
+          </ng-template>
+
+          <!-- Actions Template -->
+          <ng-template appDatatableCell="actions" let-row>
+            @if (row.status === 'SUCCESS') {
+              <button
+                mat-flat-button
+                color="warn"
+                class="refund-button"
+                (click)="onRefund(row.id)"
+              >
+                <svg lucideUndo2 [size]="16"></svg> Refund
+              </button>
+            }
+          </ng-template>
+        </app-datatable>
       }
     </div>
   `,
@@ -240,21 +211,20 @@ import { PaymentStatus } from './payments.model';
 export class PaymentsListComponent implements OnInit, OnDestroy {
   protected readonly store = inject(PaymentsStore);
   private readonly headerService = inject(HeaderService);
+  private readonly dialog = inject(MatDialog);
 
   constructor() {
     effect(() => {
       this.headerService.setLoading(this.store.loading());
     });
   }
-  protected readonly displayedColumns = [
-    'id',
-    'order_id',
-    'customer',
-    'amount',
-    'method',
-    'status',
-    'created_at',
-    'actions',
+  protected readonly columns: DatatableColumn[] = [
+    { key: 'customer', label: 'Customer' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'method', label: 'Payment Method' },
+    { key: 'status', label: 'Status' },
+    { key: 'created_at', label: 'Date & Time' },
+    { key: 'actions', label: 'Actions' },
   ];
 
   protected readonly searchValue = signal('');
@@ -286,8 +256,21 @@ export class PaymentsListComponent implements OnInit, OnDestroy {
   }
 
   onRefund(id: string): void {
-    if (confirm('Are you sure you want to refund this payment? This action is irreversible.')) {
-      this.store.refundTransaction(id);
-    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Refund Payment',
+          message: 'Are you sure you want to refund this payment? This action is irreversible.',
+          confirmLabel: 'Refund',
+          variant: 'danger',
+        },
+        width: '400px',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.refundTransaction(id);
+        }
+      });
   }
 }

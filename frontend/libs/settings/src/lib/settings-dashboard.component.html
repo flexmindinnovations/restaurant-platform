@@ -1,0 +1,231 @@
+<app-page-header
+  title="Platform Configuration"
+  subtitle="Configure system parameters, fee structures, and service limits"
+>
+</app-page-header>
+
+@if (store.settings(); as currentSettings) {
+  <div class="settings-container">
+    <!-- Left Column: Form Card -->
+    <mat-card class="settings-card mat-elevation-z1" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>System Values</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content class="form-content">
+        @if (store.successMessage(); as msg) {
+          <div class="alert alert--success">
+            <svg lucideCircleCheck [size]="18"></svg>
+            <span>{{ msg }}</span>
+          </div>
+        }
+
+        @if (store.error(); as err) {
+          <div class="alert alert--error">
+            <svg lucideCircleAlert [size]="18"></svg>
+            <span>{{ err }}</span>
+          </div>
+        }
+
+        <form
+          #settingsForm="ngForm"
+          (ngSubmit)="onSubmit(settingsForm.value)"
+          class="settings-form"
+        >
+          <!-- Fee Structure Section -->
+          <h3 class="section-title">Fee & Commission Rates</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Commission Rate (%)</mat-label>
+              <input
+                matInput
+                type="number"
+                placeholder="Commission Rate (%)"
+                name="commission_rate"
+                [ngModel]="currentSettings.commission_rate"
+                required
+                min="0"
+                max="100"
+              />
+              <span matSuffix>%</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Base Delivery Fee (₹)</mat-label>
+              <input
+                matInput
+                placeholder="Base Delivery Fee (₹)"
+                type="number"
+                name="base_delivery_fee"
+                [ngModel]="currentSettings.base_delivery_fee"
+                required
+                min="0"
+                step="0.1"
+              />
+              <span matPrefix>₹</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Platform Service Fee (₹)</mat-label>
+              <input
+                matInput
+                type="number"
+                name="service_fee"
+                placeholder="Platform Service Fee (₹)"
+                [ngModel]="currentSettings.service_fee"
+                required
+                min="0"
+                step="0.1"
+              />
+              <span matPrefix>₹</span>
+            </mat-form-field>
+          </div>
+
+          <!-- Logistics Rules Section -->
+          <h3 class="section-title mt-4">Logistics & Service Rules</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Max Delivery Radius (km)</mat-label>
+              <input
+                matInput
+                type="number"
+                name="delivery_radius_km"
+                placeholder="Max Delivery Radius (km)"
+                [ngModel]="currentSettings.delivery_radius_km"
+                required
+                min="1"
+              />
+              <span matSuffix>km</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Minimum Order Value (₹)</mat-label>
+              <input
+                matInput
+                placeholder="Minimum Order Value (₹)"
+                type="number"
+                name="min_order_value"
+                [ngModel]="currentSettings.min_order_value"
+                required
+                min="0"
+                step="0.5"
+              />
+              <span matPrefix>₹</span>
+            </mat-form-field>
+          </div>
+
+          <!-- Branding Section -->
+          <h3 class="section-title mt-4">Branding & Identity</h3>
+          <div class="form-grid brand-section">
+            <mat-form-field appearance="outline" class="brand-name">
+              <mat-label>Brand Name</mat-label>
+              <input
+                matInput
+                name="brand_name"
+                [(ngModel)]="brandName"
+                placeholder="e.g. QuickBite"
+              />
+              <svg lucideBuilding2 [size]="18" matSuffix></svg>
+            </mat-form-field>
+
+            <div class="logo-uploader-field">
+              <mat-label class="picker-label">Brand Logo</mat-label>
+              <app-image-picker
+                [multiple]="false"
+                [initialImages]="logoUrl ? [logoUrl] : []"
+                (imagesChanged)="onLogoChanged($event)"
+              ></app-image-picker>
+            </div>
+          </div>
+
+          <!-- AI Service Section -->
+          <h3 class="section-title mt-4">AI Assistant Settings</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>AI Provider</mat-label>
+              <mat-select name="ai_provider" [ngModel]="currentSettings.ai_provider" required>
+                <mat-option value="Gemini">Gemini</mat-option>
+                <mat-option value="OpenAI">OpenAI</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="col-span-2">
+              <mat-label>API Key</mat-label>
+              <input
+                matInput
+                placeholder="API Key"
+                type="password"
+                name="ai_api_key"
+                [ngModel]="currentSettings.ai_api_key"
+              />
+              <svg lucideKey [size]="18" matSuffix></svg>
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions mt-4">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="settingsForm.invalid || store.saving()"
+            >
+              @if (store.saving()) {
+                <svg lucideLoader2 [size]="18" class="animate-spin mr-2"></svg> Saving...
+              } @else {
+                <svg lucideSave [size]="18" class="mr-2"></svg> Save Settings
+              }
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Right Column: Premium Live Branding Preview Card -->
+    <mat-card
+      class="settings-card branding-preview-card mat-elevation-z1"
+      appearance="outlined"
+    >
+      <mat-card-header>
+        <mat-card-title>Branding & Fees Preview</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="form-content preview-content">
+        <div class="preview-logo-wrapper">
+          @if (logoUrl) {
+            <img [src]="logoUrl" alt="Brand Logo" class="preview-brand-logo" />
+          } @else {
+            <div class="preview-logo-placeholder">
+              <svg lucideUtensilsCrossed class="placeholder-icon"></svg>
+            </div>
+          }
+        </div>
+        <div class="preview-brand-name">{{ brandName || 'QuickBite' }} Admin</div>
+        <div class="preview-badge">Active Identity</div>
+
+        <div class="preview-divider"></div>
+
+        <div class="preview-details">
+          <div class="preview-detail-item">
+            <span class="detail-label">Commission Fee</span>
+            <span class="detail-value text-green">{{ currentSettings.commission_rate }}%</span>
+          </div>
+          <div class="preview-detail-item">
+            <span class="detail-label">Base Delivery</span>
+            <span class="detail-value">₹{{ currentSettings.base_delivery_fee }}</span>
+          </div>
+          <div class="preview-detail-item">
+            <span class="detail-label">Service Fee</span>
+            <span class="detail-value">₹{{ currentSettings.service_fee }}</span>
+          </div>
+          <div class="preview-detail-item">
+            <span class="detail-label">Min. Order</span>
+            <span class="detail-value">₹{{ currentSettings.min_order_value }}</span>
+          </div>
+          <div class="preview-detail-item col-span-2">
+            <span class="detail-label">Max Delivery Radius</span>
+            <span class="detail-value">{{ currentSettings.delivery_radius_km }} km</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

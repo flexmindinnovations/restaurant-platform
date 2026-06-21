@@ -58,6 +58,10 @@ export const routes: Routes = [
         loadChildren: () => import('@app/settings').then((m) => m.settingsRoutes),
       },
       {
+        path: 'profile',
+        loadComponent: () => import('@app/users').then((m) => m.ProfileComponent),
+      },
+      {
         path: 'support',
         loadChildren: () => import('@app/support').then((m) => m.supportRoutes),
       },

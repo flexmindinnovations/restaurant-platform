@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, input, output, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideUpload, LucideTrash2, provideLucideIcons } from '@lucide/angular';
 
@@ -75,7 +75,7 @@ import { LucideUpload, LucideTrash2, provideLucideIcons } from '@lucide/angular'
       padding: 24px;
       text-align: center;
       cursor: pointer;
-      background: var(--color-bg-offset, #fafafa);
+      background: var(--color-surface-2, #fafafa);
       transition: all 0.2s ease-in-out;
       display: flex;
       flex-direction: column;

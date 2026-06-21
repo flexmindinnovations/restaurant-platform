@@ -172,3 +172,81 @@ async def get_review_summary(
 ) -> ResponseEnvelope[ReviewSummaryResponse]:
     summary = await handler.handle(GetReviewSummaryQuery(restaurant_id=restaurant_id))
     return ResponseEnvelope(data=ReviewSummaryResponse.model_validate(summary.__dict__))
+
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.dependencies import get_db_session
+
+
+@router.get("", response_model=ResponseEnvelope[ReviewListResponse])
+async def list_all_reviews(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(get_current_user),
+) -> ResponseEnvelope[ReviewListResponse]:
+    from modules.reviews.infrastructure.models.review_models import ReviewModel
+    from modules.users.infrastructure.models.profile_model import ProfileModel
+
+    query = select(ReviewModel, ProfileModel).outerjoin(
+        ProfileModel, ReviewModel.customer_id == ProfileModel.account_id
+    )
+    result = await db.execute(query)
+    rows = result.all()
+    
+    items = []
+    for model, prof in rows:
+        cust_name = f"{prof.first_name} {prof.last_name}" if prof else "Customer"
+        status = 'FLAGGED' if model.is_flagged else 'APPROVED' # simplified map
+        items.append(ReviewResponse(
+            id=model.id,
+            order_id=model.order_id,
+            customer_id=model.customer_id,
+            restaurant_id=model.restaurant_id,
+            rating=model.rating,
+            comment=model.comment,
+            sentiment=model.sentiment,
+            is_flagged=model.is_flagged,
+            flag_reason=model.flag_reason,
+            reply=model.reply,
+            replied_at=model.replied_at,
+            images=model.images or [],
+            is_editable=False,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+        ))
+    
+    total = len(items)
+    paginated = items[skip:skip+limit]
+    return ResponseEnvelope(data=ReviewListResponse(items=paginated, total=total))
+
+
+@router.post("/{review_id}/approve", response_model=ResponseEnvelope[dict])
+async def approve_review(
+    review_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
+) -> ResponseEnvelope[dict]:
+    from modules.reviews.infrastructure.models.review_models import ReviewModel
+    result = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
+    model = result.scalar_one_or_none()
+    if model:
+        model.is_flagged = False
+        await db.commit()
+    return ResponseEnvelope(data={"message": "Review approved successfully"})
+
+
+@router.post("/{review_id}/reject", response_model=ResponseEnvelope[dict])
+async def reject_review(
+    review_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
+) -> ResponseEnvelope[dict]:
+    from modules.reviews.infrastructure.models.review_models import ReviewModel
+    result = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
+    model = result.scalar_one_or_none()
+    if model:
+        await db.delete(model)
+        await db.commit()
+    return ResponseEnvelope(data={"message": "Review rejected successfully"})

@@ -25,7 +25,7 @@ export interface MenuItemDialogData {
     dietary_labels?: string[];
     preparation_time_minutes?: number | null;
   };
-  onSave: (result: MenuItemDialogResult) => import('rxjs').Observable<any>;
+  onSave: (result: MenuItemDialogResult) => import('rxjs').Observable<unknown>;
 }
 
 export interface MenuItemDialogResult {
@@ -144,7 +144,7 @@ export class MenuItemDialog {
       dietary_labels: model.dietaryLabels,
       preparation_time_minutes: model.preparationTimeMinutes ? parseInt(model.preparationTimeMinutes, 10) : null,
     };
-    
+
     this.data.onSave(result).subscribe({
       next: () => {
         this.dialogRef.close(true);

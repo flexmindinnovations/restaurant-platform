@@ -24,7 +24,7 @@ import {
   LucideBan,
 } from '@lucide/angular';
 
-import { PageHeader, HeaderService, EmptyState } from '@app/shared';
+import { PageHeader, HeaderService, EmptyState, ConfirmDialog } from '@app/shared';
 import { DatatableComponent, DatatableCellDirective, type DatatableColumn } from '@app/design-system';
 import { ReviewsStore } from './reviews.store';
 import { Review } from './reviews.model';
@@ -131,8 +131,21 @@ export class ReviewsListComponent implements OnInit, OnDestroy {
   }
 
   onReject(id: string): void {
-    if (confirm('Are you sure you want to reject/remove this review?')) {
-      this.store.moderateReview({ id, status: 'REJECTED' });
-    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Reject Review',
+          message: 'Are you sure you want to reject/remove this review?',
+          confirmLabel: 'Reject',
+          variant: 'danger',
+        },
+        width: '400px',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.moderateReview({ id, status: 'REJECTED' });
+        }
+      });
   }
 }

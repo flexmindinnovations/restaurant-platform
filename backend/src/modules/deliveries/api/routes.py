@@ -249,3 +249,85 @@ async def trigger_assign_partner(
     return ResponseEnvelope(
         data={"message": f"Delivery assigned to partner {partner_id}"},
     )
+
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@partners_router.get("", response_model=ResponseEnvelope[list[dict]])
+async def list_all_partners(
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(get_current_user),
+) -> ResponseEnvelope[list[dict]]:
+    from modules.deliveries.infrastructure.models.delivery_models import DeliveryPartnerModel
+    result = await db.execute(select(DeliveryPartnerModel))
+    partners = result.scalars().all()
+    data = []
+    for p in partners:
+        data.append({
+            "id": str(p.id),
+            "name": p.name,
+            "phone": p.phone,
+            "status": "ONLINE" if p.is_online else "OFFLINE",
+            "vehicle_type": p.vehicle_type,
+            "current_location": {"lat": 37.7749, "lng": -122.4194, "label": "San Francisco"}
+        })
+    return ResponseEnvelope(data=data)
+
+
+@router.get("", response_model=ResponseEnvelope[list[dict]])
+async def list_all_deliveries(
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(get_current_user),
+) -> ResponseEnvelope[list[dict]]:
+    from modules.deliveries.infrastructure.models.delivery_models import DeliveryModel, DeliveryPartnerModel
+    query = select(DeliveryModel, DeliveryPartnerModel).outerjoin(
+        DeliveryPartnerModel, DeliveryModel.partner_id == DeliveryPartnerModel.id
+    )
+    result = await db.execute(query)
+    rows = result.all()
+    data = []
+    for d, p in rows:
+        data.append({
+            "id": str(d.id),
+            "restaurant_name": "Restaurant Partner",
+            "restaurant_location": {"lat": 37.778, "lng": -122.412},
+            "customer_address": d.delivery_address,
+            "customer_location": {"lat": 37.781, "lng": -122.404},
+            "partner_id": str(d.partner_id) if d.partner_id else None,
+            "partner_name": p.name if p else None,
+            "status": d.status
+        })
+    return ResponseEnvelope(data=data)
+
+
+@router.post("/{delivery_id}/override", response_model=ResponseEnvelope[dict])
+async def override_delivery_assignment(
+    delivery_id: uuid.UUID,
+    request: dict,
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
+) -> ResponseEnvelope[dict]:
+    from modules.deliveries.infrastructure.models.delivery_models import DeliveryModel, DeliveryPartnerModel
+    partner_id = request.get("partner_id")
+    
+    result = await db.execute(select(DeliveryModel).where(DeliveryModel.id == delivery_id))
+    delivery = result.scalar_one_or_none()
+    if not delivery:
+        return ResponseEnvelope(status_code=404, data={"message": "Delivery not found"})
+        
+    if partner_id is None:
+        delivery.partner_id = None
+        delivery.status = "PENDING"
+    else:
+        partner_uuid = uuid.UUID(partner_id)
+        partner_res = await db.execute(select(DeliveryPartnerModel).where(DeliveryPartnerModel.id == partner_uuid))
+        partner = partner_res.scalar_one_or_none()
+        if not partner:
+             return ResponseEnvelope(status_code=404, data={"message": "Partner not found"})
+        delivery.partner_id = partner_uuid
+        delivery.status = "ASSIGNED"
+        
+    await db.commit()
+    return ResponseEnvelope(data={"message": "Delivery assignment overridden successfully"})

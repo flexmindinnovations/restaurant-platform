@@ -15,9 +15,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { LucideStar, LucideX } from '@lucide/angular';
-import { HeaderService } from '@app/shared';
+import { HeaderService, ConfirmDialog } from '@app/shared';
 import { ReviewsStore } from './reviews.store';
 import { Review } from './reviews.model';
 
@@ -44,6 +44,7 @@ export class ReviewsDetailComponent implements OnInit {
   private readonly headerService = inject(HeaderService);
   private readonly dialogRef = inject(MatDialogRef<ReviewsDetailComponent>);
   private readonly dialogData = inject<{ reviewId: string }>(MAT_DIALOG_DATA);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly reviewId = signal<string | null>(null);
   protected readonly replyText = signal<string>('');
@@ -84,10 +85,23 @@ export class ReviewsDetailComponent implements OnInit {
   }
 
   onReject(id: string): void {
-    if (confirm('Are you sure you want to reject/remove this review?')) {
-      this.store.moderateReview({ id, status: 'REJECTED' });
-      this.dialogRef.close();
-    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Reject Review',
+          message: 'Are you sure you want to reject/remove this review?',
+          confirmLabel: 'Reject',
+          variant: 'danger',
+        },
+        width: '400px',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.moderateReview({ id, status: 'REJECTED' });
+          this.dialogRef.close();
+        }
+      });
   }
 
   onFlag(id: string): void {

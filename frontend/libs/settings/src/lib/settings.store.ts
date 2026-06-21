@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
-import { pipe, switchMap } from 'rxjs';
+import { pipe, switchMap, exhaustMap, of } from 'rxjs';
 import { PlatformSettings } from './settings.model';
 import { SettingsService } from './settings.service';
 
@@ -28,7 +28,10 @@ export const SettingsStore = signalStore(
   withMethods((store, service = inject(SettingsService)) => ({
     loadSettings: rxMethod<void>(
       pipe(
-        switchMap(() => {
+        exhaustMap(() => {
+          if (store.settings() !== null) {
+            return of(store.settings());
+          }
           patchState(store, { loading: true, error: null });
           return service.getSettings().pipe(
             tapResponse({

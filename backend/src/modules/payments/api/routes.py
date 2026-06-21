@@ -115,3 +115,54 @@ async def refund_payment(
     )
     await handler.handle(command)
     return ResponseEnvelope(data={"message": "Payment refunded successfully"})
+
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.dependencies import get_db_session
+
+
+@admin_router.get("", response_model=ResponseEnvelope[dict])
+async def admin_list_payments(
+    skip: int = 0,
+    limit: int = 10,
+    search: str | None = None,
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db_session),
+    _current_user: dict[str, Any] = Depends(require_roles("SUPER_ADMIN")),
+) -> ResponseEnvelope[dict]:
+    from sqlalchemy import select
+    from modules.payments.infrastructure.models.payment_models import PaymentModel
+    from modules.users.infrastructure.models.profile_model import ProfileModel
+
+    query = select(PaymentModel, ProfileModel).outerjoin(
+        ProfileModel, PaymentModel.customer_id == ProfileModel.account_id
+    )
+    if status and status != "ALL":
+        query = query.where(PaymentModel.status == status)
+    if search:
+        search_term = f"%{search}%"
+        query = query.where(
+            PaymentModel.gateway_transaction_id.ilike(search_term) |
+            ProfileModel.first_name.ilike(search_term) |
+            ProfileModel.last_name.ilike(search_term)
+        )
+    
+    result = await db.execute(query)
+    rows = result.all()
+    
+    txs = []
+    for tx, prof in rows:
+        cust_name = f"{prof.first_name} {prof.last_name}" if prof else "Customer"
+        txs.append({
+            "id": str(tx.id),
+            "order_id": str(tx.order_id),
+            "customer_name": cust_name,
+            "amount": float(tx.amount_cents) / 100.0,
+            "status": tx.status,
+            "payment_method": tx.payment_method_type,
+            "created_at": tx.created_at.isoformat() if tx.created_at else ""
+        })
+        
+    total = len(txs)
+    paginated = txs[skip:skip+limit]
+    return ResponseEnvelope(data={"items": paginated, "total": total})

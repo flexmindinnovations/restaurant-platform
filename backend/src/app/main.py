@@ -128,9 +128,13 @@ def _register_routes(app: FastAPI) -> None:
 
     # Mount module routers under /api/v1/<module> prefix
     from modules.restaurants.api.routes import admin_router as restaurants_admin_router
+    from modules.users.api.routes import admin_router as users_admin_router
+    from modules.payments.api.routes import admin_router as payments_admin_router
+    from app.settings_routes import router as settings_router
 
     app.include_router(identity_router, prefix="/api/v1/auth", tags=["identity"])
     app.include_router(users_router, prefix="/api/v1/me", tags=["users"])
+    app.include_router(users_admin_router, prefix="/api/v1/admin/users", tags=["users-admin"])
     app.include_router(restaurants_router, prefix="/api/v1/restaurants", tags=["restaurants"])
     app.include_router(restaurants_admin_router, prefix="/api/v1/admin/restaurants", tags=["restaurants-admin"])
     app.include_router(menus_router, prefix="/api/v1/menus", tags=["menus"])
@@ -138,6 +142,7 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(checkout_router, prefix="/api/v1/checkout", tags=["checkout"])
     app.include_router(orders_router, prefix="/api/v1/orders", tags=["orders"])
     app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])
+    app.include_router(payments_admin_router, prefix="/api/v1/admin/payments", tags=["payments-admin"])
     app.include_router(deliveries_router, prefix="/api/v1/delivery-assignments", tags=["deliveries"])
     app.include_router(deliveries_partners_router, prefix="/api/v1/partners", tags=["partners"])
     from shared.api.websockets import router as websocket_router
@@ -156,6 +161,7 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(reviews_router, prefix="/api/v1/reviews", tags=["reviews"])
     app.include_router(promotions_router, prefix="/api/v1/promotions", tags=["promotions"])
     app.include_router(analytics_router, prefix="/api/v1/analytics", tags=["analytics"])
+    app.include_router(settings_router, prefix="/api/v1/settings", tags=["settings"])
     from modules.analytics.api.ai_routes import ai_router
 
     app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"])
