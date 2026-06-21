@@ -78,6 +78,7 @@ const NAV_LABEL_MAP: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/orders': 'Orders',
   '/restaurants': 'Restaurants',
+  '/tables': 'Tables',
   '/deliveries': 'Deliveries',
   '/payments': 'Payments',
   '/users': 'Users',
@@ -156,6 +157,7 @@ export class Shell implements OnInit, OnDestroy {
     { path: '/dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
     { path: '/orders', label: 'Orders', icon: 'receipt' },
     { path: '/restaurants', label: 'Restaurants', icon: 'store' },
+    { path: '/tables', label: 'Tables', icon: 'utensils-crossed' },
     { path: '/deliveries', label: 'Deliveries', icon: 'truck' },
     { path: '/payments', label: 'Payments', icon: 'credit-card' },
   ];
